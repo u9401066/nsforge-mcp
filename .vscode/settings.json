@@ -1,0 +1,21 @@
+{
+    // 啟用 Claude Skills 支援（實驗性功能）
+    "chat.useClaudeSkills": true,
+    
+    // 啟用 Agent 模式
+    "chat.agent.enabled": true,
+    
+    // 自動使用自定義指令檔案
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+    
+    // 自定義指令檔案位置
+    "chat.instructionsFilesLocations": {
+        ".github/copilot-instructions.md": true,
+        ".github/bylaws": true
+    },
+    
+    // 提示檔案位置
+    "chat.promptFilesLocations": {
+        ".github/prompts": true
+    }
+}

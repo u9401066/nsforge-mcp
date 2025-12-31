@@ -1,0 +1,192 @@
+# ============================================================
+# pyproject.toml 範本
+# 使用方式：複製此檔案為 pyproject.toml 並修改專案資訊
+# ============================================================
+
+[project]
+name = "your-project-name"
+version = "0.1.0"
+description = "專案描述"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Your Name", email = "your@email.com" }
+]
+keywords = ["keyword1", "keyword2"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# === 正式依賴 ===
+dependencies = [
+    # Web 框架（擇一）
+    # "fastapi>=0.104.0",
+    # "flask>=3.0.0",
+
+    # 資料庫（擇一）
+    # "sqlalchemy>=2.0.0",
+    # "sqlmodel>=0.0.14",
+
+    # 其他常用
+    # "pydantic>=2.5.0",
+    # "httpx>=0.25.0",
+]
+
+# === 開發依賴 ===
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-mock>=3.11.0",
+    "httpx>=0.25.0",
+
+    # E2E Testing
+    "playwright>=1.40.0",
+
+    # Static Analysis
+    "mypy>=1.5.0",
+    "ruff>=0.1.0",
+    "bandit[toml]>=1.7.5",
+
+    # Type stubs
+    "types-requests",
+]
+
+# === 入口點（CLI 工具）===
+[project.scripts]
+# your-cli = "src.cli:main"
+
+# === 建置系統 ===
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+# ============================================================
+# 工具配置
+# ============================================================
+
+# === uv 配置 ===
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+]
+
+# === Ruff (Linter + Formatter) ===
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented code)
+    "PL",     # pylint
+    "RUF",    # ruff-specific
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "PLR0913", # too many arguments
+]
+
+[tool.ruff.isort]
+known-first-party = ["src"]
+
+[tool.ruff.per-file-ignores]
+"tests/**/*.py" = ["S101", "ARG", "PLR2004"]
+
+# === MyPy (Type Checker) ===
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+
+# === Pytest ===
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "-ra",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests (require external services)",
+    "e2e: End-to-end tests (require running application)",
+    "slow: Slow running tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+]
+
+# === Coverage ===
+[tool.coverage.run]
+source = ["src"]
+branch = true
+parallel = true
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+]
+fail_under = 80
+show_missing = true
+skip_covered = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+# === Bandit (Security) ===
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B101"]  # assert used
