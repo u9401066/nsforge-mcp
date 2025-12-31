@@ -1,9 +1,12 @@
-# Symbolic Reasoning MCP Server 設計文檔
+# Neurosymbolic Forge 設計文檔
 
-> **專案名稱**: Symbolic Reasoning MCP Server  
+> **專案名稱**: Neurosymbolic Forge (NSForge)  
+> **套件名稱**: `nsforge-mcp`  
 > **版本**: 0.1.0 (Draft)  
 > **日期**: 2026-01-01  
 > **狀態**: 設計階段
+>
+> *Where Neural Meets Symbolic*
 
 ---
 
@@ -128,7 +131,7 @@ Kernel
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                     Symbolic Reasoning MCP Server                           │
+│                  Neurosymbolic Forge (NSForge) MCP Server                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   AI Agent (LLM)                                                            │
@@ -2527,12 +2530,12 @@ derivation:
 ### 7.2 專案結構
 
 ```
-symbolic-reasoning-mcp/
+nsforge-mcp/
 ├── pyproject.toml              # 專案配置
 ├── README.md                   # 說明文檔
 │
 ├── src/
-│   └── symbolic_mcp/
+│   └── nsforge/
 │       ├── __init__.py
 │       ├── server.py           # MCP Server 主程式
 │       │
@@ -2583,8 +2586,9 @@ symbolic-reasoning-mcp/
 ```toml
 # pyproject.toml
 [project]
-name = "symbolic-reasoning-mcp"
+name = "nsforge-mcp"
 version = "0.1.0"
+description = "Neurosymbolic Forge - Where Neural Meets Symbolic"
 requires-python = ">=3.10"
 
 dependencies = [
@@ -2825,3 +2829,4 @@ dev = [
 | 0.1.0 | 2026-01-01 | 初始設計文檔 |
 | 0.1.1 | 2026-01-01 | 新增 6.6 藥動學範例 |
 | 0.1.2 | 2026-01-01 | 新增附錄 B: Gap 分析與 MVP 定義 |
+| 0.1.3 | 2026-01-01 | 專案更名為 Neurosymbolic Forge (NSForge) |
