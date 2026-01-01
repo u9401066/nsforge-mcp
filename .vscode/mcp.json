@@ -1,0 +1,16 @@
+{
+    "servers": {
+        "sympy-mcp": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "run",
+                "--directory",
+                "c:\\tools\\sympy-mcp",
+                "mcp",
+                "run",
+                "c:\\tools\\sympy-mcp\\server.py"
+            ]
+        }
+    }
+}

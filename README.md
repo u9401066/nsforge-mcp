@@ -64,12 +64,30 @@
 
 ## 📦 安裝
 
+### 環境需求
+
+- **Python 3.12+**
+- **uv** (推薦的套件管理器)
+
 ```bash
 # 使用 uv（推薦）
 uv add nsforge-mcp
 
 # 或使用 pip
 pip install nsforge-mcp
+```
+
+### 從原始碼安裝
+
+```bash
+git clone https://github.com/u9401066/nsforge-mcp.git
+cd nsforge-mcp
+
+# 建立環境並安裝依賴
+uv sync --all-extras
+
+# 驗證安裝
+uv run python -c "import nsforge; print(nsforge.__version__)"
 ```
 
 ## 🚀 快速開始
@@ -138,17 +156,39 @@ Agent 呼叫 NSForge：
 
 ## 🏗️ 專案結構
 
+本專案採用 **DDD (Domain-Driven Design)** 架構，Core 與 MCP 分離：
+
 ```
 nsforge-mcp/
-├── src/nsforge/
-│   ├── server.py          # MCP Server 主程式
-│   ├── tools/             # MCP 工具定義
-│   ├── parsers/           # 表達式解析器
-│   ├── engines/           # 計算引擎
-│   └── knowledge/         # 公式知識庫
-├── tests/                 # 測試
-└── docs/                  # 文檔
+├── src/
+│   ├── nsforge/               # 🔷 Core Domain (純邏輯，無 MCP 依賴)
+│   │   ├── domain/            # Domain Layer
+│   │   │   ├── entities.py    #   - 實體 (Expression, Derivation)
+│   │   │   ├── value_objects.py #   - 值物件 (MathContext, Result)
+│   │   │   └── services.py    #   - 領域服務介面
+│   │   ├── application/       # Application Layer
+│   │   │   └── use_cases.py   #   - 用例 (Calculate, Derive, Verify)
+│   │   └── infrastructure/    # Infrastructure Layer
+│   │       ├── sympy_engine.py #   - SymPy 引擎實作
+│   │       └── verifier.py    #   - 驗證器實作
+│   │
+│   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
+│       ├── server.py          #   - FastMCP Server
+│       └── tools/             #   - MCP 工具定義
+│           ├── calculate.py   #     - 計算工具
+│           ├── calculus.py    #     - 微積分工具
+│           └── verify.py      #     - 驗證工具
+│
+├── tests/                     # 測試
+├── docs/                      # 文檔
+└── pyproject.toml             # 專案配置 (uv/hatch)
 ```
+
+### 架構優勢
+
+- **Core 可獨立測試**：不依賴 MCP，可單獨使用 `nsforge` 套件
+- **MCP 可替換**：未來可支援其他協議（REST, gRPC）
+- **依賴反轉**：Domain 定義介面，Infrastructure 實作
 
 ## 🧪 開發
 
@@ -157,12 +197,15 @@ nsforge-mcp/
 git clone https://github.com/u9401066/nsforge-mcp.git
 cd nsforge-mcp
 
-# 建立環境
-uv venv
+# 建立環境 (uv 會自動使用 Python 3.12+)
 uv sync --all-extras
 
 # 執行測試
 uv run pytest
+
+# 程式碼檢查
+uv run ruff check src/
+uv run mypy src/
 
 # 啟動開發 Server
 uv run nsforge-mcp

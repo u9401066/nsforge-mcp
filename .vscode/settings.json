@@ -1,8 +1,4 @@
 {
-    // 啟用 Claude Skills 支援（實驗性功能）
-    "chat.useClaudeSkills": true,
-    
-    // 啟用 Agent 模式
     "chat.agent.enabled": true,
     
     // 自動使用自定義指令檔案
@@ -17,5 +13,9 @@
     // 提示檔案位置
     "chat.promptFilesLocations": {
         ".github/prompts": true
-    }
+    },
+    "chat.useAgentSkills": true,
+
+    // MCP 自動啟動
+    "chat.mcp.autostart": "newAndOutdated"
 }
