@@ -139,9 +139,18 @@ Agent 呼叫 NSForge：
 
 ## 📖 文檔
 
-- [設計文檔](docs/symbolic-reasoning-mcp-design.md) - 完整架構與 API 設計
+### 設計文檔
+- [設計演化：推導框架](docs/design-evolution-derivation-framework.md) - 從模板到可組合推導框架的架構演化
+- [領域規劃：音響電路學](docs/domain-audio-circuits.md) - Audio circuits principles 與 modifications
+- [原始設計](docs/symbolic-reasoning-mcp-design.md) - 完整架構與 API 設計（參考）
+
+### 實例推導
+- [Power Amp 交聯電容設計](docs/examples/power-amp-coupling-capacitor.md) - RC 高通濾波器的完整推導流程
+  - 從理想公式到實際考慮（輸出阻抗、ESR、喇叭阻抗曲線）
+  - 展示 NSForge "Principles + Modifications" 框架實際應用
+
+### API 參考
 - [API 參考](docs/api.md) - MCP 工具詳細說明（待補）
-- [使用範例](docs/examples.md) - 更多應用場景（待補）
 
 ## 🛠️ MCP 工具
 

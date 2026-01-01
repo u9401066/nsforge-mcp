@@ -4,7 +4,12 @@
 
 ## 🎯 當前焦點
 
-- 設計 Symbolic Reasoning MCP Server - Neural-Symbolic AI 符號推導系統
+完成 NSForge 推導框架的第一個實際應用範例：Power Amp 交聯電容設計。展示了從理想 RC 高通濾波器公式開始，逐步加入修正項（輸出阻抗、電容ESR、喇叭阻抗曲線）的完整推導流程。
+
+## Current Goals
+
+- 準備 Git commit - 實例推導範例
+- 下一步：創建藥物動力學領域規劃文檔
 
 ## 📝 進行中的變更
 

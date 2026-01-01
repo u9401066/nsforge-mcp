@@ -312,12 +312,24 @@ User: "完全理解了！"
 - [ ] 實作 `derive_variant()` MCP tool
 - [ ] 建立第一組範例：Newton's 2nd Law + friction
 
-### Phase 2: 基礎領域
-- [ ] Mechanics: friction, drag, springs, gravity
-- [ ] Circuits: resistance, capacitance, inductance
+### Phase 2: 優先領域（用戶興趣）
+- [ ] **Audio Circuits**: 音響電路學
+  - Op-amp 濾波器設計
+  - 頻率響應分析
+  - 失真分析
+  - 阻抗匹配
+- [ ] **Pharmacokinetics**: 藥物動力學
+  - 一室/二室/三室模型
+  - 首過效應
+  - 藥物清除率
+  - 穩態濃度
+- [ ] Mechanics: friction, drag, springs, gravity（基礎）
+
+### Phase 3: 擴展領域
+- [ ] General Circuits: resistance, capacitance, inductance
 - [ ] Thermodynamics: heat_loss, non_ideal_gas
 
-### Phase 3: Lean4 連接
+### Phase 4: Lean4 連接
 - [ ] 標註每個 principle 的 Lean4 來源
 - [ ] 實作 `verify_with_lean4()` tool
 - [ ] 建立 Lean4 ↔ NSForge 映射
