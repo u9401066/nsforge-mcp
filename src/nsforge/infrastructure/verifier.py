@@ -4,12 +4,11 @@ Basic Verifier Implementation
 Concrete implementation of the Verifier interface.
 """
 
-from typing import Any
 import sympy as sp
 
-from nsforge.domain.entities import Expression, Derivation
-from nsforge.domain.value_objects import MathContext, VerificationResult, VerificationStatus
+from nsforge.domain.entities import Derivation, Expression
 from nsforge.domain.services import Verifier
+from nsforge.domain.value_objects import MathContext, VerificationResult, VerificationStatus
 
 
 class BasicVerifier(Verifier):
@@ -18,7 +17,7 @@ class BasicVerifier(Verifier):
     
     Performs structural and algebraic verification of derivations.
     """
-    
+
     def verify_step(
         self,
         step_input: Expression,
@@ -33,7 +32,7 @@ class BasicVerifier(Verifier):
                 input_valid=step_input.is_valid,
                 output_valid=step_output.is_valid,
             )
-        
+
         match operation:
             case "simplify":
                 return self._verify_simplification(step_input, step_output)
@@ -49,7 +48,7 @@ class BasicVerifier(Verifier):
                     status=VerificationStatus.INCONCLUSIVE,
                     message=f"Unknown operation: {operation}",
                 )
-    
+
     def verify_derivation(
         self,
         derivation: Derivation,
@@ -58,9 +57,9 @@ class BasicVerifier(Verifier):
         """Verify an entire derivation by checking each step."""
         if not derivation.steps:
             return VerificationResult.failure("Empty derivation")
-        
+
         failed_steps: list[int] = []
-        
+
         for step in derivation.steps:
             result = self.verify_step(
                 step.input_expr,
@@ -70,17 +69,17 @@ class BasicVerifier(Verifier):
             )
             if not result.is_verified:
                 failed_steps.append(step.step_number)
-        
+
         if failed_steps:
             return VerificationResult.failure(
                 f"Steps {failed_steps} failed verification",
                 failed_steps=failed_steps,
             )
-        
+
         return VerificationResult.success(
             f"All {len(derivation.steps)} steps verified"
         )
-    
+
     def check_dimensions(
         self,
         expr: Expression,
@@ -98,7 +97,7 @@ class BasicVerifier(Verifier):
             message="Dimensional analysis not yet implemented",
             dimension_check=None,
         )
-    
+
     def _verify_simplification(
         self,
         input_expr: Expression,
@@ -106,23 +105,23 @@ class BasicVerifier(Verifier):
     ) -> VerificationResult:
         """Verify that simplification preserves equality."""
         diff = sp.simplify(input_expr.sympy_expr - output_expr.sympy_expr)
-        
+
         if diff == 0:
             return VerificationResult.success("Simplification verified: expressions are equal")
-        
+
         # Try harder - expand both and compare
         diff_expanded = sp.simplify(
             sp.expand(input_expr.sympy_expr) - sp.expand(output_expr.sympy_expr)
         )
-        
+
         if diff_expanded == 0:
             return VerificationResult.success("Simplification verified after expansion")
-        
+
         return VerificationResult.failure(
             "Simplification changes expression value",
             difference=str(diff),
         )
-    
+
     def _verify_differentiation(
         self,
         input_expr: Expression,
@@ -141,14 +140,14 @@ class BasicVerifier(Verifier):
             if output_expr.sympy_expr == 0:
                 return VerificationResult.success("Derivative of constant is 0")
             return VerificationResult.failure("Non-zero derivative of constant")
-        
+
         # Take the first symbol as variable (heuristic)
         var = list(free_symbols)[0]
-        
+
         # Integrate output and compare with input
         integral = sp.integrate(output_expr.sympy_expr, var)
         diff = sp.simplify(integral - input_expr.sympy_expr)
-        
+
         # The difference should be a constant (no free_symbols except integration constant)
         if diff.free_symbols <= {var}:
             # Check if diff is constant w.r.t. var
@@ -158,13 +157,13 @@ class BasicVerifier(Verifier):
                     message="Differentiation verified by reverse integration",
                     reverse_check=True,
                 )
-        
+
         return VerificationResult(
             status=VerificationStatus.INCONCLUSIVE,
             message="Could not verify differentiation",
             reverse_check=False,
         )
-    
+
     def _verify_integration(
         self,
         input_expr: Expression,
@@ -181,20 +180,20 @@ class BasicVerifier(Verifier):
             var = sp.Symbol('x')
         else:
             var = list(free_symbols)[0]
-        
+
         # Differentiate output
         derivative = sp.diff(output_expr.sympy_expr, var)
-        
+
         # Compare with input
         diff = sp.simplify(derivative - input_expr.sympy_expr)
-        
+
         if diff == 0:
             return VerificationResult(
                 status=VerificationStatus.VERIFIED,
                 message="Integration verified by differentiation",
                 reverse_check=True,
             )
-        
+
         return VerificationResult.failure(
             "Differentiation of integral does not match original",
             derivative=str(derivative),

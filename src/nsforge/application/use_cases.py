@@ -9,13 +9,13 @@ and direct those entities to use their domain logic.
 from dataclasses import dataclass
 from typing import Any
 
-from nsforge.domain.entities import Expression, Derivation, DerivationStep
+from nsforge.domain.entities import Derivation, DerivationStep, Expression
+from nsforge.domain.services import SymbolicEngine, Verifier
 from nsforge.domain.value_objects import (
+    CalculationResult,
     MathContext,
     VerificationResult,
-    CalculationResult,
 )
-from nsforge.domain.services import SymbolicEngine, Verifier
 
 
 @dataclass
@@ -25,9 +25,9 @@ class CalculateUseCase:
     
     Handles: simplification, evaluation, basic operations.
     """
-    
+
     engine: SymbolicEngine
-    
+
     def execute(
         self,
         expression: str,
@@ -49,13 +49,13 @@ class CalculateUseCase:
         """
         import time
         start = time.perf_counter()
-        
+
         try:
             # Parse expression
             expr = self.engine.parse(expression, context)
             if not expr.is_valid:
                 return CalculationResult.from_error(f"Failed to parse: {expression}")
-            
+
             # Perform operation
             match operation:
                 case "simplify":
@@ -64,22 +64,22 @@ class CalculateUseCase:
                     result_expr = self._evaluate(expr, context, **kwargs)
                 case _:
                     return CalculationResult.from_error(f"Unknown operation: {operation}")
-            
+
             elapsed = (time.perf_counter() - start) * 1000
-            
+
             return CalculationResult(
                 success=True,
                 result=result_expr.raw,
                 latex=result_expr.latex,
                 computation_time_ms=elapsed,
             )
-            
+
         except Exception as e:
             return CalculationResult.from_error(str(e))
-    
+
     def _evaluate(
-        self, 
-        expr: Expression, 
+        self,
+        expr: Expression,
         context: MathContext | None,
         **kwargs: Any
     ) -> Expression:
@@ -96,9 +96,9 @@ class SimplifyUseCase:
     
     Provides various simplification strategies.
     """
-    
+
     engine: SymbolicEngine
-    
+
     def execute(
         self,
         expression: str,
@@ -120,9 +120,9 @@ class SimplifyUseCase:
             expr = self.engine.parse(expression, context)
             if not expr.is_valid:
                 return CalculationResult.from_error(f"Failed to parse: {expression}")
-            
+
             result = self.engine.simplify(expr, context)
-            
+
             return CalculationResult(
                 success=True,
                 result=result.raw,
@@ -139,10 +139,10 @@ class DeriveUseCase:
     
     Handles multi-step derivations with step tracking.
     """
-    
+
     engine: SymbolicEngine
     verifier: Verifier | None = None
-    
+
     def execute(
         self,
         goal: str,
@@ -165,24 +165,24 @@ class DeriveUseCase:
             Derivation object with results
         """
         derivation = Derivation(goal=goal)
-        
+
         # Parse premises
         for premise_str in premises:
             expr = self.engine.parse(premise_str, context)
             derivation.premises.append(expr)
-        
+
         # Execute steps
         current_expr = derivation.premises[-1] if derivation.premises else None
-        
+
         for i, step_def in enumerate(steps, 1):
             operation = step_def.get("operation", "simplify")
-            
+
             if current_expr is None:
                 break
-                
+
             # Execute the step
             result_expr = self._execute_step(current_expr, operation, step_def, context)
-            
+
             step = DerivationStep(
                 step_number=i,
                 operation=operation,
@@ -193,18 +193,18 @@ class DeriveUseCase:
             )
             derivation.add_step(step)
             current_expr = result_expr
-        
+
         # Set conclusion
         if current_expr:
             derivation.conclusion = current_expr
-        
+
         # Verify if requested
         if verify and self.verifier:
             verification = self.verifier.verify_derivation(derivation, context)
             derivation.is_verified = verification.is_verified
-        
+
         return derivation
-    
+
     def _execute_step(
         self,
         expr: Expression,
@@ -237,10 +237,10 @@ class VerifyUseCase:
     
     Performs various verification checks.
     """
-    
+
     engine: SymbolicEngine
     verifier: Verifier
-    
+
     def execute(
         self,
         original: str,
@@ -263,16 +263,16 @@ class VerifyUseCase:
         try:
             original_expr = self.engine.parse(original, context)
             result_expr = self.engine.parse(result, context)
-            
+
             return self.verifier.verify_step(
-                original_expr, 
-                result_expr, 
-                operation, 
+                original_expr,
+                result_expr,
+                operation,
                 context
             )
         except Exception as e:
             return VerificationResult.failure(f"Verification error: {e}")
-    
+
     def verify_equality(
         self,
         expr1: str,
@@ -293,7 +293,7 @@ class VerifyUseCase:
         try:
             e1 = self.engine.parse(expr1, context)
             e2 = self.engine.parse(expr2, context)
-            
+
             if self.engine.equals(e1, e2, context):
                 return VerificationResult.success("Expressions are equal")
             else:

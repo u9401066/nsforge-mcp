@@ -8,7 +8,7 @@ fit within a single entity or value object.
 from abc import ABC, abstractmethod
 from typing import Any
 
-from nsforge.domain.entities import Expression, Derivation
+from nsforge.domain.entities import Derivation, Expression
 from nsforge.domain.value_objects import MathContext, VerificationResult
 
 
@@ -19,28 +19,28 @@ class SymbolicEngine(ABC):
     This is a domain service interface - the actual implementation
     lives in the infrastructure layer (e.g., SymPyEngine).
     """
-    
+
     @abstractmethod
     def parse(self, expr_str: str, context: MathContext | None = None) -> Expression:
         """Parse a string into an Expression."""
         ...
-    
+
     @abstractmethod
     def simplify(self, expr: Expression, context: MathContext | None = None) -> Expression:
         """Simplify an expression."""
         ...
-    
+
     @abstractmethod
     def differentiate(
-        self, 
-        expr: Expression, 
+        self,
+        expr: Expression,
         variable: str,
         order: int = 1,
         context: MathContext | None = None
     ) -> Expression:
         """Differentiate an expression."""
         ...
-    
+
     @abstractmethod
     def integrate(
         self,
@@ -52,7 +52,7 @@ class SymbolicEngine(ABC):
     ) -> Expression:
         """Integrate an expression."""
         ...
-    
+
     @abstractmethod
     def solve(
         self,
@@ -62,7 +62,7 @@ class SymbolicEngine(ABC):
     ) -> list[Expression]:
         """Solve an equation for a variable."""
         ...
-    
+
     @abstractmethod
     def substitute(
         self,
@@ -72,7 +72,7 @@ class SymbolicEngine(ABC):
     ) -> Expression:
         """Substitute values into an expression."""
         ...
-    
+
     @abstractmethod
     def equals(
         self,
@@ -90,7 +90,7 @@ class Verifier(ABC):
     
     Verifies that mathematical derivations are correct.
     """
-    
+
     @abstractmethod
     def verify_step(
         self,
@@ -101,7 +101,7 @@ class Verifier(ABC):
     ) -> VerificationResult:
         """Verify a single derivation step."""
         ...
-    
+
     @abstractmethod
     def verify_derivation(
         self,
@@ -110,7 +110,7 @@ class Verifier(ABC):
     ) -> VerificationResult:
         """Verify an entire derivation."""
         ...
-    
+
     @abstractmethod
     def check_dimensions(
         self,
@@ -127,7 +127,7 @@ class FormulaRepository(ABC):
     
     Provides access to known formulas and their derivations.
     """
-    
+
     @abstractmethod
     def find_formula(
         self,
@@ -136,7 +136,7 @@ class FormulaRepository(ABC):
     ) -> dict[str, Any] | None:
         """Find a formula by name."""
         ...
-    
+
     @abstractmethod
     def list_formulas(
         self,
@@ -145,7 +145,7 @@ class FormulaRepository(ABC):
     ) -> list[dict[str, Any]]:
         """List available formulas."""
         ...
-    
+
     @abstractmethod
     def get_derivation(
         self,

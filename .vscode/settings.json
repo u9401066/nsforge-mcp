@@ -17,5 +17,6 @@
     "chat.useAgentSkills": true,
 
     // MCP 自動啟動
-    "chat.mcp.autostart": "newAndOutdated"
+    "chat.mcp.autostart": "newAndOutdated",
+    "lineCountExplorer.enabled": true
 }

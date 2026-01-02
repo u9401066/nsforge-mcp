@@ -6,7 +6,6 @@ The generated code uses SymPy - NOT hand-crafted by Agent.
 """
 
 from typing import Any
-import json
 
 
 def register_codegen_tools(mcp) -> None:

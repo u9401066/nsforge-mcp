@@ -9,10 +9,10 @@ from typing import Any
 
 import sympy as sp
 from sympy.parsing.sympy_parser import (
+    convert_xor,
+    implicit_multiplication_application,
     parse_expr,
     standard_transformations,
-    implicit_multiplication_application,
-    convert_xor,
 )
 
 # Standard transformations for parsing

@@ -96,6 +96,18 @@ strict = true
 warn_return_any = true
 warn_unused_ignores = true
 
+# MCP 工具裝飾器沒有完整類型標註，允許未標註的裝飾器
+disallow_untyped_decorators = false
+
+# 允許第三方庫缺少類型標註
+[[tool.mypy.overrides]]
+module = [
+    "sympy.*",
+    "mcp.*",
+    "yaml.*",
+]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

@@ -15,15 +15,23 @@
 - 設定 sympy-mcp vendor 目錄
 - 驗證 sympy-mcp 可用於藥動學推導（溫度校正模型）
 - 確認「公式知識庫」設計方向
+- 實作推導引擎核心 (DerivationSession + SessionManager)
+- 建立 Formula domain model 和 FormulaParser
+- 建立 DerivationRepository 用於儲存推導結果
+- 新增 SciPy Constants Adapter (物理常數)
+- 實作完整的 MCP 推導工具集 (derivation.py)
+- 建立 formulas/derivations/ 目錄結構與範例
+- 建立藥動學推導範例 (temp_corrected_elimination, fat_adjusted_vd)
+- 新增 py.typed 支援類型檢查
 
 ## Doing
 
-- 設計公式知識庫架構（formulas/）
+- 測試與驗證推導引擎
+- 準備 Git commit + push
 
 ## Next
 
-- 建立 formulas/ 目錄結構
-- 建立第一批基礎原理（Arrhenius, Fick's Law, 質量守恆）
-- 實作 save_derived_formula() MCP 工具
-- 實作 search_formulas() MCP 工具
-- 藥物動力學公式庫（一室/二室/體脂校正）
+- 實作 search_formulas() 查詢功能
+- 增加更多藥動學推導範例
+- 整合 verify tools 到推導工作流
+- 建立 Code Generation 功能測試

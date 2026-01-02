@@ -11,9 +11,43 @@
 
 ## Current Goals
 
-- 建立 formulas/ 知識庫結構
-- 設計公式 YAML 格式（含狀態追蹤、文獻引用）
-- 實作公式儲存/查詢 MCP 工具
+- ## 🎯 當前焦點
+- 完成推導引擎核心實作，準備進行 Git commit。
+- ## ✅ 本次完成
+- ### 推導引擎核心 (DerivationSession)
+- - `src/nsforge/domain/formula.py` - Formula domain model + FormulaParser
+- - `src/nsforge/domain/derivation_session.py` - 推導會話管理
+- - `src/nsforge/infrastructure/derivation_repository.py` - 推導結果儲存庫
+- - `src/nsforge/infrastructure/adapters/scipy_constants.py` - 物理常數適配器
+- ### MCP 工具集
+- - `src/nsforge_mcp/tools/derivation.py` - 完整的推導 MCP 工具
+- - derivation_start/resume/abort/status
+- - derivation_load_formula
+- - derivation_substitute/simplify/solve_for/differentiate/integrate
+- - derivation_complete/get_steps
+- - derivation_list_saved/get_saved/search_saved/update_saved/delete_saved
+- ### 推導範例
+- - `formulas/derivations/README.md` - 說明文檔
+- - `formulas/derivations/pharmacokinetics/temp_corrected_elimination.md`
+- - `formulas/derivations/pharmacokinetics/fat_adjusted_vd.md`
+- ### 測試
+- - `tests/test_derivation_engine.py` - 推導引擎整合測試
+- - `tests/test_registry.py` - 公式註冊表測試
+- ### 其他
+- - 新增 `py.typed` 支援類型檢查
+- - 歸檔 RC low-pass 模板到 `templates/archive/`
+- ## 📝 架構決策
+- 推導引擎採用：
+- - **有狀態會話管理** - DerivationSession 可暫停/恢復
+- - **完整步驟追蹤** - 每步都有 SymPy 指令記錄
+- - **自動持久化** - 防止中斷遺失
+- - **學術溯源** - 追蹤公式來源
+- ## 🔜 下一步
+- - 整合 verify tools
+- - 增加更多推導範例
+- - 建立 Code Generation 測試
+- ---
+- *Last updated: 2026-01-02*
 
 ## 📝 今日變更
 

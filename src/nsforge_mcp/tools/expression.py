@@ -8,7 +8,7 @@ These tools convert human-readable formulas to SymPy-computable form.
 from typing import Any
 
 
-def register_expression_tools(mcp) -> None:
+def register_expression_tools(mcp: Any) -> None:
     """Register expression parsing tools with MCP server."""
 
     @mcp.tool()
@@ -44,10 +44,10 @@ def register_expression_tools(mcp) -> None:
         """
         import sympy as sp
         from sympy.parsing.sympy_parser import (
+            convert_xor,
+            implicit_multiplication_application,
             parse_expr,
             standard_transformations,
-            implicit_multiplication_application,
-            convert_xor,
         )
 
         # Symbol replacements for common notations
@@ -309,7 +309,7 @@ def register_expression_tools(mcp) -> None:
                     result.append({
                         "name": sym_name,
                         "type": "real",
-                        "suggested_unit": None,
+                        "suggested_unit": "",
                         "description": "Unknown symbol",
                     })
 
