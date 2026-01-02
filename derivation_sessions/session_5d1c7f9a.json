@@ -1,0 +1,293 @@
+{
+  "session_id": "5d1c7f9a",
+  "name": "obesity_pk_distribution_efficacy",
+  "description": "從體重/體脂影響藥物分布，推導到血藥濃度和臨床有效度的關係",
+  "status": "completed",
+  "formulas": {},
+  "current_expression": "Dose*E_max/(Dose + EC50*(V_lean + (-LBW + TBW)*(0.3*LogP + 0.1)))",
+  "current_formula_id": null,
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "custom",
+      "description": "基本濃度公式：血藥濃度 = 劑量 / 分布容積\n\n📝 Notes: 這是最基本的 PK 原理：給定劑量在體內分布後達到的初始濃度。V_adj 就是體重和體脂影響的關鍵變數！",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "這是最基本的 PK 原理：給定劑量在體內分布後達到的初始濃度。V_adj 就是體重和體脂影響的關鍵變數！"
+      },
+      "output_expression": "Dose/V_adj",
+      "output_latex": "\\frac{Dose}{V_{adj}}",
+      "sympy_command": "# From sympy_mcp: Dose / V_adj...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:50:34.287331"
+    },
+    {
+      "step_number": 2,
+      "operation": "custom",
+      "description": "代入 fat-adjusted Vd：展開體重和體脂的影響\n\n📝 Notes: ⚡ 關鍵洞見：對於肥胖患者 (TBW >> LBW)，分母增大 → 濃度下降！但影響程度取決於藥物的親脂性 f_fat。親水藥物 (f_fat ≈ 0.1) 影響小，親脂藥物 (f_fat = 1.0) 影響大。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "⚡ 關鍵洞見：對於肥胖患者 (TBW >> LBW)，分母增大 → 濃度下降！但影響程度取決於藥物的親脂性 f_fat。親水藥物 (f_fat ≈ 0.1) 影響小，親脂藥物 (f_fat = 1.0) 影響大。"
+      },
+      "output_expression": "Dose/(V_lean + f_fat*(-LBW + TBW))",
+      "output_latex": "\\frac{Dose}{V_{lean} + f_{fat} \\left(- LBW + TBW\\right)}",
+      "sympy_command": "# From sympy_mcp: Dose / (V_lean + f_fat * (TBW - LBW))...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:50:53.725449"
+    },
+    {
+      "step_number": 3,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 🏥 臨床意義：肥胖患者給予親脂藥物（如 propofol）的固定劑量，會導致血藥濃度不足 → 可能無效！這就是為什麼需要劑量調整。\n   Related: Dose, f_fat, TBW",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['Dose', 'f_fat', 'TBW']",
+        "related_step": ""
+      },
+      "output_expression": "Dose/(V_lean + f_fat*(-LBW + TBW))",
+      "output_latex": "\\frac{Dose}{V_{lean} + f_{fat} \\left(- LBW + TBW\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:50:53.751503"
+    },
+    {
+      "step_number": 4,
+      "operation": "custom",
+      "description": "反推調整劑量：要達到目標濃度 C_target，需要的劑量\n\n📝 Notes: 這個公式清楚顯示：肥胖患者需要的劑量 = 目標濃度 × 調整後分布容積。體脂越多 (TBW-LBW 越大)、藥物越親脂 (f_fat 越大)，需要的劑量就越高！",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "這個公式清楚顯示：肥胖患者需要的劑量 = 目標濃度 × 調整後分布容積。體脂越多 (TBW-LBW 越大)、藥物越親脂 (f_fat 越大)，需要的劑量就越高！"
+      },
+      "output_expression": "C_target*(V_lean + f_fat*(-LBW + TBW))",
+      "output_latex": "C_{target} \\left(V_{lean} + f_{fat} \\left(- LBW + TBW\\right)\\right)",
+      "sympy_command": "# From sympy_mcp: C_target * (V_lean + f_fat * (TBW - LBW))...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:51:07.661699"
+    },
+    {
+      "step_number": 5,
+      "operation": "custom",
+      "description": "💡 [OBSERVATION] 📊 觀察：這解釋了為什麼同樣想達到鎮靜效果，一個 150kg 的肥胖患者可能需要比 70kg 正常體重患者多 2-3 倍的 propofol 劑量。\n   Related: Dose, TBW, LBW",
+      "input_expressions": {
+        "note_type": "observation",
+        "related_variables": "['Dose', 'TBW', 'LBW']",
+        "related_step": ""
+      },
+      "output_expression": "C_target*(V_lean + f_fat*(-LBW + TBW))",
+      "output_latex": "C_{target} \\left(V_{lean} + f_{fat} \\left(- LBW + TBW\\right)\\right)",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:51:07.692696"
+    },
+    {
+      "step_number": 6,
+      "operation": "custom",
+      "description": "連結到藥效：Emax 模型 - 濃度如何轉換為臨床效果\n\n📝 Notes: Emax 模型是 PD (pharmacodynamics) 的經典模型。當 C = EC50 時，效果達到 50% Emax。這個 C 就是前面推導的血藥濃度！",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "Emax 模型是 PD (pharmacodynamics) 的經典模型。當 C = EC50 時，效果達到 50% Emax。這個 C 就是前面推導的血藥濃度！"
+      },
+      "output_expression": "C*E_max/(C + EC50)",
+      "output_latex": "\\frac{C E_{max}}{C + EC_{50}}",
+      "sympy_command": "# From sympy_mcp: E_max * C / (EC50 + C)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:51:20.007241"
+    },
+    {
+      "step_number": 7,
+      "operation": "custom",
+      "description": "完整模型：從劑量、體重、體脂 → 直接到臨床效果\n\n📝 Notes: 🔥 這是關鍵公式！它直接連結：劑量 → (受體重/體脂影響的) 分布 → 濃度 → 臨床效果。分母中的 V_lean + f_fat*(TBW-LBW) 就是肥胖影響的核心！",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "🔥 這是關鍵公式！它直接連結：劑量 → (受體重/體脂影響的) 分布 → 濃度 → 臨床效果。分母中的 V_lean + f_fat*(TBW-LBW) 就是肥胖影響的核心！"
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + f_fat*(-LBW + TBW)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + f_{fat} \\left(- LBW + TBW\\right)\\right)}",
+      "sympy_command": "# From sympy_mcp: Dose * E_max / (Dose + EC50 * (V_lean + f_fat * (T...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:51:42.852991"
+    },
+    {
+      "step_number": 8,
+      "operation": "custom",
+      "description": "⚠️ [LIMITATION] ⚠️ 關鍵限制：這個公式假設藥物立即分布到平衡（單房室模型）。實際上藥物分布需要時間，且可能有多個房室。對於快速作用的藥物（如 propofol）需要更複雜的藥動/藥效模型。\n   Related: Dose, C",
+      "input_expressions": {
+        "note_type": "limitation",
+        "related_variables": "['Dose', 'C']",
+        "related_step": ""
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + f_fat*(-LBW + TBW)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + f_{fat} \\left(- LBW + TBW\\right)\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:51:42.892501"
+    },
+    {
+      "step_number": 9,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 💡 臨床應用洞見：從公式可見，要在肥胖患者達到相同效果，有兩個策略：(1) 增加劑量；(2) 使用親水性較高的替代藥物（降低 f_fat）。第二個策略常被忽略但可能更安全！\n   Related: Dose, f_fat, E_max",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['Dose', 'f_fat', 'E_max']",
+        "related_step": ""
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + f_fat*(-LBW + TBW)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + f_{fat} \\left(- LBW + TBW\\right)\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:51:42.897420"
+    },
+    {
+      "step_number": 10,
+      "operation": "custom",
+      "description": "展開 f_fat 與藥物親疏水性（LogP）的關係\n\n📝 Notes: LogP（辛醇-水分配係數）是藥物親疏水性的標準指標：\\n- LogP < 0: 親水性（hydrophilic），主要分布在水相\\n- LogP > 2: 疏水性/親脂性（lipophilic），傾向分布到脂肪組織\\n- 0 ≤ LogP ≤ 2: 中間區域\\n\\nf_fat 是脂肪分配係數，描述藥物在脂肪組織中的分布比例。線性模型：f_fat = f_base + α·LogP",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "LogP（辛醇-水分配係數）是藥物親疏水性的標準指標：\\n- LogP < 0: 親水性（hydrophilic），主要分布在水相\\n- LogP > 2: 疏水性/親脂性（lipophilic），傾向分布到脂肪組織\\n- 0 ≤ LogP ≤ 2: 中間區域\\n\\nf_fat 是脂肪分配係數，描述藥物在脂肪組織中的分布比例。線性模型：f_fat = f_base + α·LogP"
+      },
+      "output_expression": "LogP*alpha + f_hydrophilic",
+      "output_latex": "LogP \\alpha + f_{hydrophilic}",
+      "sympy_command": "# From sympy_mcp: f_hydrophilic + alpha * LogP...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:54:51.939092"
+    },
+    {
+      "step_number": 11,
+      "operation": "custom",
+      "description": "💡 [OBSERVATION] 📊 實際數據範例（from Hanley et al., 2010）：\\n- Gentamicin (LogP = -3.1): f_fat ≈ 0.1 （幾乎不進入脂肪）\\n- Propofol (LogP = 4.0): f_fat = 1.0 （完全分布到脂肪）\\n- Midazolam (LogP = 3.9): f_fat = 1.0\\n\\n經驗公式：f_fat = 0.1 + 0.3·LogP （當 0 ≤ LogP < 2）；f_fat = 1.0 （當 LogP ≥ 2）\n   Related: f_fat, LogP",
+      "input_expressions": {
+        "note_type": "observation",
+        "related_variables": "['f_fat', 'LogP']",
+        "related_step": ""
+      },
+      "output_expression": "LogP*alpha + f_hydrophilic",
+      "output_latex": "LogP \\alpha + f_{hydrophilic}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:54:51.975013"
+    },
+    {
+      "step_number": 12,
+      "operation": "custom",
+      "description": "代入 LogP 依賴的 f_fat：連結藥物化學性質到臨床效果\n\n📝 Notes: 🔥 這是完整的 PKPD-LogP 模型！現在可以直接從藥物的化學性質（LogP）預測肥胖患者的劑量需求：\\n\\n分母展開：V_lean + (0.1 + 0.3·LogP)·(TBW - LBW)\\n= V_lean + 0.1·(TBW - LBW) + 0.3·LogP·(TBW - LBW)\\n\\n第一項：基礎瘦組織容積\\n第二項：脂肪的基礎貢獻（所有藥物都有）\\n第三項：LogP 依賴項 - 藥物越親脂，這項越大！",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "🔥 這是完整的 PKPD-LogP 模型！現在可以直接從藥物的化學性質（LogP）預測肥胖患者的劑量需求：\\n\\n分母展開：V_lean + (0.1 + 0.3·LogP)·(TBW - LBW)\\n= V_lean + 0.1·(TBW - LBW) + 0.3·LogP·(TBW - LBW)\\n\\n第一項：基礎瘦組織容積\\n第二項：脂肪的基礎貢獻（所有藥物都有）\\n第三項：LogP 依賴項 - 藥物越親脂，這項越大！"
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + (-LBW + TBW)*(0.3*LogP + 0.1)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + \\left(- LBW + TBW\\right) \\left(0.3 LogP + 0.1\\right)\\right)}",
+      "sympy_command": "# From sympy_mcp: Dose * E_max / (Dose + EC50 * (V_lean + (0.1 + 0.3...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:55:13.717557"
+    },
+    {
+      "step_number": 13,
+      "operation": "custom",
+      "description": "💡 [OBSERVATION] 💡 關鍵洞見：從這個公式可見，肥胖對藥效的影響程度與 LogP 成正比！\\n\\n定量分析：\\n- 親水藥物 (LogP ≈ -3): 額外增加 ≈ 0.1×脂肪重\\n- 中等疏水 (LogP ≈ 2): 額外增加 ≈ 0.7×脂肪重  \\n- 高疏水 (LogP ≈ 4): 額外增加 ≈ 1.3×脂肪重（接近全脂肪重！）\\n\\n這解釋了為何 propofol (LogP=4) 在肥胖患者需要大幅增加劑量，而 gentamicin (LogP=-3) 幾乎不需調整。\n   Related: LogP, TBW, LBW, Dose",
+      "input_expressions": {
+        "note_type": "observation",
+        "related_variables": "['LogP', 'TBW', 'LBW', 'Dose']",
+        "related_step": ""
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + (-LBW + TBW)*(0.3*LogP + 0.1)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + \\left(- LBW + TBW\\right) \\left(0.3 LogP + 0.1\\right)\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:55:13.753545"
+    },
+    {
+      "step_number": 14,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 🏥 臨床應用範例：150kg 肥胖患者 vs 70kg 正常體重患者\n\n假設：\n- TBW_obese = 150 kg, LBW_obese = 70 kg → 脂肪 = 80 kg\n- TBW_normal = 70 kg, LBW_normal = 60 kg → 脂肪 = 10 kg\n- V_lean = 40 L (標準)\n- 目標相同效果 (E = 0.8×E_max)\n\n**Propofol (LogP = 4.0)**:\n- f_fat = 1.0 (飽和)\n- V_adj_obese = 40 + 1.0×80 = 120 L\n- V_adj_normal = 40 + 1.0×10 = 50 L\n- 劑量比 = 120/50 = **2.4倍**\n\n**Remifentanil (LogP = 1.5)**:\n- f_fat = 0.1 + 0.3×1.5 = 0.55\n- V_adj_obese = 40 + 0.55×80 = 84 L\n- V_adj_normal = 40 + 0.55×10 = 45.5 L\n- 劑量比 = 84/45.5 = **1.85倍**\n\n**結論**：選用較親水的藥物可以減少肥胖帶來的劑量調整幅度，降低過量風險！\n   Related: LogP, Dose, V_lean",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['LogP', 'Dose', 'V_lean']",
+        "related_step": ""
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + (-LBW + TBW)*(0.3*LogP + 0.1)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + \\left(- LBW + TBW\\right) \\left(0.3 LogP + 0.1\\right)\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:55:23.491825"
+    },
+    {
+      "step_number": 15,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 🔧 臨床決策建議：肥胖患者藥物選擇策略\n\n**決策樹**：\n\n```\n肥胖患者需要鎮靜/麻醉\n    ↓\n檢查 BMI 和體脂百分比\n    ↓\nBMI > 35 或體脂 > 40%？\n    ├─ No → 使用標準劑量（略調整）\n    └─ Yes → 評估藥物選擇\n           ↓\n       查 LogP 值\n           ├─ LogP < 0 (親水) → 用 LBW 劑量\n           ├─ 0 ≤ LogP < 2 (中等) → 用調整體重 (ABW)\n           └─ LogP ≥ 2 (疏水) → 用 TBW 或分段給藥\n```\n\n**藥物替代建議**：\n- Propofol (LogP=4) → Ketamine (LogP=2.2) 或 Dexmedetomidine\n- Fentanyl (LogP=4.1) → Remifentanil (LogP=1.5)  \n- Midazolam (LogP=3.9) → 減量使用或選用短效藥物\n\n**關鍵原則**：LogP 越高，劑量調整越複雜；選用中等 LogP 藥物可簡化給藥並提高安全性。\n   Related: LogP, Dose, TBW, LBW",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['LogP', 'Dose', 'TBW', 'LBW']",
+        "related_step": ""
+      },
+      "output_expression": "Dose*E_max/(Dose + EC50*(V_lean + (-LBW + TBW)*(0.3*LogP + 0.1)))",
+      "output_latex": "\\frac{Dose E_{max}}{Dose + EC_{50} \\left(V_{lean} + \\left(- LBW + TBW\\right) \\left(0.3 LogP + 0.1\\right)\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:55:33.650054"
+    }
+  ],
+  "created_at": "2026-01-02T21:50:07.546596",
+  "updated_at": "2026-01-02T21:55:56.458968",
+  "author": "NSForge User",
+  "tags": []
+}

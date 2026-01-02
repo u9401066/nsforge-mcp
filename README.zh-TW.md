@@ -3,7 +3,7 @@
 > **"Forge" = 透過驗證式推導來創造新公式**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
 
 🌐 [English](README.md) | **繁體中文**
@@ -295,14 +295,113 @@ Agent 呼叫 NSForge：
 
 ## 🛠️ MCP 工具
 
+NSForge 提供 **31 個 MCP 工具**，分為 5 個模組：
+
+### 🔥 推導引擎 (21 個工具)
+
 | 工具 | 用途 |
 | ---- | ---- |
-| `symbolic_calculate` | 符號數學計算 |
-| `physics_formula` | 物理公式推導 |
-| `chemistry_calculate` | 化學計算 |
-| `algorithm_analyze` | 演算法分析 |
-| `verify_derivation` | 推導驗證 |
-| `unit_convert` | 單位換算 |
+| `derivation_start` | 開始新的推導會話 |
+| `derivation_resume` | 恢復先前的會話 |
+| `derivation_status` | 取得當前會話狀態 |
+| `derivation_load_formula` | 載入基礎公式 |
+| `derivation_substitute` | 變數替換 |
+| `derivation_simplify` | 簡化表達式 |
+| `derivation_solve_for` | 解出變數 |
+| `derivation_differentiate` | 微分表達式 |
+| `derivation_integrate` | 積分表達式 |
+| `derivation_record_step` | 記錄步驟與備註 |
+| `derivation_add_note` | 加入人類洞見 |
+| `derivation_complete` | 完成並儲存 |
+| `derivation_abort` | 放棄當前會話 |
+| `derivation_list_saved` | 列出已儲存的推導 |
+| `derivation_get_saved` | 取得已儲存的推導 |
+| `derivation_search_saved` | 搜尋推導 |
+| `derivation_update_saved` | 更新元資料 |
+| `derivation_delete_saved` | 刪除推導 |
+| `derivation_repository_stats` | 儲存庫統計 |
+| `derivation_list_sessions` | 列出所有會話 |
+| `derivation_get_steps` | 取得推導步驟 |
+
+### ✅ 驗證 (6 個工具)
+
+| 工具 | 用途 |
+| ---- | ---- |
+| `verify_equality` | 驗證兩個表達式是否相等 |
+| `verify_derivative` | 透過積分驗證微分 |
+| `verify_integral` | 透過微分驗證積分 |
+| `verify_solution` | 驗證方程式解 |
+| `check_dimensions` | 維度分析 |
+| `reverse_verify` | 逆向操作驗證 |
+
+### 🔢 計算 (2 個工具)
+
+| 工具 | 用途 |
+| ---- | ---- |
+| `evaluate_numeric` | 數值計算 |
+| `symbolic_equal` | 符號相等檢查 |
+
+### 📝 表達式 (3 個工具)
+
+| 工具 | 用途 |
+| ---- | ---- |
+| `parse_expression` | 解析數學表達式 |
+| `validate_expression` | 驗證表達式語法 |
+| `extract_symbols` | 提取符號與元資料 |
+
+### 💻 程式碼生成 (4 個工具)
+
+| 工具 | 用途 |
+| ---- | ---- |
+| `generate_python_function` | 生成 Python 函數 |
+| `generate_latex_derivation` | 生成 LaTeX 文件 |
+| `generate_derivation_report` | 生成 Markdown 報告 |
+| `generate_sympy_script` | 生成獨立 SymPy 腳本 |
+
+## 🧠 Agent Skills 架構
+
+NSForge 包含 **18 個預建 Skills**，教導 AI Agent 如何有效使用工具：
+
+### 🔥 NSForge 專用 Skills (5 個)
+
+| Skill | 觸發詞 | 說明 |
+| ----- | ------ | ---- |
+| `nsforge-derivation-workflow` | derive, 推導, prove | 完整推導工作流含會話管理 |
+| `nsforge-formula-management` | list, 公式庫, 找公式 | 查詢、更新、刪除已儲存公式 |
+| `nsforge-verification-suite` | verify, check, 維度 | 等式、微分、積分、維度檢查 |
+| `nsforge-code-generation` | generate, export, LaTeX | Python 函數、報告、SymPy 腳本 |
+| `nsforge-quick-calculate` | calculate, simplify, solve | 快速計算（無需會話） |
+
+### 🔧 通用開發 Skills (13 個)
+
+包含 `git-precommit`、`memory-updater`、`code-reviewer`、`test-generator` 等。
+
+> 📖 **詳細說明**：參見 [NSForge Skills 使用指南](docs/nsforge-skills-guide.md) (588 行完整文件)
+
+### 黃金守則：先用 SymPy-MCP
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  Phase 1: SymPy-MCP 執行計算                                   │
+│     intro_many([...]) → introduce_expression(...) →             │
+│     substitute/solve/dsolve... → print_latex_expression(...)   │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 2: NSForge 記錄與儲存                                   │
+│     derivation_record_step(...) → derivation_add_note(...) →    │
+│     derivation_complete(...)                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**分工原則：**
+
+| 任務 | 工具 | 原因 |
+|------|------|------|
+| 數學計算 | SymPy-MCP | 完整 ODE/PDE/矩陣功能 |
+| 公式顯示 | `print_latex_expression` | 每步讓用戶確認 |
+| 知識存檔 | NSForge | 溯源追蹤、可搜尋 |
+| 維度檢查 | NSForge `check_dimensions` | 物理單位驗證 |
+
+---
 
 ## 🏗️ 專案結構
 
@@ -310,6 +409,11 @@ Agent 呼叫 NSForge：
 
 ```text
 nsforge-mcp/
+├── .claude/skills/            # 🧠 Agent Skills (18 個)
+│   ├── nsforge-derivation-workflow/  # 核心工作流 Skill
+│   ├── nsforge-verification-suite/   # 驗證 Skill
+│   └── ...                           # 其他 16 個 Skills
+│
 ├── src/
 │   ├── nsforge/               # 🔷 Core Domain (純邏輯，無 MCP 依賴)
 │   │   ├── domain/            # Domain Layer
@@ -324,13 +428,24 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP 工具定義
-│           ├── calculate.py   #     - 計算工具
-│           ├── calculus.py    #     - 微積分工具
-│           └── verify.py      #     - 驗證工具
+│       └── tools/             #   - MCP 工具定義 (31 個工具)
+│           ├── derivation.py  #     - 🔥 推導引擎 (21 個工具)
+│           ├── verify.py      #     - 驗證 (6 個工具)
+│           ├── calculate.py   #     - 計算 (2 個工具)
+│           ├── expression.py  #     - 表達式解析 (3 個工具)
+│           └── codegen.py     #     - 程式碼生成 (4 個工具)
 │
+├── formulas/                  # 📁 公式儲存庫
+│   ├── derivations/           #   - 人類可讀 Markdown
+│   │   └── pharmacokinetics/  #     - 藥動學推導範例
+│   └── derived/               #   - YAML 元資料 (自動生成)
+│
+├── derivation_sessions/       # 💾 會話持久化 (JSON)
+├── docs/                      # 📖 文檔
+│   └── nsforge-skills-guide.md #   - Skills 使用指南 (588 行)
+├── examples/                  # 🐍 Python 範例
+│   └── npo_antibiotic_analysis.py  # 臨床應用
 ├── tests/                     # 測試
-├── docs/                      # 文檔
 └── pyproject.toml             # 專案配置 (uv/hatch)
 ```
 
@@ -364,14 +479,23 @@ uv run nsforge-mcp
 ## 📋 Roadmap
 
 - [x] 設計文檔
-- [ ] MVP 實作
-  - [ ] DSL Parser
-  - [ ] Step Executor (SymPy)
-  - [ ] Basic Verifier
-  - [ ] MCP Wrapper
+- [x] MVP 實作
+  - [x] 推導引擎 (21 個工具)
+  - [x] SymPy 整合
+  - [x] 驗證套件 (6 個工具)
+  - [x] MCP Server
+- [x] Agent Skills 系統
+  - [x] 5 個 NSForge 專用工作流
+  - [x] 13 個通用開發 Skills
+  - [x] Skills 文檔 (1,110 行)
+- [x] 藥動學領域
+  - [x] 溫度校正消除率
+  - [x] NPO 抗生素效應模型
+  - [x] 含溫度效應的 Michaelis-Menten
+  - [x] 多次給藥累積
 - [ ] 領域擴展
   - [ ] 物理公式庫
-  - [ ] 化學計算
+  - [ ] 音響電路 (進行中)
   - [ ] 演算法分析
 - [ ] 進階功能
   - [ ] Lean4 形式驗證

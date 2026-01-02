@@ -1,0 +1,92 @@
+{
+  "session_id": "5ecf5e12",
+  "name": "fat_adjusted_vd_extension",
+  "description": "Extending body fat-adjusted Vd formula for clinical dosing applications",
+  "status": "paused",
+  "formulas": {
+    "fat_adjusted_vd": {
+      "id": "fat_adjusted_vd",
+      "expression": "V_lean + f_fat*(-B*L*W + B*T*W)",
+      "latex": "V_{lean} + f_{fat} \\left(- B L W + B T W\\right)",
+      "variables": {
+        "f_fat": {
+          "name": "f_fat",
+          "description": "Fat partitioning coefficient (depends on drug lipophilicity LogP)",
+          "unit": "dimensionless",
+          "constraints": null,
+          "value": null
+        },
+        "W": {
+          "name": "W",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "V_lean": {
+          "name": "V_lean",
+          "description": "Volume of distribution in lean tissue",
+          "unit": "L",
+          "constraints": null,
+          "value": null
+        },
+        "B": {
+          "name": "B",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "L": {
+          "name": "L",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "T": {
+          "name": "T",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "NSForge Formula Repository - formulas/derivations/pharmacokinetics/fat_adjusted_vd.md",
+      "original_input": "V_lean + f_fat * (TBW - LBW)",
+      "input_format": "sympy",
+      "name": "Body Fat-Adjusted Vd Base Formula",
+      "description": "Adjusts volume of distribution based on body composition and drug lipophilicity for obesity dosing",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T21:47:58.880535"
+    }
+  },
+  "current_expression": "V_lean + f_fat*(-B*L*W + B*T*W)",
+  "current_formula_id": "fat_adjusted_vd",
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "load_formula",
+      "description": "Load formula 'fat_adjusted_vd' from textbook",
+      "input_expressions": {
+        "fat_adjusted_vd": "V_lean + f_fat * (TBW - LBW)"
+      },
+      "output_expression": "V_lean + f_fat*(-B*L*W + B*T*W)",
+      "output_latex": "V_{lean} + f_{fat} \\left(- B L W + B T W\\right)",
+      "sympy_command": "parse('V_lean + f_fat * (TBW - LBW)')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:47:58.881544"
+    }
+  ],
+  "created_at": "2026-01-02T21:47:58.855286",
+  "updated_at": "2026-01-02T21:47:58.881544",
+  "author": "NSForge User",
+  "tags": []
+}

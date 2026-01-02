@@ -41,10 +41,16 @@
   - 新增 `.claude/skills/nsforge-verification-suite/SKILL.md`
   - 建立 3 個推導的 Markdown 文檔（formulas/derivations/pharmacokinetics/）
 - **建立 Python 應用範例** `examples/npo_antibiotic_analysis.py`
+- **完成 README i18n 更新**（EN + zh-TW 同步）：
+  - 更新 MCP 工具表（31 個工具，5 個模組）
+  - 新增 Agent Skills 架構章節（18 個 Skills）
+  - 更新 Project Structure（含 .claude/skills、formulas 等）
+  - 更新 Roadmap 反映實際完成狀態
+  - 修正 Python badge（3.10+ → 3.12+）
 
 ## Doing
 
-- 準備 Git commit + push（包含所有推導案例和文檔）
+（無進行中任務）
 
 ## Next
 

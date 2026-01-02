@@ -3,7 +3,7 @@
 > **"Forge" = CREATE new formulas through verified derivation**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
 
 🌐 **English** | [繁體中文](README.zh-TW.md)
@@ -300,14 +300,113 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
+NSForge provides **31 MCP tools** organized into 5 modules:
+
+### 🔥 Derivation Engine (21 tools)
+
 | Tool | Purpose |
 | ---- | ---- |
-| `symbolic_calculate` | Symbolic math computation |
-| `physics_formula` | Physics formula derivation |
-| `chemistry_calculate` | Chemistry calculations |
-| `algorithm_analyze` | Algorithm analysis |
-| `verify_derivation` | Derivation verification |
-| `unit_convert` | Unit conversion |
+| `derivation_start` | Start a new derivation session |
+| `derivation_resume` | Resume a previous session |
+| `derivation_status` | Get current session status |
+| `derivation_load_formula` | Load base formulas |
+| `derivation_substitute` | Variable substitution |
+| `derivation_simplify` | Simplify expression |
+| `derivation_solve_for` | Solve for variable |
+| `derivation_differentiate` | Differentiate expression |
+| `derivation_integrate` | Integrate expression |
+| `derivation_record_step` | Record step with notes |
+| `derivation_add_note` | Add human insights |
+| `derivation_complete` | Complete and save |
+| `derivation_abort` | Abort current session |
+| `derivation_list_saved` | List saved derivations |
+| `derivation_get_saved` | Get saved derivation |
+| `derivation_search_saved` | Search derivations |
+| `derivation_update_saved` | Update metadata |
+| `derivation_delete_saved` | Delete derivation |
+| `derivation_repository_stats` | Repository statistics |
+| `derivation_list_sessions` | List all sessions |
+| `derivation_get_steps` | Get derivation steps |
+
+### ✅ Verification (6 tools)
+
+| Tool | Purpose |
+| ---- | ---- |
+| `verify_equality` | Verify two expressions are equal |
+| `verify_derivative` | Verify derivative by integration |
+| `verify_integral` | Verify integral by differentiation |
+| `verify_solution` | Verify equation solution |
+| `check_dimensions` | Dimensional analysis |
+| `reverse_verify` | Reverse operation verification |
+
+### 🔢 Calculation (2 tools)
+
+| Tool | Purpose |
+| ---- | ---- |
+| `evaluate_numeric` | Numerical evaluation |
+| `symbolic_equal` | Symbolic equality check |
+
+### 📝 Expression (3 tools)
+
+| Tool | Purpose |
+| ---- | ---- |
+| `parse_expression` | Parse mathematical expression |
+| `validate_expression` | Validate expression syntax |
+| `extract_symbols` | Extract symbols with metadata |
+
+### 💻 Code Generation (4 tools)
+
+| Tool | Purpose |
+| ---- | ---- |
+| `generate_python_function` | Generate Python function |
+| `generate_latex_derivation` | Generate LaTeX document |
+| `generate_derivation_report` | Generate Markdown report |
+| `generate_sympy_script` | Generate standalone SymPy script |
+
+## 🧠 Agent Skills Architecture
+
+NSForge includes **18 pre-built Skills** that teach AI agents how to use the tools effectively:
+
+### 🔥 NSForge-Specific Skills (5)
+
+| Skill | Trigger Words | Description |
+| ----- | ------------- | ----------- |
+| `nsforge-derivation-workflow` | derive, 推導, prove | Complete derivation workflow with session management |
+| `nsforge-formula-management` | list, 公式庫, find formula | Query, update, delete saved formulas |
+| `nsforge-verification-suite` | verify, check, 維度 | Equality, derivative, integral, dimension checks |
+| `nsforge-code-generation` | generate, export, LaTeX | Python functions, reports, SymPy scripts |
+| `nsforge-quick-calculate` | calculate, simplify, solve | Quick calculations without session |
+
+### 🔧 General Development Skills (13)
+
+Includes `git-precommit`, `memory-updater`, `code-reviewer`, `test-generator`, and more.
+
+> 📖 **Details**: See [NSForge Skills Guide](docs/nsforge-skills-guide.md) for complete documentation (588 lines).
+
+### Golden Rule: SymPy-MCP First!
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  Phase 1: SymPy-MCP executes computation                        │
+│     intro_many([...]) → introduce_expression(...) →             │
+│     substitute/solve/dsolve... → print_latex_expression(...)   │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 2: NSForge records & stores                              │
+│     derivation_record_step(...) → derivation_add_note(...) →    │
+│     derivation_complete(...)                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Division of Labor:**
+
+| Task | Tool | Reason |
+|------|------|--------|
+| Math computation | SymPy-MCP | Full ODE/PDE/matrix capabilities |
+| Formula display | `print_latex_expression` | User confirmation at each step |
+| Knowledge storage | NSForge | Provenance tracking, searchable |
+| Dimension check | NSForge `check_dimensions` | Physical unit verification |
+
+---
 
 ## 🏗️ Project Structure
 
@@ -315,6 +414,11 @@ This project uses **DDD (Domain-Driven Design)** architecture with Core and MCP 
 
 ```text
 nsforge-mcp/
+├── .claude/skills/            # 🧠 Agent Skills (18 skills)
+│   ├── nsforge-derivation-workflow/  # Core workflow skill
+│   ├── nsforge-verification-suite/   # Verification skill
+│   └── ...                           # 16 more skills
+│
 ├── src/
 │   ├── nsforge/               # 🔷 Core Domain (pure logic, no MCP dependency)
 │   │   ├── domain/            # Domain Layer
@@ -329,13 +433,24 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions
-│           ├── calculate.py   #     - Calculation tools
-│           ├── calculus.py    #     - Calculus tools
-│           └── verify.py      #     - Verification tools
+│       └── tools/             #   - MCP tool definitions (31 tools)
+│           ├── derivation.py  #     - 🔥 Derivation engine (21 tools)
+│           ├── verify.py      #     - Verification (6 tools)
+│           ├── calculate.py   #     - Calculation (2 tools)
+│           ├── expression.py  #     - Expression parsing (3 tools)
+│           └── codegen.py     #     - Code generation (4 tools)
 │
+├── formulas/                  # 📁 Formula Repository
+│   ├── derivations/           #   - Human-readable Markdown
+│   │   └── pharmacokinetics/  #     - PK derivation examples
+│   └── derived/               #   - YAML metadata (auto-generated)
+│
+├── derivation_sessions/       # 💾 Session persistence (JSON)
+├── docs/                      # 📖 Documentation
+│   └── nsforge-skills-guide.md #   - Skills usage guide (588 lines)
+├── examples/                  # 🐍 Python examples
+│   └── npo_antibiotic_analysis.py  # Clinical application
 ├── tests/                     # Tests
-├── docs/                      # Documentation
 └── pyproject.toml             # Project config (uv/hatch)
 ```
 
@@ -369,14 +484,23 @@ uv run nsforge-mcp
 ## 📋 Roadmap
 
 - [x] Design documents
-- [ ] MVP Implementation
-  - [ ] DSL Parser
-  - [ ] Step Executor (SymPy)
-  - [ ] Basic Verifier
-  - [ ] MCP Wrapper
+- [x] MVP Implementation
+  - [x] Derivation Engine (21 tools)
+  - [x] SymPy Integration
+  - [x] Verification Suite (6 tools)
+  - [x] MCP Server
+- [x] Agent Skills System
+  - [x] 5 NSForge-specific workflows
+  - [x] 13 general development skills
+  - [x] Skills documentation (1,110 lines)
+- [x] Pharmacokinetics Domain
+  - [x] Temperature-corrected elimination
+  - [x] NPO antibiotic effect model
+  - [x] Michaelis-Menten with temperature
+  - [x] Multiple dosing accumulation
 - [ ] Domain Expansion
   - [ ] Physics formula library
-  - [ ] Chemistry calculations
+  - [ ] Audio circuits (in progress)
   - [ ] Algorithm analysis
 - [ ] Advanced Features
   - [ ] Lean4 formal verification
