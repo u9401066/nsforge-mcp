@@ -11,8 +11,7 @@ from nsforge_mcp.tools import register_all_tools
 # Create the FastMCP server instance
 mcp = FastMCP(
     name="nsforge",
-    version="0.1.0",
-    description="Neurosymbolic Forge - Precise symbolic reasoning for AI agents",
+    instructions="Neurosymbolic Forge - Precise symbolic reasoning for AI agents",
 )
 
 # Register all tools

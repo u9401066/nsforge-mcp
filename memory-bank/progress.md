@@ -1,4 +1,4 @@
-# Progress (Updated: 2026-01-01)
+# Progress (Updated: 2026-01-02)
 
 ## Done
 
@@ -10,14 +10,20 @@
 - Git commit + push 完成
 - 創建音響電路學領域規劃文檔
 - 完成 Power Amp 交聯電容實例推導
+- 整合 AGENTS.md 到 copilot-instructions.md
+- 修復 MCP Server 配置（使用 ${workspaceFolder}）
+- 設定 sympy-mcp vendor 目錄
+- 驗證 sympy-mcp 可用於藥動學推導（溫度校正模型）
+- 確認「公式知識庫」設計方向
 
 ## Doing
 
-- 準備 Git commit - 實例推導範例
+- 設計公式知識庫架構（formulas/）
 
 ## Next
 
-- 創建藥物動力學領域規劃文檔
-- 實作 derive_variant() MCP 工具
-- 實作第一個完整 principle + modification
-- 建立 formulas/ 知識庫結構
+- 建立 formulas/ 目錄結構
+- 建立第一批基礎原理（Arrhenius, Fick's Law, 質量守恆）
+- 實作 save_derived_formula() MCP 工具
+- 實作 search_formulas() MCP 工具
+- 藥物動力學公式庫（一室/二室/體脂校正）

@@ -1,15 +1,31 @@
 {
     "servers": {
-        "sympy-mcp": {
+        "nsforge-mcp": {
             "type": "stdio",
             "command": "uv",
             "args": [
                 "run",
                 "--directory",
-                "c:\\tools\\sympy-mcp",
+                "${workspaceFolder}",
+                "nsforge-mcp"
+            ]
+        },
+        "sympy-mcp": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "run",
+                "--with",
+                "mcp[cli]",
+                "--with",
+                "pydantic",
+                "--with",
+                "sympy",
+                "--with",
+                "einsteinpy",
                 "mcp",
                 "run",
-                "c:\\tools\\sympy-mcp\\server.py"
+                "${workspaceFolder}/vendor/sympy-mcp/server.py"
             ]
         }
     }

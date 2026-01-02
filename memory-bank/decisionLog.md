@@ -9,6 +9,49 @@
 | 2026-01-01 | Neural-Symbolic 混合架構 | Agent 做推導規劃，SymPy 做精確計算 |
 | 2026-01-01 | MVP 暫不含 Lean4 | 技術複雜度高，先用維度檢查 + 反向驗證 |
 | 2026-01-01 | Test-Driven Design 方法 | 先定義題目和期望結果，再實作系統 |
+| 2026-01-02 | 公式知識庫三層架構 | principles（基礎）→ domain（領域）→ derived（推導），支援狀態追蹤和社群貢獻 |
+| 2026-01-02 | sympy-mcp 足以執行推導 | 實測藥動學 ODE 推導成功，NSForge 專注知識管理而非計算引擎 |
+
+---
+
+## [2026-01-02] 公式知識庫設計
+
+### 背景
+討論如何實作「Principle + Modifications → Derived Form」框架。
+
+### 關鍵發現
+實測 sympy-mcp 可以：
+- 解藥動學 ODE（一室模型）
+- 代入修正公式（體脂肪校正、溫度校正）
+- 從 Arrhenius 方程推導溫度依賴藥動學模型
+
+**結論**：不需要額外的推導引擎，sympy-mcp 已足夠。
+
+### 決定
+採用「公式知識庫」架構：
+
+```
+formulas/
+├── principles/     # 基礎物理定律（不變）
+├── domain/         # 領域公式（有文獻）
+└── derived/        # 推導公式（可增長）
+    ├── proposed/   # 待檢驗
+    └── verified/   # 已檢驗
+```
+
+### 公式 YAML 格式包含
+- 公式（LaTeX + SymPy）
+- 推導來源（可追溯）
+- 狀態（proposed/verified/deprecated）
+- 文獻引用
+- 使用限制
+- 驗證狀態
+
+### 價值
+- 避免重造輪子
+- 可追溯推導來源
+- 品質分級（proposed vs verified）
+- 知識庫可持續增長
 
 ---
 
