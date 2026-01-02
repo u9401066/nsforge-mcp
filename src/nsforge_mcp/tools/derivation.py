@@ -253,29 +253,42 @@ def register_derivation_tools(mcp: Any) -> None:
         replacement: str,
         in_formula: str | None = None,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
         """
-        代入操作
+        代入操作（帶人類知識記錄）
 
         將公式中的變數替換為另一個表達式。
         這是組合公式的關鍵操作。
+
+        ═══════════════════════════════════════════════════════════════════════
+        ⚡ 每一步都可以加入人類知識！
+        ═══════════════════════════════════════════════════════════════════════
 
         Args:
             variable: 要替換的變數名
             replacement: 替換的表達式
             in_formula: 在哪個公式中代入（預設為當前）
             description: 操作描述
+            notes: 人類洞見（為什麼這樣做、觀察、警告）
+            assumptions: 這步的假設條件
+            limitations: 這步的限制
 
         Returns:
-            代入結果
+            代入結果（含記錄的知識）
 
         Example:
-            # 先載入兩個公式
-            derivation_load_formula("C_0 * exp(-k*t)", formula_id="pk")
-            derivation_load_formula("k_ref * exp(E_a/R * (1/T_ref - 1/T))", formula_id="arrhenius")
-
-            # 將 arrhenius 代入 pk 的 k
-            derivation_substitute("k", "k_ref * exp(E_a/R * (1/T_ref - 1/T))", in_formula="pk")
+            derivation_substitute(
+                variable="k",
+                replacement="k_ref * exp(E_a/R * (1/T_ref - 1/T))",
+                description="Apply Arrhenius equation for temperature dependence",
+                notes="⚠️ 假設 V_max 遵循 Arrhenius，但酵素在 >42°C 會變性",
+                assumptions=["Temperature range 32-42°C", "No enzyme denaturation"],
+                limitations=["Not valid for high temperature"]
+            )
         """
         session = _get_current_session()
         if session is None:
@@ -289,15 +302,22 @@ def register_derivation_tools(mcp: Any) -> None:
             replacement=replacement,
             in_formula=in_formula,
             description=description,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
     @mcp.tool()
     def derivation_simplify(
         method: str = "auto",
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
         """
-        簡化當前表達式
+        簡化當前表達式（帶人類知識記錄）
 
         Args:
             method: 簡化方法
@@ -306,6 +326,9 @@ def register_derivation_tools(mcp: Any) -> None:
                 - "radical": 根式簡化
                 - "expand_then_simplify": 先展開再簡化
             description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
 
         Returns:
             簡化結果
@@ -317,28 +340,45 @@ def register_derivation_tools(mcp: Any) -> None:
                 "error": "No active session. Use derivation_start first.",
             }
 
-        return session.simplify(method=method, description=description)
+        return session.simplify(
+            method=method,
+            description=description,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
+        )
 
     @mcp.tool()
     def derivation_solve_for(
         variable: str,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
         """
-        求解變數
+        求解變數（帶人類知識記錄）
 
         將當前表達式求解為指定變數的函數。
 
         Args:
             variable: 要求解的變數
             description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
 
         Returns:
             求解結果（可能有多個解）
 
         Example:
             derivation_load_formula("m*a - F", formula_id="newton")
-            derivation_solve_for("a")
+            derivation_solve_for(
+                variable="a",
+                notes="假設質量不變",
+                assumptions=["Constant mass"]
+            )
             → a = F/m
         """
         session = _get_current_session()
@@ -348,21 +388,34 @@ def register_derivation_tools(mcp: Any) -> None:
                 "error": "No active session. Use derivation_start first.",
             }
 
-        return session.solve_for(variable=variable, description=description)
+        return session.solve_for(
+            variable=variable,
+            description=description,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
+        )
 
     @mcp.tool()
     def derivation_differentiate(
         variable: str,
         order: int = 1,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
         """
-        對當前表達式微分
+        對當前表達式微分（帶人類知識記錄）
 
         Args:
             variable: 微分變數
             order: 階數（預設 1）
             description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
 
         Returns:
             微分結果
@@ -378,6 +431,9 @@ def register_derivation_tools(mcp: Any) -> None:
             variable=variable,
             order=order,
             description=description,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
     @mcp.tool()
@@ -386,15 +442,22 @@ def register_derivation_tools(mcp: Any) -> None:
         lower: str | None = None,
         upper: str | None = None,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
         """
-        對當前表達式積分
+        對當前表達式積分（帶人類知識記錄）
 
         Args:
             variable: 積分變數
             lower: 下界（可選，定積分時需要）
             upper: 上界（可選，定積分時需要）
             description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
 
         Returns:
             積分結果
@@ -411,7 +474,233 @@ def register_derivation_tools(mcp: Any) -> None:
             lower=lower,
             upper=upper,
             description=description,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # 橋接工具：SymPy-MCP ↔ NSForge
+    # ═══════════════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    def derivation_record_step(
+        expression: str,
+        description: str,
+        latex: str | None = None,
+        notes: str | None = None,
+        source: str = "sympy_mcp",
+        operation_type: str = "custom",
+        set_as_current: bool = True,
+    ) -> dict[str, Any]:
+        """
+        記錄一個推導步驟（從 SymPy-MCP 或手動）
+
+        ═══════════════════════════════════════════════════════════════════════
+        這是 SymPy-MCP 和 NSForge 之間的橋樑！
+        ═══════════════════════════════════════════════════════════════════════
+
+        用途：
+        1. 在 SymPy-MCP 計算後，把結果記錄到 NSForge 會話
+        2. 可以加入 notes 說明「為什麼這步要這樣做」
+        3. 保持完整的推導歷史
+
+        工作流程：
+        1. SymPy-MCP: intro + introduce_expression + substitute...
+        2. SymPy-MCP: print_latex_expression (確認結果)
+        3. NSForge: derivation_record_step (記錄這步 + 加入說明)
+        4. 重複 1-3
+        5. NSForge: derivation_complete
+
+        Args:
+            expression: SymPy 格式的表達式（從 SymPy-MCP 結果複製）
+            description: 這步做了什麼
+            latex: LaTeX 格式（可選，會自動生成）
+            notes: 額外說明（非計算性的人類知識！）
+                   例如：「這裡假設線性，但酵素活性實際上是 S 型曲線」
+            source: 來源 ("sympy_mcp", "manual", "literature")
+            operation_type: 操作類型 ("substitute", "simplify", "solve", "custom")
+            set_as_current: 是否設為當前表達式（預設 True）
+
+        Returns:
+            記錄結果
+
+        Example:
+            # 在 SymPy-MCP 計算完成後
+            derivation_record_step(
+                expression="C*V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)/(C + K_m)",
+                description="Substituted Arrhenius equation for Vmax",
+                notes="假設 Vmax 的溫度依賴遵循 Arrhenius，但實際上酵素在高溫會變性",
+                source="sympy_mcp"
+            )
+        """
+        import sympy as sp
+
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session. Use derivation_start first.",
+            }
+
+        # 解析表達式
+        try:
+            expr = sp.sympify(expression)
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Cannot parse expression: {e}",
+            }
+
+        # 生成 LaTeX
+        latex_str = latex or sp.latex(expr)
+
+        # 映射操作類型
+        op_map = {
+            "substitute": "substitute",
+            "simplify": "simplify",
+            "solve": "solve",
+            "differentiate": "differentiate",
+            "integrate": "integrate",
+            "custom": "custom",
+        }
+        from nsforge.domain.derivation_session import OperationType, StepStatus
+        op_type = OperationType(op_map.get(operation_type, "custom"))
+
+        # 建立步驟描述（包含 notes）
+        full_description = description
+        if notes:
+            full_description = f"{description}\n\n📝 Notes: {notes}"
+
+        # 新增步驟
+        step = session._add_step(
+            operation=op_type,
+            description=full_description,
+            input_expressions={"source": source, "notes": notes or ""},
+            output_expr=expr,
+            sympy_command=f"# From {source}: {expression[:50]}...",
+            status=StepStatus.SUCCESS,
+        )
+
+        # 更新當前表達式
+        if set_as_current:
+            session.current_expression = expr
+
+        return {
+            "success": True,
+            "step_number": step.step_number,
+            "expression": str(expr),
+            "latex": latex_str,
+            "description": description,
+            "notes": notes,
+            "source": source,
+            "message": "Step recorded. Continue with SymPy-MCP or add more notes.",
+        }
+
+    @mcp.tool()
+    def derivation_add_note(
+        note: str,
+        note_type: str = "observation",
+        related_variables: list[str] | None = None,
+        related_step: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        在推導中加入說明（不是計算步驟）
+
+        ═══════════════════════════════════════════════════════════════════════
+        用於記錄「人類知識」- 不是計算，而是洞見、假設、警告、修正建議
+        ═══════════════════════════════════════════════════════════════════════
+
+        這很重要！數學推導不只是公式變換，還包含：
+        - 為什麼選擇這個模型
+        - 這個假設何時會失效
+        - 臨床/物理意義是什麼
+        - 需要注意什麼
+
+        Args:
+            note: 說明內容
+            note_type: 說明類型
+                - "assumption": 假設條件
+                - "limitation": 限制/警告
+                - "observation": 觀察/洞見
+                - "correction": 修正建議
+                - "clinical": 臨床意義
+                - "physical": 物理意義
+            related_variables: 相關的變數
+            related_step: 相關的步驟編號（可選）
+
+        Returns:
+            記錄結果
+
+        Example:
+            # 在代入 Arrhenius 後加入說明
+            derivation_add_note(
+                note="酵素活性 vs 溫度不是線性的！在高溫 (>42°C) 酵素會變性，"
+                     "此時 Arrhenius 方程不再適用。應考慮加入校正因子 γ(T)。",
+                note_type="limitation",
+                related_variables=["V_max", "T"]
+            )
+
+            # 加入修正建議
+            derivation_add_note(
+                note="建議加入 Hill-type 校正因子：γ(T) = 1 / (1 + (T/T_denat)^n)",
+                note_type="correction",
+                related_variables=["gamma", "T_denat"]
+            )
+        """
+        import sympy as sp
+
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session. Use derivation_start first.",
+            }
+
+        # 格式化 note
+        type_emoji = {
+            "assumption": "📋",
+            "limitation": "⚠️",
+            "observation": "💡",
+            "correction": "🔧",
+            "clinical": "🏥",
+            "physical": "🔬",
+        }
+        emoji = type_emoji.get(note_type, "📝")
+
+        formatted_note = f"{emoji} [{note_type.upper()}] {note}"
+        if related_variables:
+            formatted_note += f"\n   Related: {', '.join(related_variables)}"
+        if related_step:
+            formatted_note += f"\n   See step {related_step}"
+
+        # 用 CUSTOM 操作類型記錄
+        from nsforge.domain.derivation_session import OperationType, StepStatus
+
+        # 建立一個虛擬表達式（用於記錄）
+        note_expr = sp.Symbol(f"NOTE_{len(session.steps) + 1}")
+
+        step = session._add_step(
+            operation=OperationType.CUSTOM,
+            description=formatted_note,
+            input_expressions={
+                "note_type": note_type,
+                "related_variables": str(related_variables or []),
+                "related_step": str(related_step or ""),
+            },
+            output_expr=session.current_expression or note_expr,  # 保持當前表達式
+            sympy_command="# Note (no computation)",
+            status=StepStatus.SUCCESS,
+        )
+
+        return {
+            "success": True,
+            "step_number": step.step_number,
+            "note_type": note_type,
+            "note": note,
+            "related_variables": related_variables,
+            "message": f"Note added as step {step.step_number}. This is recorded but does not change the expression.",
+        }
 
     # ═══════════════════════════════════════════════════════════════════════
     # 結果與歷史
@@ -883,3 +1172,311 @@ def register_derivation_tools(mcp: Any) -> None:
                 "success": False,
                 "error": f"Deletion failed: {e}",
             }
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # Handoff 機制：NSForge ↔ SymPy-MCP 無縫轉換
+    # ═══════════════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    def derivation_export_for_sympy(
+        include_variables: bool = True,
+        include_current_expression: bool = True,
+    ) -> dict[str, Any]:
+        """
+        導出當前推導狀態給 SymPy-MCP
+
+        ═══════════════════════════════════════════════════════════════════════
+        🔄 HANDOFF 機制 - 當 NSForge 無法處理時，交給 SymPy-MCP！
+        ═══════════════════════════════════════════════════════════════════════
+
+        使用時機：
+        - 需要解 ODE/PDE
+        - 需要矩陣運算
+        - 需要複雜的 SymPy 操作（如 limit, series, dsolve）
+        - NSForge 工具返回錯誤時
+
+        這個工具會輸出：
+        1. 所有已定義的變數（可直接貼到 intro_many）
+        2. 當前表達式（可直接貼到 introduce_expression）
+        3. 建議的下一步操作
+
+        Returns:
+            包含可直接使用的 SymPy-MCP 指令
+
+        Example:
+            # NSForge 中遇到無法處理的操作
+            derivation_export_for_sympy()
+            → {
+                "intro_many_command": "intro_many(['k', 'T', 'Ea', 'R'], 'real positive')",
+                "current_expression": "k * exp(-Ea/(R*T))",
+                "suggested_actions": [...]
+              }
+
+            # 然後在 SymPy-MCP 中執行
+            intro_many(['k', 'T', 'Ea', 'R'], 'real positive')
+            introduce_expression("k * exp(-Ea/(R*T))", "arrhenius")
+        """
+        import sympy as sp
+
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session. Nothing to export.",
+            }
+
+        result: dict[str, Any] = {
+            "success": True,
+            "session_id": session.session_id,
+            "session_name": session.name,
+        }
+
+        # 收集變數（從當前表達式的 free_symbols）
+        if include_variables and session.current_expression is not None:
+            vars_list = [str(s) for s in session.current_expression.free_symbols]
+            # 假設是 real positive（常見情況）
+            result["variables"] = vars_list
+            result["intro_many_command"] = f"intro_many({vars_list!r}, 'real positive')"
+            result["intro_many_note"] = "Adjust assumptions as needed (e.g., 'real', 'positive', 'integer')"
+
+        # 當前表達式
+        if include_current_expression and session.current_expression is not None:
+            expr_str = str(session.current_expression)
+            result["current_expression"] = expr_str
+            result["current_expression_latex"] = sp.latex(session.current_expression)
+            result["introduce_expression_command"] = f'introduce_expression("{expr_str}", "current")'
+
+        # 建議的 SymPy-MCP 操作
+        result["suggested_actions"] = [
+            {
+                "action": "intro_many",
+                "description": "首先定義變數（帶假設）",
+                "example": result.get("intro_many_command", "intro_many(['x', 'y'], 'real')"),
+            },
+            {
+                "action": "introduce_expression",
+                "description": "載入表達式",
+                "example": result.get("introduce_expression_command", 'introduce_expression("expr", "name")'),
+            },
+            {
+                "action": "solve_equation / dsolve_ode / etc.",
+                "description": "執行 NSForge 無法處理的操作",
+                "example": "dsolve_ode('diff(y, t) - k*y', 'y', 't')",
+            },
+            {
+                "action": "print_latex_expression",
+                "description": "確認結果",
+                "example": "print_latex_expression('result_key')",
+            },
+        ]
+
+        # 返回指引
+        result["next_step_instructions"] = """
+╔═══════════════════════════════════════════════════════════════════════╗
+║  🔄 HANDOFF TO SYMPY-MCP                                              ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  1. Use intro_many() to define variables with assumptions             ║
+║  2. Use introduce_expression() to load the expression                 ║
+║  3. Perform the complex operation (dsolve_ode, solve_linear_system...)║
+║  4. Use print_latex_expression() to verify result                     ║
+║  5. Call derivation_import_from_sympy() to continue in NSForge        ║
+╚═══════════════════════════════════════════════════════════════════════╝
+"""
+
+        return result
+
+    @mcp.tool()
+    def derivation_import_from_sympy(
+        expression: str,
+        operation_performed: str,
+        sympy_tool_used: str,
+        latex: str | None = None,
+        notes: str | None = None,
+        assumptions_used: list[str] | None = None,
+        limitations: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """
+        從 SymPy-MCP 導入結果回 NSForge
+
+        ═══════════════════════════════════════════════════════════════════════
+        🔄 HANDOFF 機制 - 把 SymPy-MCP 的結果帶回 NSForge 繼續！
+        ═══════════════════════════════════════════════════════════════════════
+
+        使用時機：
+        - 在 SymPy-MCP 完成複雜計算後
+        - 想要繼續使用 NSForge 的步進式記錄
+        - 需要為 SymPy-MCP 的結果加入人類知識
+
+        這個工具會：
+        1. 將 SymPy-MCP 的結果記錄為新步驟
+        2. 更新當前表達式
+        3. 記錄使用的假設和限制
+
+        Args:
+            expression: SymPy-MCP 返回的表達式（字串格式）
+            operation_performed: 執行了什麼操作（如 "Solved ODE"）
+            sympy_tool_used: 使用的 SymPy-MCP 工具名稱
+            latex: LaTeX 格式（可選，會自動生成）
+            notes: 額外說明
+            assumptions_used: 使用的假設（從 SymPy-MCP 的 intro 來的）
+            limitations: 這個結果的限制
+
+        Returns:
+            導入結果
+
+        Example:
+            # SymPy-MCP 解完 ODE 後
+            derivation_import_from_sympy(
+                expression="C*exp(k*t)",
+                operation_performed="Solved first-order ODE",
+                sympy_tool_used="dsolve_ode",
+                notes="General solution with integration constant C",
+                assumptions_used=["k is real positive", "t is real"],
+                limitations=["Requires initial condition to determine C"]
+            )
+        """
+        import sympy as sp
+
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session. Use derivation_start first.",
+            }
+
+        # 解析表達式
+        try:
+            expr = sp.sympify(expression)
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Cannot parse expression: {e}",
+            }
+
+        # 生成 LaTeX
+        latex_str = latex or sp.latex(expr)
+
+        # 建立完整描述
+        description = f"[SymPy-MCP: {sympy_tool_used}] {operation_performed}"
+
+        # 新增步驟（使用 custom 類型）
+        from nsforge.domain.derivation_session import OperationType, StepStatus
+
+        step = session._add_step(
+            operation=OperationType.CUSTOM,
+            description=description,
+            input_expressions={
+                "sympy_tool": sympy_tool_used,
+                "operation": operation_performed,
+                "assumptions": ", ".join(assumptions_used) if assumptions_used else "",
+            },
+            output_expr=expr,
+            sympy_command=f"# Imported from SymPy-MCP ({sympy_tool_used})",
+            status=StepStatus.SUCCESS,
+            notes=notes or "",
+            assumptions=assumptions_used or [],
+            limitations=limitations or [],
+        )
+
+        # 更新當前表達式
+        session.current_expression = expr
+
+        return {
+            "success": True,
+            "step_number": step.step_number,
+            "expression": str(expr),
+            "latex": latex_str,
+            "operation": operation_performed,
+            "sympy_tool": sympy_tool_used,
+            "notes": notes,
+            "assumptions": assumptions_used,
+            "limitations": limitations,
+            "message": "✅ Imported from SymPy-MCP. Continue with NSForge derivation tools.",
+            "next_steps": [
+                "derivation_simplify() - 簡化表達式",
+                "derivation_substitute() - 代入值或其他表達式",
+                "derivation_solve_for() - 求解其他變數",
+                "derivation_add_note() - 加入說明",
+                "derivation_complete() - 完成並存檔",
+            ],
+        }
+
+    @mcp.tool()
+    def derivation_handoff_status() -> dict[str, Any]:
+        """
+        顯示 Handoff 狀態和可用選項
+
+        這個工具幫助你了解：
+        1. NSForge 能做什麼
+        2. 什麼需要交給 SymPy-MCP
+        3. 當前推導的狀態
+
+        Returns:
+            Handoff 狀態和建議
+        """
+        session = _get_current_session()
+
+        nsforge_capabilities = {
+            "can_do": [
+                "substitute - 代入表達式或值",
+                "simplify - 簡化（自動選擇方法）",
+                "solve_for - 求解單一變數",
+                "differentiate - 微分",
+                "integrate - 積分（定積分或不定積分）",
+                "record_step - 記錄外部計算結果",
+                "add_note - 加入人類知識",
+            ],
+            "needs_sympy_mcp": [
+                "dsolve_ode - 解常微分方程",
+                "dsolve_pde - 解偏微分方程",
+                "solve_linear_system - 解線性方程組",
+                "matrix operations - 矩陣運算（行列式、特徵值等）",
+                "vector calculus - 向量微積分（curl, divergence, gradient）",
+                "tensor operations - 張量運算",
+                "limit - 極限",
+                "series - 泰勒/傅立葉級數",
+                "expand/factor/collect - 展開/因式分解/收集同類項",
+            ],
+        }
+
+        if session is None:
+            return {
+                "has_active_session": False,
+                "message": "No active session. Use derivation_start() to begin.",
+                "nsforge_capabilities": nsforge_capabilities,
+            }
+
+        return {
+            "has_active_session": True,
+            "session_id": session.session_id,
+            "session_name": session.name,
+            "current_step": len(session.steps),
+            "has_current_expression": session.current_expression is not None,
+            "current_expression": str(session.current_expression) if session.current_expression else None,
+            "variables_defined": [str(s) for s in session.current_expression.free_symbols] if session.current_expression else [],
+            "nsforge_capabilities": nsforge_capabilities,
+            "handoff_tools": {
+                "to_sympy": "derivation_export_for_sympy() - 導出給 SymPy-MCP",
+                "from_sympy": "derivation_import_from_sympy() - 從 SymPy-MCP 導入",
+            },
+            "workflow_hint": """
+┌─────────────────────────────────────────────────────────────┐
+│  NSForge ←→ SymPy-MCP Handoff Workflow                      │
+├─────────────────────────────────────────────────────────────┤
+│  1. derivation_export_for_sympy()                           │
+│     → 取得 intro_many 和 introduce_expression 指令          │
+│                                                             │
+│  2. [SymPy-MCP] intro_many([...], 'real positive')          │
+│     [SymPy-MCP] introduce_expression("...")                 │
+│     [SymPy-MCP] dsolve_ode(...) / solve_linear_system(...)  │
+│     [SymPy-MCP] print_latex_expression(...)                 │
+│                                                             │
+│  3. derivation_import_from_sympy(                           │
+│       expression="...",                                     │
+│       operation_performed="...",                            │
+│       sympy_tool_used="dsolve_ode"                          │
+│     )                                                       │
+│     → 結果回到 NSForge，繼續步進式記錄                       │
+└─────────────────────────────────────────────────────────────┘
+""",
+        }

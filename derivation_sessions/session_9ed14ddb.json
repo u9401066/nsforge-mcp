@@ -1,0 +1,324 @@
+{
+  "session_id": "9ed14ddb",
+  "name": "npo_antibiotic_effect",
+  "description": "分析口服抗生素在 NPO（禁食）狀態下如何影響藥物吸收和最終藥效",
+  "status": "completed",
+  "formulas": {
+    "hh_weak_acid": {
+      "id": "hh_weak_acid",
+      "expression": "K*a*p + log(A*A_minus/H)",
+      "latex": "K a p + \\log{\\left(\\frac{A A_{minus}}{H} \\right)}",
+      "variables": {
+        "A_minus": {
+          "name": "A_minus",
+          "description": "Concentration of ionized form (conjugate base)",
+          "unit": "mol/L",
+          "constraints": null,
+          "value": null
+        },
+        "p": {
+          "name": "p",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "A": {
+          "name": "A",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "H": {
+          "name": "H",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "K": {
+          "name": "K",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Physical Chemistry, Henderson-Hasselbalch equation",
+      "original_input": "pKa + log(A_minus / HA)",
+      "input_format": "sympy",
+      "name": "Henderson-Hasselbalch (weak acid)",
+      "description": "pH = pKa + log([A-]/[HA]), determines ionization state of weak acid drugs",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T19:59:31.737618"
+    },
+    "fraction_nonionized_acid": {
+      "id": "fraction_nonionized_acid",
+      "expression": "1/(10**(H*p - K*a*p) + 1)",
+      "latex": "\\frac{1}{10^{H p - K a p} + 1}",
+      "variables": {
+        "H": {
+          "name": "H",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "p": {
+          "name": "p",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "K": {
+          "name": "K",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Derived from Henderson-Hasselbalch: f_HA = [HA]/([HA]+[A-])",
+      "original_input": "1 / (1 + 10**(pH - pKa))",
+      "input_format": "sympy",
+      "name": "Fraction non-ionized (weak acid)",
+      "description": "Fraction of non-ionized (absorbable) drug as a function of pH and pKa for weak acids",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T19:59:36.840116"
+    },
+    "emax_model": {
+      "id": "emax_model",
+      "expression": "C**n*E_max/(C**n + EC_50**n) + E_0",
+      "latex": "\\frac{C^{n} E_{max}}{C^{n} + EC_{50}^{n}} + E_{0}",
+      "variables": {
+        "E_max": {
+          "name": "E_max",
+          "description": "Maximum achievable effect above baseline",
+          "unit": "effect units",
+          "constraints": null,
+          "value": null
+        },
+        "EC_50": {
+          "name": "EC_50",
+          "description": "Concentration producing 50% of Emax",
+          "unit": "mg/L",
+          "constraints": null,
+          "value": null
+        },
+        "E_0": {
+          "name": "E_0",
+          "description": "Baseline effect",
+          "unit": "effect units",
+          "constraints": null,
+          "value": null
+        },
+        "C": {
+          "name": "C",
+          "description": "Drug concentration at effect site",
+          "unit": "mg/L",
+          "constraints": null,
+          "value": null
+        },
+        "n": {
+          "name": "n",
+          "description": "Hill coefficient (sigmoidicity)",
+          "unit": "dimensionless",
+          "constraints": null,
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Pharmacodynamics, Hill Equation",
+      "original_input": "E_0 + (E_max * C**n) / (EC_50**n + C**n)",
+      "input_format": "sympy",
+      "name": "Sigmoid Emax Model",
+      "description": "Sigmoid Emax model relating drug concentration to pharmacological effect",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T19:59:43.223147"
+    },
+    "effective_conc": {
+      "id": "effective_conc",
+      "expression": "D*F_base*d*f_absorbed/V",
+      "latex": "\\frac{D F_{base} d f_{absorbed}}{V}",
+      "variables": {
+        "D": {
+          "name": "D",
+          "description": "Administered dose",
+          "unit": "mg",
+          "constraints": null,
+          "value": null
+        },
+        "d": {
+          "name": "d",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "F_base": {
+          "name": "F_base",
+          "description": "Baseline bioavailability (formulation)",
+          "unit": "dimensionless",
+          "constraints": null,
+          "value": null
+        },
+        "f_absorbed": {
+          "name": "f_absorbed",
+          "description": "Fraction absorbed (pH-dependent)",
+          "unit": "dimensionless",
+          "constraints": null,
+          "value": null
+        },
+        "V": {
+          "name": "V",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "derived",
+      "source_detail": "C = F * D / Vd, where F is influenced by ionization state",
+      "original_input": "F_base * f_absorbed * D / Vd",
+      "input_format": "sympy",
+      "name": "Effective plasma concentration",
+      "description": "Effective concentration considering bioavailability affected by ionization",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T19:59:48.918857"
+    }
+  },
+  "current_expression": "(E_0*(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n) + E_max*(D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)/(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)",
+  "current_formula_id": "effective_conc",
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "load_formula",
+      "description": "Load formula 'hh_weak_acid' from textbook",
+      "input_expressions": {
+        "hh_weak_acid": "pKa + log(A_minus / HA)"
+      },
+      "output_expression": "K*a*p + log(A*A_minus/H)",
+      "output_latex": "K a p + \\log{\\left(\\frac{A A_{minus}}{H} \\right)}",
+      "sympy_command": "parse('pKa + log(A_minus / HA)')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T19:59:31.738076"
+    },
+    {
+      "step_number": 2,
+      "operation": "load_formula",
+      "description": "Load formula 'fraction_nonionized_acid' from textbook",
+      "input_expressions": {
+        "fraction_nonionized_acid": "1 / (1 + 10**(pH - pKa))"
+      },
+      "output_expression": "1/(10**(H*p - K*a*p) + 1)",
+      "output_latex": "\\frac{1}{10^{H p - K a p} + 1}",
+      "sympy_command": "parse('1 / (1 + 10**(pH - pKa))')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T19:59:36.840116"
+    },
+    {
+      "step_number": 3,
+      "operation": "load_formula",
+      "description": "Load formula 'emax_model' from textbook",
+      "input_expressions": {
+        "emax_model": "E_0 + (E_max * C**n) / (EC_50**n + C**n)"
+      },
+      "output_expression": "C**n*E_max/(C**n + EC_50**n) + E_0",
+      "output_latex": "\\frac{C^{n} E_{max}}{C^{n} + EC_{50}^{n}} + E_{0}",
+      "sympy_command": "parse('E_0 + (E_max * C**n) / (EC_50**n + C**n)')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T19:59:43.225158"
+    },
+    {
+      "step_number": 4,
+      "operation": "load_formula",
+      "description": "Load formula 'effective_conc' from derived",
+      "input_expressions": {
+        "effective_conc": "F_base * f_absorbed * D / Vd"
+      },
+      "output_expression": "D*F_base*d*f_absorbed/V",
+      "output_latex": "\\frac{D F_{base} d f_{absorbed}}{V}",
+      "sympy_command": "parse('F_base * f_absorbed * D / Vd')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T19:59:48.918857"
+    },
+    {
+      "step_number": 5,
+      "operation": "substitute",
+      "description": "將 pH 依賴的吸收率代入有效濃度公式",
+      "input_expressions": {
+        "original": "D*F_base*d*f_absorbed/V",
+        "replacement": "f_absorbed = 1 / (1 + 10**(pH - pKa))"
+      },
+      "output_expression": "D*F_base*d/(V*(10**(pH - pKa) + 1))",
+      "output_latex": "\\frac{D F_{base} d}{V \\left(10^{pH - pKa} + 1\\right)}",
+      "sympy_command": "expr.subs(f_absorbed, 1 / (1 + 10**(pH - pKa)))",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T19:59:52.867340"
+    },
+    {
+      "step_number": 6,
+      "operation": "substitute",
+      "description": "將有效濃度代入 Emax 模型，得到 pH 依賴的藥效公式",
+      "input_expressions": {
+        "original": "C**n*E_max/(C**n + EC_50**n) + E_0",
+        "replacement": "C = F_base * D / (Vd * (1 + 10**(pH - pKa)))"
+      },
+      "output_expression": "E_0 + E_max*(D*F_base/(Vd*(10**(pH - pKa) + 1)))**n/(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)",
+      "output_latex": "E_{0} + \\frac{E_{max} \\left(\\frac{D F_{base}}{Vd \\left(10^{pH - pKa} + 1\\right)}\\right)^{n}}{EC_{50}^{n} + \\left(\\frac{D F_{base}}{Vd \\left(10^{pH - pKa} + 1\\right)}\\right)^{n}}",
+      "sympy_command": "expr.subs(C, F_base * D / (Vd * (1 + 10**(pH - pKa))))",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T19:59:57.121821"
+    },
+    {
+      "step_number": 7,
+      "operation": "simplify",
+      "description": "簡化 pH 依賴的藥效模型",
+      "input_expressions": {
+        "original": "E_0 + E_max*(D*F_base/(Vd*(10**(pH - pKa) + 1)))**n/(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)"
+      },
+      "output_expression": "(E_0*(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n) + E_max*(D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)/(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)",
+      "output_latex": "\\frac{E_{0} \\left(EC_{50}^{n} + \\left(\\frac{D F_{base}}{Vd \\left(10^{pH - pKa} + 1\\right)}\\right)^{n}\\right) + E_{max} \\left(\\frac{D F_{base}}{Vd \\left(10^{pH - pKa} + 1\\right)}\\right)^{n}}{EC_{50}^{n} + \\left(\\frac{D F_{base}}{Vd \\left(10^{pH - pKa} + 1\\right)}\\right)^{n}}",
+      "sympy_command": "simplify(expr)",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T20:00:00.288336"
+    }
+  ],
+  "created_at": "2026-01-02T19:59:24.779728",
+  "updated_at": "2026-01-02T20:00:12.914552",
+  "author": "NSForge Agent",
+  "tags": []
+}

@@ -11,6 +11,159 @@
 | 2026-01-01 | Test-Driven Design 方法 | 先定義題目和期望結果，再實作系統 |
 | 2026-01-02 | 公式知識庫三層架構 | principles（基礎）→ domain（領域）→ derived（推導），支援狀態追蹤和社群貢獻 |
 | 2026-01-02 | sympy-mcp 足以執行推導 | 實測藥動學 ODE 推導成功，NSForge 專注知識管理而非計算引擎 |
+| 2026-01-02 | **步進式推導哲學** | 人類推導是一步一步的，每步都可加入新元素變成新公式。不應該一步求解！這是我們與純符號系統最大的不同。 |
+| 2026-01-02 | 新增橋接工具 | `derivation_record_step` + `derivation_add_note` 讓人類知識可以在推導過程中隨時注入 |
+| 2026-01-02 | **強化 NSForge 推導工具** | 5 個推導工具（substitute, simplify, solve_for, differentiate, integrate）直接支援 notes/assumptions/limitations 參數，每步計算都帶知識記錄 |
+| 2026-01-02 | **Handoff 機制** | 新增 `derivation_export_for_sympy` + `derivation_import_from_sympy` + `derivation_handoff_status`，實現 NSForge ↔ SymPy-MCP 無縫轉換。當 NSForge 無法處理（ODE, 矩陣, 極限等）時自動轉給 SymPy-MCP，完成後再導入回來繼續步進式推導。 |
+
+---
+
+## [2026-01-02] Handoff 機制：NSForge ↔ SymPy-MCP 無縫協作
+
+### 核心問題
+> **「我們的推導如果無法執行的時候要轉給 SymPy-MCP，但怎麼轉？」**
+
+NSForge 專注於：
+- 步進式記錄
+- 人類知識注入
+- 公式溯源存檔
+
+SymPy-MCP 專長於：
+- ODE/PDE 求解
+- 矩陣運算
+- 極限/級數
+- 向量微積分
+
+### 解決方案：三個 Handoff 工具
+
+#### 1. `derivation_export_for_sympy()`
+
+**功能**：導出當前推導狀態給 SymPy-MCP
+
+**返回**：
+- `intro_many_command`: 可直接執行的變數定義指令
+- `current_expression`: 當前表達式
+- `introduce_expression_command`: 可直接執行的表達式載入指令
+- `suggested_actions`: 建議的下一步操作
+
+#### 2. `derivation_import_from_sympy()`
+
+**功能**：從 SymPy-MCP 導入計算結果
+
+**參數**：
+- `expression`: SymPy-MCP 的結果
+- `operation_performed`: 執行了什麼操作
+- `sympy_tool_used`: 使用的工具名稱
+- `notes`: 人類說明
+- `assumptions_used`: 使用的假設
+- `limitations`: 結果的限制
+
+**效果**：
+- 記錄為新步驟
+- 更新當前表達式
+- 保持完整的推導歷史
+
+#### 3. `derivation_handoff_status()`
+
+**功能**：顯示能力邊界和 Handoff 選項
+
+**返回**：
+- NSForge 能做什麼
+- 什麼需要交給 SymPy-MCP
+- 當前推導狀態
+- Handoff 流程指引
+
+### 工作流程
+
+```
+NSForge: derivation_start → ... → 遇到 ODE
+                ↓
+NSForge: derivation_export_for_sympy()
+                ↓
+        → intro_many_command
+        → current_expression
+                ↓
+SymPy-MCP: intro_many([...], 'real positive')
+SymPy-MCP: introduce_expression("...")
+SymPy-MCP: dsolve_ode(...)
+SymPy-MCP: print_latex_expression(...)
+                ↓
+NSForge: derivation_import_from_sympy(
+           expression="...",
+           operation_performed="Solved ODE",
+           sympy_tool_used="dsolve_ode",
+           notes="...",
+           assumptions_used=[...],
+           limitations=[...]
+         )
+                ↓
+NSForge: 繼續步進式推導...
+```
+
+### 價值
+1. **能力互補** - NSForge 知識管理 + SymPy-MCP 複雜計算
+2. **無縫銜接** - 不需要手動轉換格式
+3. **保持追蹤** - 即使轉給 SymPy-MCP，步驟仍然完整記錄
+4. **知識注入** - import 時可以加入 notes、assumptions、limitations
+
+### 設計原則
+- **NSForge 是主控** - 推導會話始終在 NSForge
+- **SymPy-MCP 是執行器** - 只負責計算，不管理狀態
+- **Agent 做橋接** - 根據需要呼叫 export/import
+- **人類知識不丟失** - 每次 import 都可以加入說明
+
+---
+
+## [2026-01-02] 步進式推導哲學 (Step-by-Step Derivation Philosophy)
+
+### 核心洞察
+> **「人類的推導是一個步驟一個步驟來的！」**
+
+這意味著：
+1. **不是一步求解** - 不能給起點終點就自動跑完
+2. **每步都可加入新元素** - 推導過程中發現的洞見可以即時注入
+3. **變成新公式** - 加入修正後就是一個更穩定、不一樣的新公式
+
+### 與純符號系統的差異
+
+| 純符號系統 | NSForge 步進式推導 |
+|-----------|-------------------|
+| 輸入 → 自動求解 → 輸出 | 輸入 → 步驟1 → 人類洞見 → 步驟2 → 修正 → ... |
+| 公式是靜態的 | 公式是演化的 |
+| 人類只看結果 | 人類參與過程 |
+| 無法加入領域知識 | 每步都可注入專業判斷 |
+
+### 實際例子：酵素活性與溫度
+
+傳統做法（一步求解）：
+```
+給定: MM equation + Arrhenius
+求: V_max(T)
+結果: V_max_ref * exp(E_a/R * (1/T_ref - 1/T))
+```
+
+步進式推導：
+```
+Step 1: 載入 Michaelis-Menten
+Step 2: 代入 Arrhenius for V_max
+        📝 Note: 假設 V_max 遵循 Arrhenius，但酵素在高溫會變性
+Step 3: 加入 Hill-type 校正因子
+        📝 Note: γ(T) = 1 / (1 + (T/T_denat)^n) 描述變性行為
+Step 4: 簡化得到最終形式
+        → 這是一個「新公式」，比原始 Arrhenius 更適用於生物系統！
+```
+
+### 設計決定
+
+1. **保留計算步驟分離** - 每個操作都是獨立步驟
+2. **新增橋接工具** - `derivation_record_step`, `derivation_add_note`
+3. **notes 是一等公民** - 人類知識與數學推導同等重要
+4. **產生的是「演化過的公式」** - 不只是數學變換，而是加入了領域知識的新公式
+
+### 價值主張
+
+NSForge 不只是「符號計算的 wrapper」，而是：
+> **「讓人類專家與符號系統協作，產生經過專業判斷的推導結果」**
 
 ---
 

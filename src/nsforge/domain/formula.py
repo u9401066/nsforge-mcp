@@ -376,7 +376,7 @@ class FormulaParser:
 
         # 取得表達式字串
         expr_str = data.get("expression") or data.get("sympy") or data.get("latex")
-        
+
         # 確保 expr_str 是 str 類型
         if not isinstance(expr_str, str):
             return ParseError(

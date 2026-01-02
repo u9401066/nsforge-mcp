@@ -1,0 +1,92 @@
+assumptions:
+- Weak acid antibiotic (e.g., fluoroquinolones, penicillins)
+- Passive diffusion absorption (only non-ionized form absorbs)
+- Single compartment distribution
+- NPO state increases gastric pH from ~1.5-2.5 to ~3.5-5
+- Linear relationship between absorbed fraction and bioavailability
+- No active transport mechanisms considered
+author: NSForge Agent
+category: derived
+clinical_context: Use to predict effect of fasting (NPO) on oral antibiotic efficacy.
+  NPO increases gastric pH, which for weak acid antibiotics increases ionization,
+  decreases absorption, and ultimately reduces therapeutic effect. This is particularly
+  important for antibiotics like ciprofloxacin (pKa ~6.1), amoxicillin (pKa ~2.4,
+  7.2), and levofloxacin (pKa ~5.5-6.3).
+created_at: '2026-01-02T20:00:12.920405'
+derivation_steps:
+- Load formula 'hh_weak_acid' from textbook
+- Load formula 'fraction_nonionized_acid' from textbook
+- Load formula 'emax_model' from textbook
+- Load formula 'effective_conc' from derived
+- 將 pH 依賴的吸收率代入有效濃度公式
+- 將有效濃度代入 Emax 模型，得到 pH 依賴的藥效公式
+- 簡化 pH 依賴的藥效模型
+derived_from:
+- hh_weak_acid
+- fraction_nonionized_acid
+- emax_model
+- effective_conc
+description: Complete pharmacokinetic-pharmacodynamic model showing how gastric pH
+  changes during NPO (fasting) affect oral antibiotic absorption and therapeutic efficacy.
+  Combines Henderson-Hasselbalch ionization equilibrium with Emax pharmacodynamic
+  model.
+expression: (E_0*(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n) + E_max*(D*F_base/(Vd*(10**(pH
+  - pKa) + 1)))**n)/(EC_50**n + (D*F_base/(Vd*(10**(pH - pKa) + 1)))**n)
+id: 9ed14ddb
+limitations:
+- Does not account for gastric emptying time changes
+- Ignores food-drug interactions beyond pH effects
+- Assumes steady-state conditions
+- Does not model enteric-coated formulations
+- Temperature and ionic strength effects not included
+- Active transport (P-glycoprotein, OATP) not modeled
+name: npo_antibiotic_effect
+references:
+- Henderson-Hasselbalch equation - Physical Chemistry
+- Hill AV. The possible effects of aggregation of hemoglobin molecules. J Physiol
+  1910
+- Rowland M, Tozer TN. Clinical Pharmacokinetics, 4th ed
+- Dressman JB et al. Upper GI pH in young healthy subjects. Pharm Res 1990
+tags:
+- pharmacokinetics
+- pharmacodynamics
+- pH
+- ionization
+- NPO
+- fasting
+- absorption
+- antibiotic
+- Henderson-Hasselbalch
+- Emax
+variables:
+  D:
+    description: ''
+    unit: ''
+  EC_50:
+    description: ''
+    unit: ''
+  E_0:
+    description: ''
+    unit: ''
+  E_max:
+    description: ''
+    unit: ''
+  F_base:
+    description: ''
+    unit: ''
+  Vd:
+    description: ''
+    unit: ''
+  n:
+    description: ''
+    unit: ''
+  pH:
+    description: ''
+    unit: ''
+  pKa:
+    description: ''
+    unit: ''
+verification_method: ''
+verified: false
+verified_at: null
+version: 1.0.0

@@ -2,14 +2,34 @@
 Code Generation Tools
 
 Tools for generating executable Python code from derivation steps.
-The generated code uses SymPy - NOT hand-crafted by Agent.
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ CRITICAL WORKFLOW - READ BEFORE USING THESE TOOLS!
+═══════════════════════════════════════════════════════════════════════════════
+
+CORRECT order:
+1. Use SymPy-MCP for symbolic calculations (solve, simplify, diff, etc.)
+2. Use print_latex_expression() to show formulas to user
+3. User confirms the results
+4. THEN use these tools to generate code/reports
+
+❌ NEVER use these tools to generate code for UNVERIFIED calculations!
+❌ NEVER skip the SymPy-MCP verification step!
+
+The generated code assembles VERIFIED expressions into executable form.
+It does NOT perform new calculations.
+═══════════════════════════════════════════════════════════════════════════════
 """
 
 from typing import Any
 
 
 def register_codegen_tools(mcp) -> None:
-    """Register code generation tools with MCP server."""
+    """Register code generation tools with MCP server.
+
+    ⚠️ These tools generate code from VERIFIED derivation steps.
+    Always use SymPy-MCP first to verify calculations!
+    """
 
     @mcp.tool()
     def generate_python_function(
@@ -20,7 +40,17 @@ def register_codegen_tools(mcp) -> None:
         return_vars: list[str],
     ) -> dict[str, Any]:
         """
-        Generate a Python function from derivation steps.
+        Generate a Python function from VERIFIED derivation steps.
+
+        ═══════════════════════════════════════════════════════════════════════
+        ⚠️ PREREQUISITE: All expressions must be verified with SymPy-MCP first!
+        ═══════════════════════════════════════════════════════════════════════
+
+        Correct workflow:
+        1. Use SymPy-MCP to derive and verify each expression
+        2. Use print_latex_expression() to show results to user
+        3. User confirms the derivation is correct
+        4. Call this tool with the verified expressions
 
         The generated code uses SymPy for computation, ensuring correctness.
         This is NOT Agent-generated code - it's assembled from verified steps.

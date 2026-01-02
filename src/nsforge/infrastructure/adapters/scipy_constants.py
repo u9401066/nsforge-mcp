@@ -11,7 +11,7 @@ This adapter provides a unified interface to access these constants.
 
 from dataclasses import dataclass
 
-from sympy import Float, Rational, Symbol, pi, sqrt
+from sympy import Float, Symbol
 
 from .base import BaseAdapter, FormulaInfo
 

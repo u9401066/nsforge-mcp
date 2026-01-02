@@ -1,8 +1,29 @@
 """
-Calculation Tools
+Calculation Tools - SIMPLIFIED
 
-Pure symbolic calculation tools using SymPy.
-No hard-coded formulas - all expressions come from User/Agent.
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ IMPORTANT: Most calculation tools have been REMOVED.
+   Use SymPy-MCP for symbolic calculations instead!
+═══════════════════════════════════════════════════════════════════════════════
+
+SymPy-MCP provides (use these for symbolic work):
+- intro_many() / introduce_expression() - Define variables/expressions
+- solve_algebraically() / solve_linear_system() - Solve equations
+- differentiate_expression() / integrate_expression() - Calculus
+- simplify_expression() / expand_expression() - Simplification
+- dsolve_ode() / pdsolve_pde() - Differential equations
+- print_latex_expression() - Display results to user ⬅️ CRITICAL!
+
+This module only provides:
+- evaluate_numeric: For final numeric evaluation (after symbolic work)
+- symbolic_equal: Quick equivalence check (for verification)
+
+═══════════════════════════════════════════════════════════════════════════════
+CORRECT WORKFLOW:
+1. SymPy-MCP: Do symbolic calculations
+2. print_latex_expression(): Show formula to user for confirmation
+3. NSForge: Store verified result (derivation_start → derivation_complete)
+═══════════════════════════════════════════════════════════════════════════════
 """
 
 from typing import Any
@@ -32,264 +53,14 @@ def _parse_safe(expression: str) -> tuple[sp.Expr | None, str | None]:
 
 
 def register_calculate_tools(mcp) -> None:
-    """Register calculation tools with MCP server."""
+    """Register calculation tools with MCP server.
 
-    @mcp.tool()
-    def simplify(
-        expression: str,
-        strategy: str = "basic",
-    ) -> dict[str, Any]:
-        """
-        Simplify a mathematical expression using SymPy.
+    ⚠️ Most tools REMOVED - use SymPy-MCP for symbolic calculations!
 
-        Args:
-            expression: Expression to simplify
-            strategy: "basic", "full", "trig", "radical"
-
-        Returns:
-            Simplified expression with LaTeX
-
-        Examples:
-            simplify("x**2 + 2*x + 1") → "(x + 1)**2"
-            simplify("sin(x)**2 + cos(x)**2", strategy="trig") → "1"
-        """
-        expr, error = _parse_safe(expression)
-        if error:
-            return {"success": False, "error": error}
-
-        try:
-            if strategy in ("trigonometric", "trig"):
-                result = sp.trigsimp(expr)
-            elif strategy == "radical":
-                result = sp.radsimp(expr)
-            elif strategy == "full":
-                result = sp.simplify(expr, full=True)
-            else:
-                result = sp.simplify(expr)
-
-            return {
-                "success": True,
-                "result": str(result),
-                "latex": sp.latex(result),
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @mcp.tool()
-    def substitute(
-        expression: str,
-        values: dict[str, str | int | float],
-        simplify_result: bool = True,
-    ) -> dict[str, Any]:
-        """
-        Substitute values into an expression.
-
-        Core tool for derivation steps - values can be symbolic or numeric.
-
-        Args:
-            expression: Expression with variables
-            values: Substitutions (e.g., {"a": "F/m"} or {"x": 5})
-            simplify_result: Whether to simplify after substitution
-
-        Returns:
-            Expression after substitution
-
-        Examples:
-            substitute("Delta_v * sqrt(m/k)", {"Delta_v": "M2*v/(M1+M2)"})
-            → "M2*v*sqrt(m/k)/(M1 + M2)"
-        """
-        expr, error = _parse_safe(expression)
-        if error:
-            return {"success": False, "error": f"Parse error: {error}"}
-
-        try:
-            subs_dict = {}
-            for var, val in values.items():
-                var_sym = sp.Symbol(var)
-                if isinstance(val, str):
-                    val_expr, val_err = _parse_safe(val)
-                    if val_err:
-                        return {"success": False, "error": f"Parse error for '{var}': {val_err}"}
-                    subs_dict[var_sym] = val_expr
-                else:
-                    subs_dict[var_sym] = val
-
-            result = expr.subs(subs_dict)
-            if simplify_result:
-                result = sp.simplify(result)
-
-            return {
-                "success": True,
-                "result": str(result),
-                "latex": sp.latex(result),
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @mcp.tool()
-    def solve(
-        equation: str,
-        variable: str,
-        domain: str = "complex",
-    ) -> dict[str, Any]:
-        """
-        Solve an equation for a variable using SymPy.
-
-        Args:
-            equation: "lhs = rhs" or "expr" (treated as expr = 0)
-            variable: Variable to solve for
-            domain: "complex", "real", or "positive"
-
-        Returns:
-            List of solutions
-
-        Examples:
-            solve("m1*v1 = (m1+m2)*v_f", "v_f")
-            → ["m1*v1/(m1 + m2)"]
-        """
-        try:
-            if "=" in equation:
-                parts = equation.split("=", 1)
-                lhs, _ = _parse_safe(parts[0].strip())
-                rhs, _ = _parse_safe(parts[1].strip())
-                eq_expr = lhs - rhs
-            else:
-                eq_expr, error = _parse_safe(equation)
-                if error:
-                    return {"success": False, "error": error}
-
-            var_sym = sp.Symbol(variable)
-
-            if domain == "real":
-                solutions = sp.solveset(eq_expr, var_sym, domain=sp.S.Reals)
-            elif domain == "positive":
-                solutions = sp.solveset(eq_expr, var_sym, domain=sp.Interval(0, sp.oo, left_open=True))
-            else:
-                solutions = sp.solve(eq_expr, var_sym)
-
-            # Convert to list
-            if isinstance(solutions, sp.Set):
-                sol_list = list(solutions) if solutions.is_FiniteSet else [solutions]
-            else:
-                sol_list = solutions if isinstance(solutions, list) else [solutions]
-
-            return {
-                "success": True,
-                "variable": variable,
-                "solutions": [{"result": str(s), "latex": sp.latex(s)} for s in sol_list],
-                "count": len(sol_list),
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @mcp.tool()
-    def differentiate(
-        expression: str,
-        variable: str,
-        order: int = 1,
-    ) -> dict[str, Any]:
-        """
-        Differentiate an expression using SymPy.
-
-        Args:
-            expression: Expression to differentiate
-            variable: Variable to differentiate with respect to
-            order: Derivative order (default: 1)
-
-        Returns:
-            Derivative expression
-
-        Examples:
-            differentiate("x**3 + 2*x", "x") → "3*x**2 + 2"
-            differentiate("sin(x)", "x", order=2) → "-sin(x)"
-        """
-        expr, error = _parse_safe(expression)
-        if error:
-            return {"success": False, "error": error}
-
-        try:
-            var_sym = sp.Symbol(variable)
-            result = sp.diff(expr, var_sym, order)
-            return {
-                "success": True,
-                "result": str(result),
-                "latex": sp.latex(result),
-                "operation": f"d^{order}/d{variable}^{order}" if order > 1 else f"d/d{variable}",
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @mcp.tool()
-    def integrate(
-        expression: str,
-        variable: str,
-        lower_bound: str | None = None,
-        upper_bound: str | None = None,
-    ) -> dict[str, Any]:
-        """
-        Integrate an expression using SymPy.
-
-        Args:
-            expression: Expression to integrate
-            variable: Integration variable
-            lower_bound: Lower limit (for definite integral)
-            upper_bound: Upper limit (for definite integral)
-
-        Returns:
-            Integral result
-
-        Examples:
-            integrate("x**2", "x") → "x**3/3"
-            integrate("x**2", "x", "0", "1") → "1/3"
-        """
-        expr, error = _parse_safe(expression)
-        if error:
-            return {"success": False, "error": error}
-
-        try:
-            var_sym = sp.Symbol(variable)
-
-            if lower_bound and upper_bound:
-                lb, _ = _parse_safe(lower_bound)
-                ub, _ = _parse_safe(upper_bound)
-                result = sp.integrate(expr, (var_sym, lb, ub))
-                is_definite = True
-            else:
-                result = sp.integrate(expr, var_sym)
-                is_definite = False
-
-            return {
-                "success": True,
-                "result": str(result),
-                "latex": sp.latex(result),
-                "definite": is_definite,
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @mcp.tool()
-    def expand(expression: str) -> dict[str, Any]:
-        """Expand an expression (distribute products)."""
-        expr, error = _parse_safe(expression)
-        if error:
-            return {"success": False, "error": error}
-        try:
-            result = sp.expand(expr)
-            return {"success": True, "result": str(result), "latex": sp.latex(result)}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
-    @mcp.tool()
-    def factor(expression: str) -> dict[str, Any]:
-        """Factor an expression."""
-        expr, error = _parse_safe(expression)
-        if error:
-            return {"success": False, "error": error}
-        try:
-            result = sp.factor(expr)
-            return {"success": True, "result": str(result), "latex": sp.latex(result)}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+    Remaining tools:
+    - evaluate_numeric: Final numeric evaluation
+    - symbolic_equal: Quick equivalence check
+    """
 
     @mcp.tool()
     def evaluate_numeric(
@@ -300,6 +71,14 @@ def register_calculate_tools(mcp) -> None:
         """
         Evaluate expression numerically.
 
+        ⚠️ USE AFTER SYMBOLIC WORK: This tool is for final numeric evaluation
+        after you've done symbolic calculations with SymPy-MCP.
+
+        Correct Workflow:
+        1. Use SymPy-MCP for symbolic calculations (solve, simplify, etc.)
+        2. Use print_latex_expression() to show result to user
+        3. Use this tool for final numeric values
+
         Args:
             expression: Expression to evaluate
             values: Numeric values for all variables
@@ -307,6 +86,10 @@ def register_calculate_tools(mcp) -> None:
 
         Returns:
             Numeric result
+
+        Examples:
+            evaluate_numeric("sin(pi/4)", {}) → 0.707107
+            evaluate_numeric("m * v**2 / 2", {"m": 70, "v": 10}) → 3500.0
         """
         expr, error = _parse_safe(expression)
         if error:
@@ -329,7 +112,19 @@ def register_calculate_tools(mcp) -> None:
         """
         Check if two expressions are symbolically equivalent.
 
-        Useful for verifying derivation steps.
+        Useful for quick verification of derivation steps.
+        For more thorough verification, use verify.py tools.
+
+        Args:
+            expr1: First expression
+            expr2: Second expression
+
+        Returns:
+            Whether expressions are equivalent
+
+        Examples:
+            symbolic_equal("(x+1)**2", "x**2 + 2*x + 1") → True
+            symbolic_equal("sin(x)**2 + cos(x)**2", "1") → True
         """
         e1, err1 = _parse_safe(expr1)
         e2, err2 = _parse_safe(expr2)

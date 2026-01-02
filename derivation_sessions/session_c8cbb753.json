@@ -1,0 +1,230 @@
+{
+  "session_id": "c8cbb753",
+  "name": "temp_corrected_michaelis_menten",
+  "description": "Temperature-corrected Michaelis-Menten equation for non-linear pharmacokinetics",
+  "status": "completed",
+  "formulas": {
+    "michaelis_menten": {
+      "id": "michaelis_menten",
+      "expression": "C*V_max/(C + K_m)",
+      "latex": "\\frac{C V_{max}}{C + K_{m}}",
+      "variables": {
+        "K_m": {
+          "name": "K_m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "V_max": {
+          "name": "V_max",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "C": {
+          "name": "C",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Biochemistry, Stryer; Pharmacokinetics, Rowland & Tozer",
+      "original_input": "(V_max * C) / (K_m + C)",
+      "input_format": "sympy",
+      "name": "Michaelis-Menten Equation",
+      "description": "Non-linear elimination rate for saturable enzyme kinetics",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T20:19:14.247679"
+    },
+    "arrhenius_vmax": {
+      "id": "arrhenius_vmax",
+      "expression": "V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)",
+      "latex": "V_{max ref} e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}",
+      "variables": {
+        "T": {
+          "name": "T",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "T_ref": {
+          "name": "T_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "V_max_ref": {
+          "name": "V_max_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "R": {
+          "name": "R",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "E_a": {
+          "name": "E_a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Physical Chemistry, Atkins; Enzyme Kinetics, Cornish-Bowden",
+      "original_input": "V_max_ref * exp(E_a / R * (1/T_ref - 1/T))",
+      "input_format": "sympy",
+      "name": "Arrhenius equation for Vmax",
+      "description": "Temperature dependence of Vmax following Arrhenius kinetics",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T20:19:19.176803"
+    },
+    "vanthoff_km": {
+      "id": "vanthoff_km",
+      "expression": "K_m_ref*exp(Delta_H_m*(1/T_ref - 1/T)/R)",
+      "latex": "K_{m ref} e^{\\frac{\\Delta_{H m} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}",
+      "variables": {
+        "T": {
+          "name": "T",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "T_ref": {
+          "name": "T_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "K_m_ref": {
+          "name": "K_m_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "R": {
+          "name": "R",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "Delta_H_m": {
+          "name": "Delta_H_m",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Enzyme Kinetics, Cornish-Bowden",
+      "original_input": "K_m_ref * exp(Delta_H_m / R * (1/T_ref - 1/T))",
+      "input_format": "sympy",
+      "name": "van't Hoff equation for Km",
+      "description": "Temperature dependence of Km following van't Hoff equation",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-02T20:19:23.709993"
+    }
+  },
+  "current_expression": "C*V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)/(C + K_m_ref*exp(Delta_H_m*(1/T_ref - 1/T)/R))",
+  "current_formula_id": "vanthoff_km",
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "load_formula",
+      "description": "Load formula 'michaelis_menten' from textbook",
+      "input_expressions": {
+        "michaelis_menten": "(V_max * C) / (K_m + C)"
+      },
+      "output_expression": "C*V_max/(C + K_m)",
+      "output_latex": "\\frac{C V_{max}}{C + K_{m}}",
+      "sympy_command": "parse('(V_max * C) / (K_m + C)')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T20:19:14.247679"
+    },
+    {
+      "step_number": 2,
+      "operation": "load_formula",
+      "description": "Load formula 'arrhenius_vmax' from textbook",
+      "input_expressions": {
+        "arrhenius_vmax": "V_max_ref * exp(E_a / R * (1/T_ref - 1/T))"
+      },
+      "output_expression": "V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)",
+      "output_latex": "V_{max ref} e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}",
+      "sympy_command": "parse('V_max_ref * exp(E_a / R * (1/T_ref - 1/T))')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T20:19:19.176803"
+    },
+    {
+      "step_number": 3,
+      "operation": "load_formula",
+      "description": "Load formula 'vanthoff_km' from textbook",
+      "input_expressions": {
+        "vanthoff_km": "K_m_ref * exp(Delta_H_m / R * (1/T_ref - 1/T))"
+      },
+      "output_expression": "K_m_ref*exp(Delta_H_m*(1/T_ref - 1/T)/R)",
+      "output_latex": "K_{m ref} e^{\\frac{\\Delta_{H m} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}",
+      "sympy_command": "parse('K_m_ref * exp(Delta_H_m / R * (1/T_ref - 1/T))')",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T20:19:23.710410"
+    },
+    {
+      "step_number": 4,
+      "operation": "substitute",
+      "description": "Substitute temperature-dependent Vmax into Michaelis-Menten",
+      "input_expressions": {
+        "original": "C*V_max/(C + K_m)",
+        "replacement": "V_max = V_max_ref * exp(E_a / R * (1/T_ref - 1/T))"
+      },
+      "output_expression": "C*V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)/(C + K_m)",
+      "output_latex": "\\frac{C V_{max ref} e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}}{C + K_{m}}",
+      "sympy_command": "expr.subs(V_max, V_max_ref * exp(E_a / R * (1/T_ref - 1/T)))",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T20:19:27.912476"
+    },
+    {
+      "step_number": 5,
+      "operation": "substitute",
+      "description": "Substitute temperature-dependent Km",
+      "input_expressions": {
+        "original": "C*V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)/(C + K_m)",
+        "replacement": "K_m = K_m_ref * exp(Delta_H_m / R * (1/T_ref - 1/T))"
+      },
+      "output_expression": "C*V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)/(C + K_m_ref*exp(Delta_H_m*(1/T_ref - 1/T)/R))",
+      "output_latex": "\\frac{C V_{max ref} e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}}{C + K_{m ref} e^{\\frac{\\Delta_{H m} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}}",
+      "sympy_command": "expr.subs(K_m, K_m_ref * exp(Delta_H_m / R * (1/T_ref - 1/T)))",
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T20:19:31.190378"
+    }
+  ],
+  "created_at": "2026-01-02T20:19:08.905204",
+  "updated_at": "2026-01-02T20:19:41.872918",
+  "author": "NSForge",
+  "tags": []
+}

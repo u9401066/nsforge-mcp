@@ -156,18 +156,34 @@ formulas/
 - 臨床情境與使用指引
 - YAML 元資料供程式化存取
 
-### 範例：溫度修正藥物消除率
+**推導範例：**
+
+| 推導 | 領域 | 描述 |
+| --- | --- | --- |
+| [溫度校正消除](formulas/derivations/pharmacokinetics/temp_corrected_elimination.md) | 藥動學 | 一次動力學消除 + Arrhenius 溫度依賴 |
+| [NPO 抗生素效應](formulas/derivations/pharmacokinetics/npo_antibiotic_effect.md) | PK/PD | Henderson-Hasselbalch + Emax 模型（pH 依賴性吸收） |
+| [溫度校正 Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | 藥動學 | 非線性飽和動力學含溫度效應 |
+| [Cisatracurium 多次給藥](formulas/derived/ce30161d.yaml) | 藥動學 | 水解型藥物累積含溫度校正 |
+
+### NPO（禁食）對抗生素效力的影響範例
 
 ```yaml
-id: temp_corrected_elimination
-name: 溫度修正藥物消除率
-expression: k_ref * exp((E_a / R) * (1/T_ref - 1/T))
+id: npo_antibiotic_effect
+name: NPO 對口服抗生素效力的影響
+expression: E_0 + (E_max * C_eff^n) / (EC_50^n + C_eff^n)
+  where: C_eff = F_base * D / (Vd * (1 + 10^(pH - pKa)))
 derived_from:
-  - one_compartment_model      # 來自 sympy-mcp
-  - arrhenius_equation         # 來自 sympy-mcp
+  - henderson_hasselbalch       # pH 依賴性離子化
+  - emax_model                  # 藥效學效應
 verified: true
-verification_method: dimensional_analysis
+verification_method: sympy_symbolic_substitution
+clinical_context: |
+  預測 NPO 患者因胃內 pH 值升高導致抗生素效力降低。
+  對弱酸性抗生素如 Amoxicillin (pKa=2.4) 特別重要，
+  NPO 狀態可使效果降低 >90%。
 ```
+
+**另請參閱：**[Python 實作範例](examples/npo_antibiotic_analysis.py)含臨床建議。
 
 ---
 

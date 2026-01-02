@@ -1,0 +1,75 @@
+assumptions:
+- Enzyme follows Michaelis-Menten kinetics
+- Temperature dependence of Vmax follows Arrhenius equation
+- Temperature dependence of Km follows van't Hoff equation
+- Single metabolic pathway dominates
+- Enzyme structure remains stable within temperature range
+author: NSForge
+category: derived
+clinical_context: Use for TDM of drugs with saturable metabolism (Phenytoin, high-dose
+  Aspirin, Ethanol) when patient has fever or hypothermia. Helps predict non-linear
+  concentration changes with temperature.
+created_at: '2026-01-02T20:19:41.881639'
+derivation_steps:
+- Load formula 'michaelis_menten' from textbook
+- Load formula 'arrhenius_vmax' from textbook
+- Load formula 'vanthoff_km' from textbook
+- Substitute temperature-dependent Vmax into Michaelis-Menten
+- Substitute temperature-dependent Km
+derived_from:
+- michaelis_menten
+- arrhenius_vmax
+- vanthoff_km
+description: Temperature-corrected Michaelis-Menten equation combining non-linear
+  pharmacokinetics with Arrhenius/van't Hoff temperature dependence. Models how enzyme
+  saturation kinetics change with body temperature.
+expression: C*V_max_ref*exp(E_a*(1/T_ref - 1/T)/R)/(C + K_m_ref*exp(Delta_H_m*(1/T_ref
+  - 1/T)/R))
+id: c8cbb753
+limitations:
+- Valid only for 32-42°C (enzyme denaturation outside range)
+- Assumes single enzyme pathway
+- Does not account for temperature effects on protein binding
+- Requires experimental determination of Ea and ΔHm for each drug
+name: temp_corrected_michaelis_menten
+references:
+- Rowland & Tozer, Clinical Pharmacokinetics
+- Cornish-Bowden, Fundamentals of Enzyme Kinetics
+- Atkins, Physical Chemistry (Arrhenius chapter)
+tags:
+- pharmacokinetics
+- nonlinear
+- michaelis-menten
+- temperature
+- arrhenius
+- phenytoin
+- TDM
+variables:
+  C:
+    description: ''
+    unit: ''
+  Delta_H_m:
+    description: ''
+    unit: ''
+  E_a:
+    description: ''
+    unit: ''
+  K_m_ref:
+    description: ''
+    unit: ''
+  R:
+    description: ''
+    unit: ''
+  T:
+    description: ''
+    unit: ''
+  T_ref:
+    description: ''
+    unit: ''
+  V_max_ref:
+    description: ''
+    unit: ''
+verification_method: ''
+verified: false
+verified_at: null
+version: 1.0.0

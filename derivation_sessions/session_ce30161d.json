@@ -1,0 +1,162 @@
+{
+  "session_id": "ce30161d",
+  "name": "cisatracurium_multiple_dosing_temp",
+  "description": "Multiple dosing model for hydrolytic drugs (cisatracurium) with temperature correction. Combines Hofmann elimination kinetics, Arrhenius temperature dependence, and accumulation factor calculations for steady-state peak and trough concentrations.",
+  "status": "completed",
+  "formulas": {},
+  "current_expression": "D/(V_d*(1 - exp(-k_e_ref*tau*exp(E_a*(1/T_ref - 1/T)/R))))",
+  "current_formula_id": null,
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "substitute",
+      "description": "Temperature-corrected elimination rate constant using Arrhenius equation\n\n📝 Notes: Cisatracurium 經由 Hofmann elimination（非酵素性的化學分解）和酯水解代謝。水解反應的速率遵循 Arrhenius 方程，溫度越高反應越快。這對低體溫（如心臟手術）或發燒患者特別重要。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "Cisatracurium 經由 Hofmann elimination（非酵素性的化學分解）和酯水解代謝。水解反應的速率遵循 Arrhenius 方程，溫度越高反應越快。這對低體溫（如心臟手術）或發燒患者特別重要。"
+      },
+      "output_expression": "k_e_ref*exp(E_a*(1/T_ref - 1/T)/R)",
+      "output_latex": "k_{e ref} e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}",
+      "sympy_command": "# From sympy_mcp: k_e_ref * exp(E_a/R * (1/T_ref - 1/T))...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:17:10.761428"
+    },
+    {
+      "step_number": 2,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] ⚠️ **臨床重要性**：低體溫患者（如 CPB 期間 T=28-32°C）的藥物清除率會顯著降低，需要調整劑量。反之，發燒患者清除率增加，藥效時間縮短。\n   Related: k_e, T",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['k_e', 'T']",
+        "related_step": ""
+      },
+      "output_expression": "k_e_ref*exp(E_a*(1/T_ref - 1/T)/R)",
+      "output_latex": "k_{e ref} e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:17:15.568714"
+    },
+    {
+      "step_number": 3,
+      "operation": "custom",
+      "description": "Accumulation factor for multiple dosing\n\n📝 Notes: 累積因子描述重複給藥後，穩態濃度相對於單次給藥的倍數。當給藥間隔 τ 遠大於半衰期（τ >> t1/2）時，R_ac ≈ 1（無累積）。當 τ 接近或小於半衰期時，R_ac > 1（有累積）。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "累積因子描述重複給藥後，穩態濃度相對於單次給藥的倍數。當給藥間隔 τ 遠大於半衰期（τ >> t1/2）時，R_ac ≈ 1（無累積）。當 τ 接近或小於半衰期時，R_ac > 1（有累積）。"
+      },
+      "output_expression": "1/(1 - exp(-k_e*tau))",
+      "output_latex": "\\frac{1}{1 - e^{- k_{e} \\tau}}",
+      "sympy_command": "# From sympy_mcp: 1 / (1 - exp(-k_e * tau))...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:17:28.010492"
+    },
+    {
+      "step_number": 4,
+      "operation": "substitute",
+      "description": "Steady-state peak concentration with accumulation factor\n\n📝 Notes: 穩態峰值濃度 = 單次給藥的峰值 × 累積因子。在多次給藥後，藥物會累積直到穩態（通常需要 3-5 個半衰期）。Cisatracurium 的半衰期約 20-30 分鐘，所以約 1.5-2 小時達到穩態。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "穩態峰值濃度 = 單次給藥的峰值 × 累積因子。在多次給藥後，藥物會累積直到穩態（通常需要 3-5 個半衰期）。Cisatracurium 的半衰期約 20-30 分鐘，所以約 1.5-2 小時達到穩態。"
+      },
+      "output_expression": "D/(V_d*(1 - exp(-k_e*tau)))",
+      "output_latex": "\\frac{D}{V_{d} \\left(1 - e^{- k_{e} \\tau}\\right)}",
+      "sympy_command": "# From sympy_mcp: D / (V_d * (1 - exp(-k_e * tau)))...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:18:18.433993"
+    },
+    {
+      "step_number": 5,
+      "operation": "custom",
+      "description": "Steady-state trough concentration\n\n📝 Notes: 谷值濃度 = 峰值濃度在一個給藥間隔後的殘餘。對於 cisatracurium，谷值通常非常低（接近零），因為其半衰期短。但在低體溫時，ke 降低，谷值會升高，可能導致藥物累積和延長肌肉鬆弛。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "谷值濃度 = 峰值濃度在一個給藥間隔後的殘餘。對於 cisatracurium，谷值通常非常低（接近零），因為其半衰期短。但在低體溫時，ke 降低，谷值會升高，可能導致藥物累積和延長肌肉鬆弛。"
+      },
+      "output_expression": "D*exp(-k_e*tau)/(V_d*(1 - exp(-k_e*tau)))",
+      "output_latex": "\\frac{D e^{- k_{e} \\tau}}{V_{d} \\left(1 - e^{- k_{e} \\tau}\\right)}",
+      "sympy_command": "# From sympy_mcp: D / (V_d * (1 - exp(-k_e * tau))) * exp(-k_e * tau...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:18:31.847457"
+    },
+    {
+      "step_number": 6,
+      "operation": "substitute",
+      "description": "Temperature-corrected steady-state peak concentration (complete form)\n\n📝 Notes: 這是完整的溫度校正公式。可以看到溫度透過 Arrhenius 項影響消除速率，進而影響累積和穩態濃度。當 T < T_ref（低體溫），ke 降低，分母變小，C_max,ss 升高（藥物累積）。當 T > T_ref（發燒），ke 增加，分母變大，C_max,ss 降低（清除加快）。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "這是完整的溫度校正公式。可以看到溫度透過 Arrhenius 項影響消除速率，進而影響累積和穩態濃度。當 T < T_ref（低體溫），ke 降低，分母變小，C_max,ss 升高（藥物累積）。當 T > T_ref（發燒），ke 增加，分母變大，C_max,ss 降低（清除加快）。"
+      },
+      "output_expression": "D/(V_d*(1 - exp(-k_e_ref*tau*exp(E_a*(1/T_ref - 1/T)/R))))",
+      "output_latex": "\\frac{D}{V_{d} \\left(1 - e^{- k_{e ref} \\tau e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}}\\right)}",
+      "sympy_command": "# From sympy_mcp: D / (V_d * (1 - exp(-k_e_ref * exp(E_a/R * (1/T_re...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:18:50.133140"
+    },
+    {
+      "step_number": 7,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 📊 **數值範例**（Cisatracurium）：\n- 正常體溫 (37°C = 310K): ke ≈ 0.2 /min\n- 低體溫 (28°C = 301K, CPB): ke ≈ 0.08 /min（消除速率降至 40%）\n- 發燒 (40°C = 313K): ke ≈ 0.25 /min（消除速率增加 25%）\n\n假設 τ = 30 min（常用追加劑量間隔）：\n- 37°C: R_ac = 1/(1-e^(-0.2×30)) = 1.002（幾乎無累積）\n- 28°C: R_ac = 1/(1-e^(-0.08×30)) = 1.11（累積 11%）→ 需降低劑量！\n   Related: k_e, T, R_ac, C_max_ss",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['k_e', 'T', 'R_ac', 'C_max_ss']",
+        "related_step": ""
+      },
+      "output_expression": "D/(V_d*(1 - exp(-k_e_ref*tau*exp(E_a*(1/T_ref - 1/T)/R))))",
+      "output_latex": "\\frac{D}{V_{d} \\left(1 - e^{- k_{e ref} \\tau e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}}\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:18:57.722203"
+    },
+    {
+      "step_number": 8,
+      "operation": "custom",
+      "description": "⚠️ [LIMITATION] ⚠️ **重要假設與限制**：\n1. **一室模型假設**：假設藥物瞬間分布到全身（對 cisatracurium 是合理的，因為其快速分布）\n2. **線性動力學**：假設 ke 不隨濃度改變（對水解反應是合理的）\n3. **穩態假設**：需要 3-5 個半衰期達到穩態（cisatracurium 約 1.5-2 小時）\n4. **溫度穩定**：假設體溫在給藥期間保持恆定（CPB 期間可能不成立！）\n5. **不考慮活性代謝物**：Cisatracurium 的代謝物（laudanosine）有 CNS 毒性，但通常濃度低",
+      "input_expressions": {
+        "note_type": "limitation",
+        "related_variables": "[]",
+        "related_step": ""
+      },
+      "output_expression": "D/(V_d*(1 - exp(-k_e_ref*tau*exp(E_a*(1/T_ref - 1/T)/R))))",
+      "output_latex": "\\frac{D}{V_{d} \\left(1 - e^{- k_{e ref} \\tau e^{\\frac{E_{a} \\left(\\frac{1}{T_{ref}} - \\frac{1}{T}\\right)}{R}}}\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T21:19:04.513175"
+    }
+  ],
+  "created_at": "2026-01-02T21:16:25.660922",
+  "updated_at": "2026-01-02T21:19:20.985402",
+  "author": "",
+  "tags": []
+}

@@ -54,6 +54,7 @@ class DerivationStep:
     推導步驟記錄
 
     完整記錄每一步操作，這是學術價值的關鍵。
+    包含人類知識（notes）和約束條件（assumptions/limitations）。
     """
 
     step_number: int
@@ -67,6 +68,11 @@ class DerivationStep:
 
     # SymPy 執行記錄
     sympy_command: str  # 實際執行的 SymPy 指令
+
+    # 🆕 人類知識注入
+    notes: str = ""  # 人類洞見、觀察、解釋
+    assumptions: list[str] = field(default_factory=list)  # 這步的假設
+    limitations: list[str] = field(default_factory=list)  # 這步的限制
 
     # 驗證
     status: StepStatus = StepStatus.SUCCESS
@@ -84,6 +90,11 @@ class DerivationStep:
             "output_expression": self.output_expression,
             "output_latex": self.output_latex,
             "sympy_command": self.sympy_command,
+            # 🆕 人類知識
+            "notes": self.notes,
+            "assumptions": self.assumptions,
+            "limitations": self.limitations,
+            # 驗證
             "status": self.status.value,
             "verification_result": self.verification_result,
             "timestamp": self.timestamp,
@@ -99,6 +110,11 @@ class DerivationStep:
             output_expression=data["output_expression"],
             output_latex=data["output_latex"],
             sympy_command=data["sympy_command"],
+            # 🆕 人類知識
+            notes=data.get("notes", ""),
+            assumptions=data.get("assumptions", []),
+            limitations=data.get("limitations", []),
+            # 驗證
             status=StepStatus(data["status"]),
             verification_result=data.get("verification_result", ""),
             timestamp=data.get("timestamp", ""),
@@ -168,8 +184,12 @@ class DerivationSession:
         output_expr: sp.Expr,
         sympy_command: str,
         status: StepStatus = StepStatus.SUCCESS,
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> DerivationStep:
-        """新增步驟記錄"""
+        """新增步驟記錄（含人類知識）"""
         step = DerivationStep(
             step_number=len(self.steps) + 1,
             operation=operation,
@@ -178,6 +198,9 @@ class DerivationSession:
             output_expression=str(output_expr),
             output_latex=sp.latex(output_expr),
             sympy_command=sympy_command,
+            notes=notes,
+            assumptions=assumptions or [],
+            limitations=limitations or [],
             status=status,
         )
         self.steps.append(step)
@@ -264,6 +287,10 @@ class DerivationSession:
         replacement: str | sp.Expr,
         in_formula: str | None = None,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         代入操作
@@ -273,6 +300,9 @@ class DerivationSession:
             replacement: 替換的表達式
             in_formula: 在哪個公式中代入（預設為當前）
             description: 操作描述
+            notes: 人類洞見、觀察、解釋
+            assumptions: 這步的假設條件
+            limitations: 這步的限制
 
         Returns:
             操作結果
@@ -339,6 +369,9 @@ class DerivationSession:
             },
             output_expr=new_expr,
             sympy_command=f"expr.subs({target_var}, {replacement})",
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
         return {
@@ -347,15 +380,29 @@ class DerivationSession:
             "latex": sp.latex(new_expr),
             "step_number": self.step_count,
             "substituted": {target_var: str(replacement_expr)},
+            "notes": notes,
+            "assumptions": assumptions or [],
+            "limitations": limitations or [],
         }
 
-    def simplify(self, method: str = "auto", description: str = "") -> dict[str, Any]:
+    def simplify(
+        self,
+        method: str = "auto",
+        description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         簡化當前表達式
 
         Args:
             method: 簡化方法 ("auto", "trig", "radical", "expand_then_simplify")
             description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
 
         Returns:
             操作結果
@@ -397,6 +444,9 @@ class DerivationSession:
             input_expressions={"original": str(original)},
             output_expr=new_expr,
             sympy_command=cmd,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
         return {
@@ -406,15 +456,29 @@ class DerivationSession:
             "step_number": self.step_count,
             "method": method,
             "changed": str(original) != str(new_expr),
+            "notes": notes,
+            "assumptions": assumptions or [],
+            "limitations": limitations or [],
         }
 
-    def solve_for(self, variable: str, description: str = "") -> dict[str, Any]:
+    def solve_for(
+        self,
+        variable: str,
+        description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         求解變數
 
         Args:
             variable: 要求解的變數
             description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
 
         Returns:
             操作結果（可能有多個解）
@@ -463,6 +527,9 @@ class DerivationSession:
             input_expressions={"equation": str(expr)},
             output_expr=solution_eq,
             sympy_command=f"solve(expr, {variable})",
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
         return {
@@ -472,6 +539,9 @@ class DerivationSession:
             "solutions_latex": [sp.latex(s) for s in solutions],
             "primary_solution": str(first_solution),
             "step_number": self.step_count,
+            "notes": notes,
+            "assumptions": assumptions or [],
+            "limitations": limitations or [],
         }
 
     def differentiate(
@@ -479,8 +549,22 @@ class DerivationSession:
         variable: str,
         order: int = 1,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
-        """微分"""
+        """
+        微分
+
+        Args:
+            variable: 微分變數
+            order: 階數
+            description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
+        """
         if self.current_expression is None:
             return {"success": False, "error": "No current expression"}
 
@@ -501,6 +585,9 @@ class DerivationSession:
             input_expressions={"original": str(original)},
             output_expr=new_expr,
             sympy_command=f"diff(expr, {variable}, {order})",
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
         return {
@@ -508,6 +595,9 @@ class DerivationSession:
             "expression": str(new_expr),
             "latex": sp.latex(new_expr),
             "step_number": self.step_count,
+            "notes": notes,
+            "assumptions": assumptions or [],
+            "limitations": limitations or [],
         }
 
     def integrate(
@@ -516,8 +606,23 @@ class DerivationSession:
         lower: str | None = None,
         upper: str | None = None,
         description: str = "",
+        # 🆕 人類知識
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
     ) -> dict[str, Any]:
-        """積分"""
+        """
+        積分
+
+        Args:
+            variable: 積分變數
+            lower: 下界
+            upper: 上界
+            description: 操作描述
+            notes: 人類洞見
+            assumptions: 這步的假設
+            limitations: 這步的限制
+        """
         if self.current_expression is None:
             return {"success": False, "error": "No current expression"}
 
@@ -545,6 +650,9 @@ class DerivationSession:
             input_expressions={"original": str(original)},
             output_expr=new_expr,
             sympy_command=cmd,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
         )
 
         return {
@@ -552,6 +660,9 @@ class DerivationSession:
             "expression": str(new_expr),
             "latex": sp.latex(new_expr),
             "step_number": self.step_count,
+            "notes": notes,
+            "assumptions": assumptions or [],
+            "limitations": limitations or [],
         }
 
     # ═══════════════════════════════════════════════════════════════════════

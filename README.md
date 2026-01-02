@@ -161,18 +161,34 @@ formulas/
 - Clinical context and usage guidance
 - YAML metadata for programmatic access
 
-**Example: Temperature-Corrected Drug Elimination**
+**Example Derivations:**
+
+| Derivation | Domain | Description |
+|------------|--------|-------------|
+| [Temperature-Corrected Elimination](formulas/derivations/pharmacokinetics/temp_corrected_elimination.md) | PK | First-order elimination + Arrhenius temperature dependence |
+| [NPO Antibiotic Effect](formulas/derivations/pharmacokinetics/npo_antibiotic_effect.md) | PK/PD | Henderson-Hasselbalch + Emax model for pH-dependent absorption |
+| [Temperature-Corrected Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | PK | Non-linear saturable kinetics with temperature effects |
+| [Cisatracurium Multiple Dosing](formulas/derived/ce30161d.yaml) | PK | Hydrolytic drug accumulation with temperature correction |
+
+**Example: NPO (Fasting) Impact on Antibiotic Efficacy**
 
 ```yaml
-id: temp_corrected_elimination
-name: Temperature-Corrected Drug Elimination Rate
-expression: k_ref * exp((E_a / R) * (1/T_ref - 1/T))
+id: npo_antibiotic_effect
+name: NPO Impact on Oral Antibiotic Efficacy
+expression: E_0 + (E_max * C_eff^n) / (EC_50^n + C_eff^n)
+  where: C_eff = F_base * D / (Vd * (1 + 10^(pH - pKa)))
 derived_from:
-  - one_compartment_model      # from sympy-mcp
-  - arrhenius_equation         # from sympy-mcp
+  - henderson_hasselbalch       # pH-dependent ionization
+  - emax_model                  # Pharmacodynamic effect
 verified: true
-verification_method: dimensional_analysis
+verification_method: sympy_symbolic_substitution
+clinical_context: |
+  Predicts reduced antibiotic efficacy in NPO patients due to 
+  increased gastric pH. Critical for weak acid antibiotics like 
+  Amoxicillin (pKa=2.4) where NPO can reduce effect by >90%.
 ```
+
+**See also:** [Python Implementation](examples/npo_antibiotic_analysis.py) with clinical recommendations.
 
 ---
 
