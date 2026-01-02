@@ -315,7 +315,7 @@ NSForge provides **31 MCP tools** organized into 5 modules:
 | `derivation_solve_for` | Solve for variable |
 | `derivation_differentiate` | Differentiate expression |
 | `derivation_integrate` | Integrate expression |
-| `derivation_record_step` | Record step with notes |
+| `derivation_record_step` | Record step with notes (**⚠️ MUST display formula to user after!**) |
 | `derivation_add_note` | Add human insights |
 | `derivation_complete` | Complete and save |
 | `derivation_abort` | Abort current session |

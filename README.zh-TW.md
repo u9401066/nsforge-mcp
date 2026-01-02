@@ -310,7 +310,7 @@ NSForge 提供 **31 個 MCP 工具**，分為 5 個模組：
 | `derivation_solve_for` | 解出變數 |
 | `derivation_differentiate` | 微分表達式 |
 | `derivation_integrate` | 積分表達式 |
-| `derivation_record_step` | 記錄步驟與備註 |
+| `derivation_record_step` | 記錄步驟與備註 (**⚠️ 必須向用戶顯示公式！**) |
 | `derivation_add_note` | 加入人類洞見 |
 | `derivation_complete` | 完成並儲存 |
 | `derivation_abort` | 放棄當前會話 |

@@ -595,6 +595,13 @@ def register_derivation_tools(mcp: Any) -> None:
             "notes": notes,
             "source": source,
             "message": "Step recorded. Continue with SymPy-MCP or add more notes.",
+            # ⚠️ 重要提醒：必須顯示公式給用戶！
+            "AGENT_INSTRUCTION": (
+                "⚠️ IMPORTANT: You MUST display the formula to the user NOW! "
+                "Use the LaTeX above to show the current result. "
+                "The user needs to see and confirm the formula before discussing next steps. "
+                "Example: '目前公式為：$" + latex_str.replace("\\", "\\\\") + "$'"
+            ),
         }
 
     @mcp.tool()
