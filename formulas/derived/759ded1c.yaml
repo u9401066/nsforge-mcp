@@ -1,0 +1,83 @@
+assumptions:
+- Two-vehicle collision at 45° angle
+- 30% energy converted to heat (inelastic collision)
+- Cars stick together after collision (perfectly inelastic approximation)
+- Collision time t_c is known or measurable
+- Driver mass is part of m1
+author: AI Assistant
+category: derived
+clinical_context: 用於估算汽車碰撞時駕駛安全帶的受力，幫助評估安全帶設計和碰撞安全性。適用於事故重建和車輛安全分析。
+created_at: '2026-01-02T23:06:48.830715'
+derivation_steps:
+- '車 1 初始動量（沿 x 軸）
+
+
+  📝 Notes: 假設車 1 沿 x 軸運動，車 2 以 45° 角運動'
+- '動量守恆求解碰撞後 x 方向速度
+
+
+  📝 Notes: 假設為完全非彈性碰撞（兩車糾結在一起），動量守恆'
+- '駕駛（車 1）速度變化量
+
+
+  📝 Notes: 這是 x 方向的速度變化。如果 v1 > v2*cos(θ)，則為減速（負值）'
+- '安全帶受力（基於動量守恆和衝量定理）
+
+
+  📝 Notes: 這只考慮動量守恆，尚未考慮能量損失。負值表示安全帶對駕駛施加減速力'
+- "⚠️ [LIMITATION] ⚠️ 重要：30% 能量變成熱能意味著這不是完全非彈性碰撞。需要修正碰撞後速度和安全帶受力\n   Related: v1,\
+  \ v2, F_seatbelt"
+- '碰撞後剩餘動能（考慮 30% 能量損失）
+
+
+  📝 Notes: 30% 能量轉換為熱能（車體潰縮），剩餘 70% 動能'
+- '安全帶受力最終公式（45° 碰撞角）
+
+
+  📝 Notes: 代入 θ=45°，cos(45°)=√2/2。力的方向取決於速度大小關係'
+- "\U0001F4A1 [OBSERVATION] \U0001F4CB 解釋：如果 v1 > 0.707v2，駕駛會感受到向後的拉力（減速）；如果 v1 <\
+  \ 0.707v2，則向前壓迫（被推）\n   Related: F_seatbelt, v1, v2"
+derived_from: []
+description: 'Two-vehicle 45° angle collision with 30% energy loss: Seatbelt force
+  on driver in vehicle 1, derived from momentum conservation and energy dissipation
+  principles.'
+expression: m1*m2*(-2*v1 + sqrt(2)*v2)/(2*t_collision*(m1 + m2))
+id: 759ded1c
+limitations:
+- Does not account for Y-direction (lateral) force on driver
+- Assumes rigid body collision (ignores detailed crumple zone dynamics)
+- Collision time t_c significantly affects force magnitude
+- Does not include airbag effects
+- Ignores rotational motion after collision
+name: collision_seatbelt_force
+references:
+- Classical Mechanics - Goldstein
+- Vehicle Crash Dynamics - Vangi
+- Momentum and Energy Conservation Laws
+tags:
+- collision
+- momentum
+- safety
+- inelastic
+- vehicle_crash
+- seatbelt_force
+variables:
+  m1:
+    description: ''
+    unit: ''
+  m2:
+    description: ''
+    unit: ''
+  t_collision:
+    description: ''
+    unit: ''
+  v1:
+    description: ''
+    unit: ''
+  v2:
+    description: ''
+    unit: ''
+verification_method: ''
+verified: false
+verified_at: null
+version: 1.0.0

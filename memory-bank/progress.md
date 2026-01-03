@@ -1,4 +1,4 @@
-# Progress (Updated: 2026-01-02)
+# Progress (Updated: 2026-01-03)
 
 ## Done
 
@@ -47,6 +47,44 @@
   - 更新 Project Structure（含 .claude/skills、formulas 等）
   - 更新 Roadmap 反映實際完成狀態
   - 修正 Python badge（3.10+ → 3.12+）
+- **🆕 NSForge vs SymPy-MCP 功能分析** (2026-01-03)：
+  - 確認 SymPy-MCP 有 37 個工具
+  - 發現 5 個 SymPy 重要模組未被暴露：
+    1. `sympy.stats` - 統計與機率
+    2. `sympy.limit/series/summation` - 極限與級數
+    3. `sympy.solvers.inequalities` - 不等式求解
+    4. `sympy.assumptions` - 假設查詢
+    5. 不確定性傳播
+  - 創建文檔：`docs/nsforge-vs-sympy-mcp.md`
+  - 更新 README.md 和 README.zh-TW.md 加入獨特功能章節
+  - 更新 ROADMAP.md 加入 v0.2.0 進階數學能力計畫
+  - 架構決策：**不 Fork SymPy-MCP，直接調用 SymPy**
+- **🎯 重新定位 NSForge** (2026-01-03)：
+  - 從「記錄器」轉變為「推導助手」
+  - 核心價值：Agent 自己寫 SymPy 也能算，但無法做到：
+    1. 每步自動驗證
+    2. 智慧建議下一步
+    3. 符號語義追蹤
+    4. 錯誤模式預警
+  - 更新 ROADMAP：v0.2.0 改為「主動推導助手」
+  - 更新 docs/nsforge-vs-sympy-mcp.md 反映新定位
+- **🎉 v0.2.1 完成！10 個新計算工具** (2026-01-03)：
+  - SymPy-MCP 沒有的功能，NSForge 現在有了！
+  - **極限/級數** (3 個)：
+    - `calculate_limit()` - 極限（含 ±∞、方向）
+    - `calculate_series()` - Taylor/Laurent/Fourier 展開
+    - `calculate_summation()` - 符號求和
+  - **不等式** (2 個)：
+    - `solve_inequality()` - 單變數不等式
+    - `solve_inequality_system()` - 不等式系統
+  - **統計** (3 個)：
+    - `define_distribution()` - 定義機率分佈
+    - `distribution_stats()` - 期望值、變異數等
+    - `distribution_probability()` - 機率計算
+  - **假設查詢** (2 個)：
+    - `query_assumptions()` - 符號屬性查詢
+    - `refine_expression()` - 基於假設簡化
+  - NSForge 現在總共 **49 個 MCP 工具**！
 
 ## Doing
 
@@ -54,6 +92,11 @@
 
 ## Next
 
+- **🧠 v0.2.0 主動推導助手**：
+  - 自動驗證器 (Auto-Validator)
+  - 推導建議器 (Derivation Advisor)
+  - 符號語義追蹤 (Symbol Semantics)
+  - 錯誤模式檢測 (Error Pattern Detection)
 - 實作 search_formulas() 查詢功能
 - 增加其他領域推導範例（如電路、流體力學）
 - 整合 verify tools 到推導工作流

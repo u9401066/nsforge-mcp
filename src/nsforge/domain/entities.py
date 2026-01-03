@@ -24,7 +24,7 @@ class ExpressionType(str, Enum):
 class Expression:
     """
     A mathematical expression entity.
-    
+
     This is the core entity representing any mathematical expression
     that can be manipulated symbolically.
     """
@@ -45,7 +45,7 @@ class Expression:
 class DerivationStep:
     """
     A single step in a mathematical derivation.
-    
+
     Each step represents one transformation with its justification.
     """
 
@@ -61,7 +61,7 @@ class DerivationStep:
 class Derivation:
     """
     A complete mathematical derivation.
-    
+
     Contains the full chain of steps from premise to conclusion.
     """
 

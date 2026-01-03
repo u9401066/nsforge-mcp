@@ -15,7 +15,7 @@ from nsforge.domain.value_objects import MathContext, VerificationResult
 class SymbolicEngine(ABC):
     """
     Abstract interface for symbolic computation engine.
-    
+
     This is a domain service interface - the actual implementation
     lives in the infrastructure layer (e.g., SymPyEngine).
     """
@@ -87,7 +87,7 @@ class SymbolicEngine(ABC):
 class Verifier(ABC):
     """
     Abstract interface for derivation verification.
-    
+
     Verifies that mathematical derivations are correct.
     """
 
@@ -124,7 +124,7 @@ class Verifier(ABC):
 class FormulaRepository(ABC):
     """
     Abstract interface for formula knowledge base.
-    
+
     Provides access to known formulas and their derivations.
     """
 

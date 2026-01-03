@@ -74,7 +74,24 @@ NSForge works WITH other MCP servers, not against them:
 
 ---
 
-## �🎬 Workflow
+## 🚀 NSForge Unique Capabilities
+
+NSForge provides features **not available in SymPy-MCP** by directly leveraging SymPy modules:
+
+| Feature | SymPy Module | Application | Status |
+| ------- | ------------ | ----------- | ------ |
+| **Statistics & Probability** | `sympy.stats` | PopPK variability, uncertainty | ✅ v0.2.1 |
+| **Limits & Series** | `sympy.limit`, `sympy.series` | Steady-state, accumulation | ✅ v0.2.1 |
+| **Inequality Solving** | `sympy.solvers.inequalities` | Therapeutic window | ✅ v0.2.1 |
+| **Assumption Queries** | `sympy.assumptions` | Auto-validation | ✅ v0.2.1 |
+| **Derivation Workflow** | NSForge exclusive | Step tracking, provenance | ✅ Available |
+| **Verification Suite** | NSForge exclusive | Dimension analysis | ✅ Available |
+
+> 📖 **Details**: See [NSForge vs SymPy-MCP Comparison](docs/nsforge-vs-sympy-mcp.md) for complete analysis.
+
+---
+
+## 🎬 Workflow
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐

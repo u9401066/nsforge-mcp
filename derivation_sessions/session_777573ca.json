@@ -1,0 +1,14 @@
+{
+  "session_id": "777573ca",
+  "name": "multiple_full_agonist_competition",
+  "description": "Derivation of receptor kinetics with multiple full agonists competing for the same receptor (e.g., fentanyl + morphine + hydromorphone competing for mu-opioid receptor)",
+  "status": "active",
+  "formulas": {},
+  "current_expression": null,
+  "current_formula_id": null,
+  "steps": [],
+  "created_at": "2026-01-02T22:39:16.819588",
+  "updated_at": "2026-01-02T22:39:16.819588",
+  "author": "",
+  "tags": []
+}

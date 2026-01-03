@@ -1,0 +1,161 @@
+{
+  "session_id": "759ded1c",
+  "name": "collision_seatbelt_force",
+  "description": "兩車以 45 度角非彈性碰撞後，駕駛安全帶受力分析（30% 能量轉換為熱能）",
+  "status": "completed",
+  "formulas": {},
+  "current_expression": "m1*m2*(-2*v1 + sqrt(2)*v2)/(2*t_collision*(m1 + m2))",
+  "current_formula_id": null,
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "custom",
+      "description": "車 1 初始動量（沿 x 軸）\n\n📝 Notes: 假設車 1 沿 x 軸運動，車 2 以 45° 角運動",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "假設車 1 沿 x 軸運動，車 2 以 45° 角運動"
+      },
+      "output_expression": "m1*v1",
+      "output_latex": "m_{1} v_{1}",
+      "sympy_command": "# From sympy_mcp: m1*v1...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:05:23.959032"
+    },
+    {
+      "step_number": 2,
+      "operation": "solve",
+      "description": "動量守恆求解碰撞後 x 方向速度\n\n📝 Notes: 假設為完全非彈性碰撞（兩車糾結在一起），動量守恆",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "假設為完全非彈性碰撞（兩車糾結在一起），動量守恆"
+      },
+      "output_expression": "(m1*v1 + m2*v2*cos(theta))/(m1 + m2)",
+      "output_latex": "\\frac{m_{1} v_{1} + m_{2} v_{2} \\cos{\\left(\\theta \\right)}}{m_{1} + m_{2}}",
+      "sympy_command": "# From sympy_mcp: (m1*v1 + m2*v2*cos(theta)) / (m1 + m2)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:05:41.186987"
+    },
+    {
+      "step_number": 3,
+      "operation": "custom",
+      "description": "駕駛（車 1）速度變化量\n\n📝 Notes: 這是 x 方向的速度變化。如果 v1 > v2*cos(θ)，則為減速（負值）",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "這是 x 方向的速度變化。如果 v1 > v2*cos(θ)，則為減速（負值）"
+      },
+      "output_expression": "m2*(-v1 + v2*cos(theta))/(m1 + m2)",
+      "output_latex": "\\frac{m_{2} \\left(- v_{1} + v_{2} \\cos{\\left(\\theta \\right)}\\right)}{m_{1} + m_{2}}",
+      "sympy_command": "# From sympy_mcp: m2*(v2*cos(theta) - v1)/(m1 + m2)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:05:55.613662"
+    },
+    {
+      "step_number": 4,
+      "operation": "custom",
+      "description": "安全帶受力（基於動量守恆和衝量定理）\n\n📝 Notes: 這只考慮動量守恆，尚未考慮能量損失。負值表示安全帶對駕駛施加減速力",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "這只考慮動量守恆，尚未考慮能量損失。負值表示安全帶對駕駛施加減速力"
+      },
+      "output_expression": "m1*m2*(-v1 + v2*cos(theta))/(t_collision*(m1 + m2))",
+      "output_latex": "\\frac{m_{1} m_{2} \\left(- v_{1} + v_{2} \\cos{\\left(\\theta \\right)}\\right)}{t_{collision} \\left(m_{1} + m_{2}\\right)}",
+      "sympy_command": "# From sympy_mcp: m1*m2*(v2*cos(theta) - v1)/(t_collision*(m1 + m2))...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:06:12.124743"
+    },
+    {
+      "step_number": 5,
+      "operation": "custom",
+      "description": "⚠️ [LIMITATION] ⚠️ 重要：30% 能量變成熱能意味著這不是完全非彈性碰撞。需要修正碰撞後速度和安全帶受力\n   Related: v1, v2, F_seatbelt",
+      "input_expressions": {
+        "note_type": "limitation",
+        "related_variables": "['v1', 'v2', 'F_seatbelt']",
+        "related_step": ""
+      },
+      "output_expression": "m1*m2*(-v1 + v2*cos(theta))/(t_collision*(m1 + m2))",
+      "output_latex": "\\frac{m_{1} m_{2} \\left(- v_{1} + v_{2} \\cos{\\left(\\theta \\right)}\\right)}{t_{collision} \\left(m_{1} + m_{2}\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:06:12.158356"
+    },
+    {
+      "step_number": 6,
+      "operation": "custom",
+      "description": "碰撞後剩餘動能（考慮 30% 能量損失）\n\n📝 Notes: 30% 能量轉換為熱能（車體潰縮），剩餘 70% 動能",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "30% 能量轉換為熱能（車體潰縮），剩餘 70% 動能"
+      },
+      "output_expression": "0.35*m1*v1**2 + 0.35*m2*v2**2",
+      "output_latex": "0.35 m_{1} v_{1}^{2} + 0.35 m_{2} v_{2}^{2}",
+      "sympy_command": "# From sympy_mcp: 0.7 * (0.5*m1*v1**2 + 0.5*m2*v2**2)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:06:23.474628"
+    },
+    {
+      "step_number": 7,
+      "operation": "custom",
+      "description": "安全帶受力最終公式（45° 碰撞角）\n\n📝 Notes: 代入 θ=45°，cos(45°)=√2/2。力的方向取決於速度大小關係",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "代入 θ=45°，cos(45°)=√2/2。力的方向取決於速度大小關係"
+      },
+      "output_expression": "m1*m2*(-2*v1 + sqrt(2)*v2)/(2*t_collision*(m1 + m2))",
+      "output_latex": "\\frac{m_{1} m_{2} \\left(- 2 v_{1} + \\sqrt{2} v_{2}\\right)}{2 t_{collision} \\left(m_{1} + m_{2}\\right)}",
+      "sympy_command": "# From sympy_mcp: m1*m2*(sqrt(2)*v2 - 2*v1)/(2*t_collision*(m1 + m2)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:06:39.790955"
+    },
+    {
+      "step_number": 8,
+      "operation": "custom",
+      "description": "💡 [OBSERVATION] 📋 解釋：如果 v1 > 0.707v2，駕駛會感受到向後的拉力（減速）；如果 v1 < 0.707v2，則向前壓迫（被推）\n   Related: F_seatbelt, v1, v2",
+      "input_expressions": {
+        "note_type": "observation",
+        "related_variables": "['F_seatbelt', 'v1', 'v2']",
+        "related_step": ""
+      },
+      "output_expression": "m1*m2*(-2*v1 + sqrt(2)*v2)/(2*t_collision*(m1 + m2))",
+      "output_latex": "\\frac{m_{1} m_{2} \\left(- 2 v_{1} + \\sqrt{2} v_{2}\\right)}{2 t_{collision} \\left(m_{1} + m_{2}\\right)}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-02T23:06:39.829920"
+    }
+  ],
+  "created_at": "2026-01-02T23:04:59.882722",
+  "updated_at": "2026-01-02T23:06:48.808923",
+  "author": "AI Assistant",
+  "tags": []
+}

@@ -6,7 +6,7 @@ verified derivation processes, NOT basic formulas from textbooks.
 
 What belongs here:
 ✅ Temperature-corrected drug elimination models
-✅ Body fat-adjusted distribution models  
+✅ Body fat-adjusted distribution models
 ✅ Renal function-adjusted dosing formulas
 ✅ Custom PK/PD models for specific drugs
 ✅ Any formula derived and verified through NSForge
@@ -33,7 +33,7 @@ from sympy import Expr, sympify
 class DerivationResult:
     """
     A formula that was derived and verified through NSForge.
-    
+
     This represents the OUTPUT of a derivation process, not a textbook formula.
     """
 
@@ -109,7 +109,7 @@ class DerivationResult:
 class DerivationRepository:
     """
     Repository for storing and retrieving derived formulas.
-    
+
     Derivation results can be:
     1. Registered programmatically during a session
     2. Loaded from YAML files in formulas/ directory
@@ -192,14 +192,14 @@ class DerivationRepository:
     ) -> DerivationResult:
         """
         Update a derivation result's metadata.
-        
+
         Args:
             result_id: The ID of the derivation result to update
             **updates: Fields to update (description, clinical_context, tags, etc.)
-            
+
         Returns:
             Updated DerivationResult
-            
+
         Raises:
             ValueError: If result_id not found
         """
@@ -223,11 +223,11 @@ class DerivationRepository:
     def delete(self, result_id: str, delete_file: bool = True) -> bool:
         """
         Delete a derivation result.
-        
+
         Args:
             result_id: The ID of the derivation result to delete
             delete_file: Whether to delete the YAML file (default: True)
-            
+
         Returns:
             True if deleted, False if not found
         """

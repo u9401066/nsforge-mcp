@@ -23,7 +23,7 @@ TRANSFORMATIONS = standard_transformations + (
 )
 
 
-def _parse_safe(expression: str):
+def _parse_safe(expression: str) -> tuple[Any, str | None]:
     """Safely parse expression."""
     try:
         expr_clean = expression.replace("^", "**")
@@ -32,7 +32,7 @@ def _parse_safe(expression: str):
         return None, str(e)
 
 
-def register_verify_tools(mcp) -> None:
+def register_verify_tools(mcp: Any) -> None:
     """Register verification tools with MCP server."""
 
     @mcp.tool()

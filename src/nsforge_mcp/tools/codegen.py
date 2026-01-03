@@ -24,7 +24,7 @@ It does NOT perform new calculations.
 from typing import Any
 
 
-def register_codegen_tools(mcp) -> None:
+def register_codegen_tools(mcp: Any) -> None:
     """Register code generation tools with MCP server.
 
     ⚠️ These tools generate code from VERIFIED derivation steps.
@@ -295,7 +295,7 @@ def register_codegen_tools(mcp) -> None:
         ]
 
         # Collect all symbols
-        all_symbols = set()
+        all_symbols: set[str] = set()
         for expr in expressions:
             # Simple extraction - in production use proper parsing
             import re

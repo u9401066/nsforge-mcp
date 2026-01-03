@@ -22,7 +22,7 @@ from nsforge.domain.value_objects import MathContext, SimplificationLevel
 class SymPyEngine(SymbolicEngine):
     """
     SymPy-based implementation of the symbolic computation engine.
-    
+
     This is the primary symbolic engine used by NSForge.
     """
 

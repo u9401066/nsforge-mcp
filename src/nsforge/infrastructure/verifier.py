@@ -14,7 +14,7 @@ from nsforge.domain.value_objects import MathContext, VerificationResult, Verifi
 class BasicVerifier(Verifier):
     """
     Basic implementation of mathematical verification.
-    
+
     Performs structural and algebraic verification of derivations.
     """
 
@@ -87,7 +87,7 @@ class BasicVerifier(Verifier):
     ) -> VerificationResult:
         """
         Check dimensional consistency.
-        
+
         Note: Full dimensional analysis requires unit tracking,
         which is not yet implemented.
         """
@@ -129,7 +129,7 @@ class BasicVerifier(Verifier):
     ) -> VerificationResult:
         """
         Verify differentiation by integrating the result.
-        
+
         Note: This is reverse verification - if ∫output = input (up to constant),
         then differentiation is correct.
         """
@@ -171,15 +171,12 @@ class BasicVerifier(Verifier):
     ) -> VerificationResult:
         """
         Verify integration by differentiating the result.
-        
+
         If d/dx(output) = input, then integration is correct.
         """
         # Find variable
         free_symbols = input_expr.sympy_expr.free_symbols
-        if not free_symbols:
-            var = sp.Symbol('x')
-        else:
-            var = list(free_symbols)[0]
+        var = sp.Symbol('x') if not free_symbols else list(free_symbols)[0]
 
         # Differentiate output
         derivative = sp.diff(output_expr.sympy_expr, var)

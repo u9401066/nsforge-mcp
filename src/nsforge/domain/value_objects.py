@@ -33,7 +33,7 @@ class VerificationStatus(str, Enum):
 class MathContext:
     """
     Context for mathematical operations.
-    
+
     Immutable configuration that affects how expressions are processed.
     """
 
@@ -70,7 +70,7 @@ class MathContext:
 class VerificationResult:
     """
     Result of verifying a mathematical derivation or calculation.
-    
+
     Immutable result object containing verification details.
     """
 
@@ -103,7 +103,7 @@ class VerificationResult:
 class CalculationResult:
     """
     Result of a symbolic calculation.
-    
+
     Contains the result expression and metadata about the calculation.
     """
 

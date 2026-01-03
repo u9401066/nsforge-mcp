@@ -410,11 +410,10 @@ class FormulaParser:
         # 補充變數資訊
         if "variables" in data:
             for var_name, var_info in data["variables"].items():
-                if var_name in result.variables:
-                    if isinstance(var_info, dict):
-                        result.variables[var_name].description = var_info.get("description", "")
-                        result.variables[var_name].unit = var_info.get("unit")
-                        result.variables[var_name].constraints = var_info.get("constraints")
+                if var_name in result.variables and isinstance(var_info, dict):
+                    result.variables[var_name].description = var_info.get("description", "")
+                    result.variables[var_name].unit = var_info.get("unit")
+                    result.variables[var_name].constraints = var_info.get("constraints")
 
         # 應用額外 metadata
         for key, value in metadata.items():

@@ -33,7 +33,7 @@ class TestSymPyEngineParsing:
     
     def test_parse_invalid(self, engine):
         """Test parsing invalid expression."""
-        expr = engine.parse("x +++ y")
+        expr = engine.parse("x +++ @#$ y")  # Clearly invalid
         assert not expr.is_valid
     
     def test_implicit_multiplication(self, engine):

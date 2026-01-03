@@ -22,7 +22,7 @@ from nsforge.domain.value_objects import (
 class CalculateUseCase:
     """
     Use case for performing symbolic calculations.
-    
+
     Handles: simplification, evaluation, basic operations.
     """
 
@@ -37,13 +37,13 @@ class CalculateUseCase:
     ) -> CalculationResult:
         """
         Execute a calculation operation.
-        
+
         Args:
             expression: Mathematical expression as string
             operation: Operation to perform (simplify, evaluate, expand, factor)
             context: Mathematical context for the operation
             **kwargs: Additional operation-specific arguments
-            
+
         Returns:
             CalculationResult with the result or error
         """
@@ -93,7 +93,7 @@ class CalculateUseCase:
 class SimplifyUseCase:
     """
     Use case for expression simplification.
-    
+
     Provides various simplification strategies.
     """
 
@@ -107,12 +107,12 @@ class SimplifyUseCase:
     ) -> CalculationResult:
         """
         Simplify an expression.
-        
+
         Args:
             expression: Expression to simplify
             strategy: Simplification strategy (default, trigonometric, radical)
             context: Mathematical context
-            
+
         Returns:
             CalculationResult with simplified expression
         """
@@ -136,7 +136,7 @@ class SimplifyUseCase:
 class DeriveUseCase:
     """
     Use case for mathematical derivations.
-    
+
     Handles multi-step derivations with step tracking.
     """
 
@@ -153,14 +153,14 @@ class DeriveUseCase:
     ) -> Derivation:
         """
         Execute a derivation.
-        
+
         Args:
             goal: What we're trying to derive
             premises: Starting expressions
             steps: List of derivation steps to execute
             context: Mathematical context
             verify: Whether to verify each step
-            
+
         Returns:
             Derivation object with results
         """
@@ -234,7 +234,7 @@ class DeriveUseCase:
 class VerifyUseCase:
     """
     Use case for verifying mathematical results.
-    
+
     Performs various verification checks.
     """
 
@@ -250,13 +250,13 @@ class VerifyUseCase:
     ) -> VerificationResult:
         """
         Verify a calculation result.
-        
+
         Args:
             original: Original expression
             result: Result to verify
             operation: Operation that was performed
             context: Mathematical context
-            
+
         Returns:
             VerificationResult with verification status
         """
@@ -281,12 +281,12 @@ class VerifyUseCase:
     ) -> VerificationResult:
         """
         Verify that two expressions are equal.
-        
+
         Args:
             expr1: First expression
             expr2: Second expression
             context: Mathematical context
-            
+
         Returns:
             VerificationResult
         """
