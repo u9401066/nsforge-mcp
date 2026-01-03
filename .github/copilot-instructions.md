@@ -104,7 +104,32 @@ uv add --dev pytest ruff
 >
 > **「人類的推導是一步一步的，每步都可加入新元素！」**
 
-#### 🔥 步進式推導工作流（核心）
+#### � 86 工具快速選擇指南（v0.2.1）
+
+| 我想要... | 用哪個？ | 工具 |
+|-----------|---------|------|
+| 簡化/展開/分解 | SymPy-MCP | `simplify_expression`, `expand_expression`, `factor_expression` |
+| 微分/積分 | SymPy-MCP | `differentiate_expression`, `integrate_expression` |
+| 解方程 | SymPy-MCP | `solve_algebraically`, `solve_linear_system` |
+| ODE/PDE | SymPy-MCP | `dsolve_ode`, `pdsolve_pde` |
+| 矩陣 | SymPy-MCP | `matrix_*` 系列 |
+| 單位換算 | SymPy-MCP | `convert_to_units` |
+| **極限** | **NSForge** | `calculate_limit` |
+| **級數展開** | **NSForge** | `calculate_series` |
+| **求和 Σ** | **NSForge** | `calculate_summation` |
+| **不等式** | **NSForge** | `solve_inequality`, `solve_inequality_system` |
+| **機率分佈** | **NSForge** | `define_distribution`, `distribution_stats`, `distribution_probability` |
+| **假設查詢** | **NSForge** | `query_assumptions`, `refine_expression` |
+| 數值計算 | NSForge | `evaluate_numeric` |
+| 等價檢查 | NSForge | `symbolic_equal` |
+| 推導追蹤 | NSForge | `derivation_*` 系列 |
+| 公式存取 | NSForge | `formula_*` 系列 |
+| 驗證 | NSForge | `verify_*`, `check_dimensions` |
+| 程式碼生成 | NSForge | `generate_python_function`, `generate_*` |
+
+> 💡 **新增 10 個獨特工具！**詳見 `nsforge-quick-calculate` Skill。
+
+#### �🔥 步進式推導工作流（核心）
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -156,7 +181,10 @@ uv add --dev pytest ruff
 
 #### 🔄 Handoff 機制：無法計算時怎麼辦？
 
-**當 NSForge 無法處理時（ODE、矩陣、極限等），使用 Handoff 工具：**
+**當 NSForge 無法處理時（ODE、PDE、複雜矩陣運算），使用 Handoff 工具：**
+
+> ⚠️ **v0.2.1 後，極限/級數/求和已可用 NSForge 直接計算！**
+> Handoff 主要用於 ODE、PDE、聯立方程組等。
 
 ```
 NSForge 遇到無法處理的操作
@@ -190,7 +218,7 @@ derivation_import_from_sympy(
 **使用時機：**
 - NSForge 工具返回錯誤
 - 需要解 ODE/PDE
-- 需要矩陣運算、極限、級數等複雜操作
+- 需要複雜矩陣運算
 
 ### 通用開發 Skills
 

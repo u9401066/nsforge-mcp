@@ -57,3 +57,12 @@ CONSTITUTION.md (最高原則)
 
 ---
 *Last updated: 2025-12-15*
+
+## Compact SKILL.md Design
+
+Skills 檔案需精簡設計：因 SKILL.md 完整載入 context，必須最小化。保留：工具名+參數+1-2行範例。刪除：Agent 回應範例、ASCII 流程圖、JSON 返回格式、冗長場景。達成 80-92% 減量。
+
+### Examples
+
+- nsforge-quick-calculate: 794→65 lines (92%)
+- nsforge-derivation-workflow: 400→80 lines (80%)

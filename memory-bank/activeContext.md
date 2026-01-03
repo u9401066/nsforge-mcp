@@ -4,36 +4,36 @@
 
 ## 🎯 當前焦點
 
-**v0.2.1 已完成！** 新增 10 個獨特計算工具，程式碼品質檢查通過。
+**Skills 精簡化完成！** 5 個 SKILL.md 檔案減量 80-92%，已準備 git push。
 
 ## ✅ 本次完成 (2026-01-03)
 
-### v0.2.1 新增 10 個計算工具
-NSForge 現在提供 SymPy-MCP 沒有的功能：
+### Skills 精簡化
+由於 SKILL.md 會完整載入 context，進行了全面精簡：
 
-| 類別 | 工具 | 說明 |
-|------|------|------|
-| **極限/級數** | `calculate_limit()` | 極限（含 ±∞、方向） |
-| | `calculate_series()` | Taylor/Laurent/Fourier 展開 |
-| | `calculate_summation()` | 符號求和 |
-| **不等式** | `solve_inequality()` | 單變數不等式 |
-| | `solve_inequality_system()` | 不等式系統 |
-| **統計** | `define_distribution()` | 定義機率分佈 |
-| | `distribution_stats()` | 期望值、變異數等 |
-| | `distribution_probability()` | 機率計算 |
-| **假設** | `query_assumptions()` | 符號屬性查詢 |
-| | `refine_expression()` | 基於假設簡化 |
+| Skill | 原始 | 精簡後 | 減量 |
+|-------|------|--------|------|
+| nsforge-quick-calculate | 794 行 | 65 行 | 92% |
+| nsforge-derivation-workflow | 442 行 | 93 行 | 79% |
+| nsforge-verification-suite | 266 行 | 55 行 | 79% |
+| nsforge-formula-management | 472 行 | 49 行 | 90% |
+| nsforge-code-generation | 526 行 | 77 行 | 85% |
 
-### 程式碼品質修復
-- **ruff**: 46 → 6 錯誤（剩餘是故意的未使用參數）
-- **mypy**: 8 → 2 錯誤（外部套件型別限制）
-- **pytest**: 28/28 通過 ✅
-- 修復型別註解、移除過時測試檔案
+**保留內容**：
+- 工具名 + 參數簽名
+- 1-2 行簡潔範例
+- 決策表（何時用哪個工具）
 
-### 文檔更新
-- README.md / README.zh-TW.md - 功能狀態更新為 ✅ v0.2.1
-- docs/nsforge-vs-sympy-mcp.md - 標記為已實作
-- ROADMAP.md - v0.2.1 完成
+**刪除內容**：
+- Agent 回應範例
+- ASCII 流程圖
+- JSON 返回格式詳情
+- 冗長使用場景
+
+### copilot-instructions.md 更新
+- 新增「86 工具快速選擇指南」表格
+- 標記 v0.2.1 新增工具（極限/級數/求和可用 NSForge）
+- 更新 Handoff 機制說明
 
 ## 📝 架構決策
 

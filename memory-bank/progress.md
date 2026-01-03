@@ -85,6 +85,12 @@
     - `query_assumptions()` - 符號屬性查詢
     - `refine_expression()` - 基於假設簡化
   - NSForge 現在總共 **49 個 MCP 工具**！
+- **📦 Skills 精簡化** (2026-01-03)：
+  - 5 個 SKILL.md 檔案全面重寫
+  - 減量 80-92%（平均從 350+ 行 → 60 行）
+  - 保留：工具名+參數+簡潔範例
+  - 刪除：Agent 回應範例、ASCII 圖、JSON 格式
+  - 更新 copilot-instructions.md 加入 86 工具速查表
 
 ## Doing
 
