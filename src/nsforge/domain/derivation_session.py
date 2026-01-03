@@ -673,6 +673,266 @@ class DerivationSession:
         """取得所有步驟"""
         return [s.to_dict() for s in self.steps]
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # 步驟 CRUD 操作
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def get_step(self, step_number: int) -> dict[str, Any]:
+        """
+        取得單一步驟詳情
+
+        Args:
+            step_number: 步驟編號（1-based）
+
+        Returns:
+            步驟詳情
+        """
+        if step_number < 1 or step_number > len(self.steps):
+            return {
+                "success": False,
+                "error": f"Step {step_number} not found. Valid range: 1-{len(self.steps)}",
+            }
+
+        step = self.steps[step_number - 1]
+        return {
+            "success": True,
+            "step": step.to_dict(),
+        }
+
+    def update_step(
+        self,
+        step_number: int,
+        description: str | None = None,
+        notes: str | None = None,
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """
+        更新步驟的元資料（不改變計算結果）
+
+        Args:
+            step_number: 步驟編號（1-based）
+            description: 新描述（None 表示不更新）
+            notes: 新註記（None 表示不更新）
+            assumptions: 新假設（None 表示不更新）
+            limitations: 新限制（None 表示不更新）
+
+        Returns:
+            更新結果
+        """
+        if step_number < 1 or step_number > len(self.steps):
+            return {
+                "success": False,
+                "error": f"Step {step_number} not found. Valid range: 1-{len(self.steps)}",
+            }
+
+        step = self.steps[step_number - 1]
+        updated_fields = []
+
+        if description is not None:
+            step.description = description
+            updated_fields.append("description")
+
+        if notes is not None:
+            step.notes = notes
+            updated_fields.append("notes")
+
+        if assumptions is not None:
+            step.assumptions = assumptions
+            updated_fields.append("assumptions")
+
+        if limitations is not None:
+            step.limitations = limitations
+            updated_fields.append("limitations")
+
+        self._update_timestamp()
+
+        # 自動持久化
+        if self._persist_path:
+            self.save()
+
+        return {
+            "success": True,
+            "step_number": step_number,
+            "updated_fields": updated_fields,
+            "step": step.to_dict(),
+            "message": f"Step {step_number} updated: {', '.join(updated_fields)}",
+        }
+
+    def delete_step(self, step_number: int) -> dict[str, Any]:
+        """
+        刪除單一步驟（只能刪除最後一步，否則會破壞連續性）
+
+        Args:
+            step_number: 步驟編號（1-based）
+
+        Returns:
+            刪除結果
+        """
+        if step_number < 1 or step_number > len(self.steps):
+            return {
+                "success": False,
+                "error": f"Step {step_number} not found. Valid range: 1-{len(self.steps)}",
+            }
+
+        if step_number != len(self.steps):
+            return {
+                "success": False,
+                "error": f"Can only delete the last step ({len(self.steps)}). Use rollback_to_step() to delete multiple steps.",
+            }
+
+        deleted_step = self.steps.pop()
+        self._update_timestamp()
+
+        # 恢復前一步的表達式
+        if self.steps:
+            last_step = self.steps[-1]
+            self.current_expression = sp.sympify(last_step.output_expression)
+        else:
+            self.current_expression = None
+
+        # 自動持久化
+        if self._persist_path:
+            self.save()
+
+        return {
+            "success": True,
+            "deleted_step": deleted_step.to_dict(),
+            "new_step_count": len(self.steps),
+            "current_expression": str(self.current_expression) if self.current_expression else None,
+            "message": f"Step {step_number} deleted.",
+        }
+
+    def rollback_to_step(self, step_number: int) -> dict[str, Any]:
+        """
+        回滾到指定步驟（刪除該步驟之後的所有步驟）
+
+        Args:
+            step_number: 回滾到的步驟編號（1-based，該步驟會保留）
+
+        Returns:
+            回滾結果
+        """
+        if step_number < 0 or step_number > len(self.steps):
+            return {
+                "success": False,
+                "error": f"Invalid step number. Valid range: 0-{len(self.steps)} (0 = reset all)",
+            }
+
+        if step_number == len(self.steps):
+            return {
+                "success": True,
+                "message": "Already at this step, nothing to rollback.",
+                "step_count": len(self.steps),
+            }
+
+        # 記錄將被刪除的步驟
+        deleted_steps = self.steps[step_number:]
+        deleted_count = len(deleted_steps)
+
+        # 執行回滾
+        self.steps = self.steps[:step_number]
+
+        # 恢復當前表達式
+        if self.steps:
+            last_step = self.steps[-1]
+            self.current_expression = sp.sympify(last_step.output_expression)
+        else:
+            # 回滾到 0，清空所有
+            self.current_expression = None
+
+        self._update_timestamp()
+
+        # 自動持久化
+        if self._persist_path:
+            self.save()
+
+        return {
+            "success": True,
+            "rolled_back_to": step_number,
+            "deleted_count": deleted_count,
+            "deleted_steps": [s.step_number for s in deleted_steps],
+            "new_step_count": len(self.steps),
+            "current_expression": str(self.current_expression) if self.current_expression else None,
+            "current_latex": sp.latex(self.current_expression) if self.current_expression else None,
+            "message": f"Rolled back to step {step_number}. Deleted {deleted_count} step(s).",
+        }
+
+    def insert_note_after_step(
+        self,
+        after_step: int,
+        note: str,
+        note_type: str = "observation",
+        related_variables: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """
+        在指定步驟之後插入說明（會重新編號後續步驟）
+
+        Args:
+            after_step: 在此步驟之後插入（0 = 最開頭）
+            note: 說明內容
+            note_type: 說明類型
+            related_variables: 相關變數
+
+        Returns:
+            插入結果
+        """
+        if after_step < 0 or after_step > len(self.steps):
+            return {
+                "success": False,
+                "error": f"Invalid position. Valid range: 0-{len(self.steps)}",
+            }
+
+        # 取得插入位置的表達式
+        if after_step == 0:
+            output_expr = self.current_expression or sp.Integer(0)
+        else:
+            output_expr = sp.sympify(self.steps[after_step - 1].output_expression)
+
+        # 建立新步驟
+        note_emoji = {
+            "assumption": "📋",
+            "limitation": "⚠️",
+            "observation": "💡",
+            "correction": "🔧",
+            "clinical": "🏥",
+            "physical": "🔬",
+        }.get(note_type, "📝")
+
+        new_step = DerivationStep(
+            step_number=after_step + 1,  # 暫時編號，之後會重新編號
+            operation=OperationType.CUSTOM,
+            description=f"{note_emoji} [{note_type.upper()}] {note}"
+            + (f"\n   Related: {', '.join(related_variables)}" if related_variables else ""),
+            input_expressions={
+                "note_type": note_type,
+                "related_variables": str(related_variables or []),
+            },
+            output_expression=str(output_expr),
+            output_latex=sp.latex(output_expr),
+            sympy_command="# Note (no computation)",
+        )
+
+        # 插入步驟
+        self.steps.insert(after_step, new_step)
+
+        # 重新編號
+        for i, step in enumerate(self.steps):
+            step.step_number = i + 1
+
+        self._update_timestamp()
+
+        # 自動持久化
+        if self._persist_path:
+            self.save()
+
+        return {
+            "success": True,
+            "inserted_at": after_step + 1,
+            "new_step_count": len(self.steps),
+            "message": f"Note inserted at step {after_step + 1}. Steps renumbered.",
+        }
+
     def get_current(self) -> dict[str, Any]:
         """取得當前狀態"""
         return {
@@ -706,9 +966,7 @@ class DerivationSession:
             "final_latex": sp.latex(self.current_expression),
             "total_steps": self.step_count,
             "steps": self.get_steps(),
-            "formulas_used": {
-                fid: f.to_dict() for fid, f in self.formulas.items()
-            },
+            "formulas_used": {fid: f.to_dict() for fid, f in self.formulas.items()},
             "provenance": {
                 "created_at": self.created_at,
                 "completed_at": self.updated_at,

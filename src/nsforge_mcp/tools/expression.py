@@ -73,9 +73,9 @@ def register_expression_tools(mcp: Any) -> None:
         is_equation = "=" in expr_clean and expr_clean.count("=") == 1
 
         try:
-            transformations = (
-                standard_transformations
-                + (implicit_multiplication_application, convert_xor)
+            transformations = standard_transformations + (
+                implicit_multiplication_application,
+                convert_xor,
             )
 
             if is_equation:
@@ -203,9 +203,7 @@ def register_expression_tools(mcp: Any) -> None:
             # For now, just check that all symbols have units defined
             symbols_without_units = found_symbols - set(units_map.keys())
             if symbols_without_units:
-                warnings.append(
-                    f"Symbols without unit definition: {symbols_without_units}"
-                )
+                warnings.append(f"Symbols without unit definition: {symbols_without_units}")
 
         return {
             "valid": len(issues) == 0,
@@ -255,7 +253,11 @@ def register_expression_tools(mcp: Any) -> None:
                 "t": {"type": "positive_real", "unit": "s", "desc": "Time"},
                 "k": {"type": "positive_real", "unit": "N/m", "desc": "Spring constant"},
                 "theta": {"type": "real", "unit": "rad", "desc": "Angle"},
-                "g": {"type": "positive_real", "unit": "m/s²", "desc": "Gravitational acceleration"},
+                "g": {
+                    "type": "positive_real",
+                    "unit": "m/s²",
+                    "desc": "Gravitational acceleration",
+                },
             },
             "thermodynamics": {
                 "T": {"type": "positive_real", "unit": "K", "desc": "Temperature"},
@@ -299,19 +301,23 @@ def register_expression_tools(mcp: Any) -> None:
                 sym_name = str(sym)
                 if sym_name in knowledge:
                     info = knowledge[sym_name]
-                    result.append({
-                        "name": sym_name,
-                        "type": info["type"],
-                        "suggested_unit": info["unit"],
-                        "description": info["desc"],
-                    })
+                    result.append(
+                        {
+                            "name": sym_name,
+                            "type": info["type"],
+                            "suggested_unit": info["unit"],
+                            "description": info["desc"],
+                        }
+                    )
                 else:
-                    result.append({
-                        "name": sym_name,
-                        "type": "real",
-                        "suggested_unit": "",
-                        "description": "Unknown symbol",
-                    })
+                    result.append(
+                        {
+                            "name": sym_name,
+                            "type": "real",
+                            "suggested_unit": "",
+                            "description": "Unknown symbol",
+                        }
+                    )
 
             return {
                 "success": True,

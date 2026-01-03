@@ -83,7 +83,9 @@ def _create_distribution(distribution_type: str, params: dict[str, Any], name: s
         "lognormal": lambda: stats.LogNormal(name, params.get("mean", 0), params.get("std", 1)),
         # Discrete
         "poisson": lambda: stats.Poisson(name, params.get("lambda", 1)),
-        "binomial": lambda: stats.Binomial(name, params.get("n", 10), params.get("p", sp.Rational(1, 2))),
+        "binomial": lambda: stats.Binomial(
+            name, params.get("n", 10), params.get("p", sp.Rational(1, 2))
+        ),
         "geometric": lambda: stats.Geometric(name, params.get("p", sp.Rational(1, 2))),
     }
 
@@ -442,6 +444,7 @@ def register_calculate_tools(mcp: Any) -> None:  # noqa: C901
 
             # Solve
             from sympy.solvers.inequalities import solve_univariate_inequality
+
             result = solve_univariate_inequality(ineq, var, relational=False)
 
             # Apply domain restriction if needed
@@ -805,7 +808,10 @@ def register_calculate_tools(mcp: Any) -> None:  # noqa: C901
 
             # Calculate probability
             if cond is None:
-                return {"success": False, "error": "Failed to parse condition into a valid expression"}
+                return {
+                    "success": False,
+                    "error": "Failed to parse condition into a valid expression",
+                }
             prob = stats.P(cond)
 
             return {
@@ -919,8 +925,10 @@ def register_calculate_tools(mcp: Any) -> None:  # noqa: C901
                 "query": query,
                 "result": result,  # True, False, or None
                 "interpretation": (
-                    "Yes" if result is True
-                    else "No" if result is False
+                    "Yes"
+                    if result is True
+                    else "No"
+                    if result is False
                     else "Cannot determine (need more assumptions)"
                 ),
                 "assumptions_used": assumptions,

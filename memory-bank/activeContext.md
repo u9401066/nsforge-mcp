@@ -4,64 +4,65 @@
 
 ## 🎯 當前焦點
 
-**Skills 精簡化完成！** 5 個 SKILL.md 檔案減量 80-92%，已準備 git push。
+**v0.2.2 步驟控制系統完成！** 5 個新 MCP 工具實現完整 CRUD 控制。
 
 ## ✅ 本次完成 (2026-01-03)
 
-### Skills 精簡化
-由於 SKILL.md 會完整載入 context，進行了全面精簡：
+### 🎛️ 步驟 CRUD 功能
 
-| Skill | 原始 | 精簡後 | 減量 |
-|-------|------|--------|------|
-| nsforge-quick-calculate | 794 行 | 65 行 | 92% |
-| nsforge-derivation-workflow | 442 行 | 93 行 | 79% |
-| nsforge-verification-suite | 266 行 | 55 行 | 79% |
-| nsforge-formula-management | 472 行 | 49 行 | 90% |
-| nsforge-code-generation | 526 行 | 77 行 | 85% |
+實現了推導步驟的完整控制：
 
-**保留內容**：
-- 工具名 + 參數簽名
-- 1-2 行簡潔範例
-- 決策表（何時用哪個工具）
+| 工具 | 操作 | 說明 |
+|------|------|------|
+| `derivation_get_step` | 查讀 | 取得任一步驟詳情 |
+| `derivation_update_step` | 更新 | 修改元資料（註記、假設、限制） |
+| `derivation_delete_step` | 刪除 | 只能刪除最後一步 |
+| `derivation_rollback` | ⚡回滾 | 跳回任一步驟，刪除後續 |
+| `derivation_insert_note` | 插入 | 在任一位置插入註記 |
 
-**刪除內容**：
-- Agent 回應範例
-- ASCII 流程圖
-- JSON 返回格式詳情
-- 冗長使用場景
+**關鍵設計決策**：
+- 表達式不可直接編輯（會破壞驗證）
+- 用 `rollback` 返回有效狀態再重新推導
+- 插入/刪除後自動重編號
 
-### copilot-instructions.md 更新
-- 新增「86 工具快速選擇指南」表格
-- 標記 v0.2.1 新增工具（極限/級數/求和可用 NSForge）
-- 更新 Handoff 機制說明
+### 📖 文檔更新
 
-## 📝 架構決策
+- **README.md** + **README.zh-TW.md**：
+  - 核心能力從 3 → 4（新增 CONTROL）
+  - 新增「步驟控制功能」專區（含 ASCII 流程圖）
+  - 工具數量 31 → 36
+- **CHANGELOG.md**：新增 v0.2.2 版本紀錄
 
-- **不 Fork SymPy-MCP**：直接調用 SymPy 模組
-- **工具分類清晰**：calculate.py 負責所有 NSForge 獨特計算功能
-- **保持介面一致**：所有工具返回 `{"success": bool, ...}` 格式
+### 🧪 測試覆蓋
 
-## 🔜 下一步
-
-- **v0.2.0 主動推導助手**（優先順序較高的功能）：
-  - 自動驗證器 (Auto-Validator)
-  - 推導建議器 (Derivation Advisor)  
-  - 符號語義追蹤 (Symbol Semantics)
-  - 錯誤模式檢測 (Error Pattern Detection)
+- `tests/test_step_crud.py` - 完整單元測試
+- `tests/demo_crud.py` - 互動式示範
+- Ruff 檢查通過（65 個問題修復）
 
 ## 📁 本次變更檔案
 
 ```
-src/nsforge_mcp/tools/calculate.py  # +10 新工具
-src/nsforge_mcp/tools/verify.py     # 型別修復
-src/nsforge_mcp/tools/codegen.py    # 型別修復
-tests/test_sympy_engine.py          # 修復測試
-tests/test_registry.py              # 已刪除（過時）
-README.md                           # 狀態更新
-README.zh-TW.md                     # 狀態更新
-docs/nsforge-vs-sympy-mcp.md        # 狀態更新
-ROADMAP.md                          # v0.2.1 完成
+# 核心功能
+src/nsforge/domain/derivation_session.py    # +5 方法 (~150 行)
+src/nsforge_mcp/tools/derivation.py          # +5 MCP 工具註冊
+
+# 測試
+tests/test_step_crud.py                      # 新增
+tests/demo_crud.py                           # 新增
+
+# 文檔
+README.md                                    # 大幅更新
+README.zh-TW.md                              # 同步更新
+CHANGELOG.md                                 # v0.2.2 版本
+.claude/skills/nsforge-derivation-workflow/SKILL.md  # 更新
+docs/nsforge-skills-guide.md                 # 工具數量更新
 ```
+
+## 🔜 下一步
+
+1. **Git commit + push**
+2. 重啟 MCP 伺服器以載入新工具
+3. 測試新工具在實際推導中的效果
 
 ---
 *Last updated: 2026-01-03*

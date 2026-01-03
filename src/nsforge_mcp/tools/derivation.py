@@ -130,7 +130,9 @@ def register_derivation_tools(mcp: Any) -> None:
             "status": session.status.value,
             "step_count": session.step_count,
             "formulas_loaded": session.formula_ids,
-            "current_expression": str(session.current_expression) if session.current_expression else None,
+            "current_expression": str(session.current_expression)
+            if session.current_expression
+            else None,
             "message": "Session resumed. Continue with derivation operations.",
         }
 
@@ -565,6 +567,7 @@ def register_derivation_tools(mcp: Any) -> None:
             "custom": "custom",
         }
         from nsforge.domain.derivation_session import OperationType, StepStatus
+
         op_type = OperationType(op_map.get(operation_type, "custom"))
 
         # 建立步驟描述（包含 notes）
@@ -742,6 +745,227 @@ def register_derivation_tools(mcp: Any) -> None:
             "steps": session.get_steps(),
         }
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # 步驟 CRUD 操作
+    # ═══════════════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    def derivation_get_step(step_number: int) -> dict[str, Any]:
+        """
+        取得單一步驟的詳細資訊
+
+        用於檢視特定步驟的完整記錄，包含：
+        - 操作類型和描述
+        - 輸入/輸出表達式
+        - SymPy 指令
+        - 人類知識（notes、assumptions、limitations）
+
+        Args:
+            step_number: 步驟編號（1-based）
+
+        Returns:
+            步驟詳情
+
+        Example:
+            derivation_get_step(11)
+            → {"success": True, "step": {"step_number": 11, "operation": "substitute", ...}}
+        """
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session.",
+            }
+
+        return session.get_step(step_number)
+
+    @mcp.tool()
+    def derivation_update_step(
+        step_number: int,
+        description: str | None = None,
+        notes: str | None = None,
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """
+        更新步驟的元資料
+
+        ═══════════════════════════════════════════════════════════════════════
+        ⚠️ 只能更新「說明性」欄位，不能改變計算結果！
+        ═══════════════════════════════════════════════════════════════════════
+
+        可更新的欄位：
+        - description: 步驟描述
+        - notes: 人類洞見、觀察、解釋
+        - assumptions: 這步的假設條件
+        - limitations: 這步的限制
+
+        不可更新（需要用 rollback 重做）：
+        - 表達式
+        - 操作類型
+
+        Args:
+            step_number: 步驟編號（1-based）
+            description: 新描述（None = 不更新）
+            notes: 新註記（None = 不更新）
+            assumptions: 新假設（None = 不更新）
+            limitations: 新限制（None = 不更新）
+
+        Returns:
+            更新結果
+
+        Example:
+            derivation_update_step(
+                step_number=11,
+                notes="此假設在高溫時不成立",
+                limitations=["Valid only for T < 42°C"]
+            )
+        """
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session.",
+            }
+
+        return session.update_step(
+            step_number=step_number,
+            description=description,
+            notes=notes,
+            assumptions=assumptions,
+            limitations=limitations,
+        )
+
+    @mcp.tool()
+    def derivation_delete_step(step_number: int) -> dict[str, Any]:
+        """
+        刪除單一步驟
+
+        ═══════════════════════════════════════════════════════════════════════
+        ⚠️ 只能刪除最後一步！
+        ═══════════════════════════════════════════════════════════════════════
+
+        如需刪除中間步驟，請使用 derivation_rollback() 回滾到該步驟之前，
+        然後重新執行推導。
+
+        Args:
+            step_number: 步驟編號（必須是最後一步）
+
+        Returns:
+            刪除結果
+
+        Example:
+            derivation_delete_step(16)  # 假設有 16 步，刪除最後一步
+            → {"success": True, "deleted_step": {...}, "new_step_count": 15}
+        """
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session.",
+            }
+
+        return session.delete_step(step_number)
+
+    @mcp.tool()
+    def derivation_rollback(to_step: int) -> dict[str, Any]:
+        """
+        回滾到指定步驟
+
+        ═══════════════════════════════════════════════════════════════════════
+        ⚡ 這是「跳回某一步」的核心工具！
+        ═══════════════════════════════════════════════════════════════════════
+
+        保留指定步驟及之前的所有步驟，刪除之後的步驟。
+        回滾後可以從該步驟繼續推導（走不同的路徑）。
+
+        Args:
+            to_step: 回滾到的步驟編號（1-based，該步驟會保留）
+                     0 = 清空所有步驟，從頭開始
+
+        Returns:
+            回滾結果，包含：
+            - 刪除了哪些步驟
+            - 當前的表達式
+            - 新的步驟數
+
+        Example:
+            # 假設有 16 步，發現第 11 步開始走錯方向
+            derivation_rollback(to_step=10)
+            → {
+                "success": True,
+                "rolled_back_to": 10,
+                "deleted_count": 6,
+                "deleted_steps": [11, 12, 13, 14, 15, 16],
+                "current_expression": "CL_int*(1 - f_b)",
+                "message": "Rolled back to step 10. Deleted 6 step(s)."
+              }
+            # 現在可以從步驟 10 的表達式繼續，走不同的推導路徑
+        """
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session.",
+            }
+
+        return session.rollback_to_step(to_step)
+
+    @mcp.tool()
+    def derivation_insert_note(
+        after_step: int,
+        note: str,
+        note_type: str = "observation",
+        related_variables: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """
+        在指定位置插入說明
+
+        ═══════════════════════════════════════════════════════════════════════
+        📝 用於在推導中間補充說明，不改變計算流程
+        ═══════════════════════════════════════════════════════════════════════
+
+        插入後會自動重新編號後續步驟。
+
+        Args:
+            after_step: 在此步驟之後插入（0 = 最開頭）
+            note: 說明內容
+            note_type: 說明類型
+                - "assumption": 📋 假設條件
+                - "limitation": ⚠️ 限制/警告
+                - "observation": 💡 觀察/洞見
+                - "correction": 🔧 修正建議
+                - "clinical": 🏥 臨床意義
+                - "physical": 🔬 物理意義
+            related_variables: 相關變數
+
+        Returns:
+            插入結果
+
+        Example:
+            # 在步驟 5 和 6 之間插入說明
+            derivation_insert_note(
+                after_step=5,
+                note="此處假設達穩態，實際臨床可能需要 5 個半衰期",
+                note_type="clinical",
+                related_variables=["t_half"]
+            )
+            → {"success": True, "inserted_at": 6, "new_step_count": 17}
+        """
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session.",
+            }
+
+        return session.insert_note_after_step(
+            after_step=after_step,
+            note=note,
+            note_type=note_type,
+            related_variables=related_variables,
+        )
+
     @mcp.tool()
     def derivation_complete(
         description: str = "",
@@ -810,7 +1034,11 @@ def register_derivation_tools(mcp: Any) -> None:
                     expression=str(session.current_expression),
                     variables={
                         str(s): {"description": "", "unit": ""}
-                        for s in (session.current_expression.free_symbols if session.current_expression else [])
+                        for s in (
+                            session.current_expression.free_symbols
+                            if session.current_expression
+                            else []
+                        )
                     },
                     derived_from=list(session.formulas.keys()),
                     derivation_steps=[step["description"] for step in result["steps"]],
@@ -1083,6 +1311,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 if verified and verification_method:
                     updates["verification_method"] = verification_method
                     from datetime import datetime
+
                     updates["verified_at"] = datetime.now().isoformat()
 
             if not updates:
@@ -1244,14 +1473,18 @@ def register_derivation_tools(mcp: Any) -> None:
             # 假設是 real positive（常見情況）
             result["variables"] = vars_list
             result["intro_many_command"] = f"intro_many({vars_list!r}, 'real positive')"
-            result["intro_many_note"] = "Adjust assumptions as needed (e.g., 'real', 'positive', 'integer')"
+            result["intro_many_note"] = (
+                "Adjust assumptions as needed (e.g., 'real', 'positive', 'integer')"
+            )
 
         # 當前表達式
         if include_current_expression and session.current_expression is not None:
             expr_str = str(session.current_expression)
             result["current_expression"] = expr_str
             result["current_expression_latex"] = sp.latex(session.current_expression)
-            result["introduce_expression_command"] = f'introduce_expression("{expr_str}", "current")'
+            result["introduce_expression_command"] = (
+                f'introduce_expression("{expr_str}", "current")'
+            )
 
         # 建議的 SymPy-MCP 操作
         result["suggested_actions"] = [
@@ -1263,7 +1496,9 @@ def register_derivation_tools(mcp: Any) -> None:
             {
                 "action": "introduce_expression",
                 "description": "載入表達式",
-                "example": result.get("introduce_expression_command", 'introduce_expression("expr", "name")'),
+                "example": result.get(
+                    "introduce_expression_command", 'introduce_expression("expr", "name")'
+                ),
             },
             {
                 "action": "solve_equation / dsolve_ode / etc.",
@@ -1459,8 +1694,12 @@ def register_derivation_tools(mcp: Any) -> None:
             "session_name": session.name,
             "current_step": len(session.steps),
             "has_current_expression": session.current_expression is not None,
-            "current_expression": str(session.current_expression) if session.current_expression else None,
-            "variables_defined": [str(s) for s in session.current_expression.free_symbols] if session.current_expression else [],
+            "current_expression": str(session.current_expression)
+            if session.current_expression
+            else None,
+            "variables_defined": [str(s) for s in session.current_expression.free_symbols]
+            if session.current_expression
+            else [],
             "nsforge_capabilities": nsforge_capabilities,
             "handoff_tools": {
                 "to_sympy": "derivation_export_for_sympy() - 導出給 SymPy-MCP",

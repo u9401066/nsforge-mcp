@@ -5,6 +5,39 @@
 格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/)，
 專案遵循 [語義化版本](https://semver.org/lang/zh-TW/)。
 
+## [0.2.2] - 2026-01-03
+
+### Added
+- 🎛️ **步驟控制系統** - 5 個新 MCP 工具，完整 CRUD 控制推導步驟
+  - `derivation_get_step` - 查讀任一步驟詳情（表達式、註記、假設）
+  - `derivation_update_step` - 更新步驟元資料（註記、假設、限制）
+  - `derivation_delete_step` - 刪除最後一步（安全限制）
+  - `derivation_rollback` - ⚡ 回滾到任一步驟，刪除後續步驟
+  - `derivation_insert_note` - 在任一位置插入說明性註記
+- 📖 **README 大幅更新**
+  - 新增「步驟控制功能」專區，含 ASCII 流程圖
+  - 核心能力從 3 個增加到 4 個（新增 CONTROL）
+  - 工具數量更新：31 → 36（推導引擎 21 → 26）
+- 🧪 **完整測試覆蓋**
+  - `tests/test_step_crud.py` - 步驟 CRUD 單元測試
+  - `tests/demo_crud.py` - 互動式 CRUD 示範
+
+### Changed
+- 🧠 **Skills 文件更新**
+  - `nsforge-derivation-workflow/SKILL.md` 新增步驟 CRUD 工具表格
+  - `docs/nsforge-skills-guide.md` 工具數量 41 → 46
+- 🔧 **程式碼品質**
+  - Ruff 檢查通過（65 個問題已修復）
+  - 新增 `# noqa: ARG002` 標記保留參數
+
+### Technical Details
+- **新增方法**：`DerivationSession` 類別新增 5 個方法（~150 行）
+- **安全設計**：表達式不可直接編輯，需透過 rollback 重新推導
+- **自動重編號**：插入/刪除步驟後自動調整步驟編號
+- **持久化整合**：所有 CRUD 操作自動觸發 session 儲存
+
+---
+
 ## [Unreleased]
 
 ### Added

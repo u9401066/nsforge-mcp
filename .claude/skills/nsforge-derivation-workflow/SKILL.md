@@ -37,6 +37,16 @@ Phase 3: derivation_complete(description, assumptions?, limitations?, references
 
 **note_type**: `assumption`, `limitation`, `observation`, `correction`, `clinical`, `physical`
 
+### 🆕 步驟 CRUD 操作
+
+| 操作 | 工具 | 用途 |
+|------|------|------|
+| 📖 Read | `derivation_get_step(step_number)` | 查看單一步驟詳情 |
+| ✏️ Update | `derivation_update_step(step_number, notes?, assumptions?, ...)` | 更新步驟元資料 |
+| 🗑️ Delete | `derivation_delete_step(step_number)` | 刪除最後一步 |
+| ⏪ Rollback | `derivation_rollback(to_step)` | ⚡ 回滾到指定步驟 |
+| 📝 Insert | `derivation_insert_note(after_step, note, note_type?)` | 在指定位置插入說明 |
+
 ## Handoff：NSForge 做不到時
 
 當需要 ODE/PDE、矩陣運算、聯立方程組：
@@ -89,5 +99,32 @@ derivation_complete(
     assumptions=["Michaelis-Menten kinetics"],
     limitations=["Valid for 32-42°C"],
     tags=["enzyme", "temperature"]
+)
+```
+
+### 🆕 步驟 CRUD 範例
+
+```python
+# 📖 Read: 查看第 11 步詳情
+derivation_get_step(11)
+→ {"step": {"description": "...", "notes": "...", "output_latex": "..."}}
+
+# ✏️ Update: 更新第 11 步的說明
+derivation_update_step(
+    step_number=11,
+    notes="此假設在高溫時不成立",
+    limitations=["Valid only for T < 42°C"]
+)
+
+# ⏪ Rollback: 發現第 11 步開始走錯，回滾到第 10 步
+derivation_rollback(to_step=10)
+→ {"deleted_count": 6, "deleted_steps": [11, 12, ...], "current_expression": "..."}
+# 現在可以從第 10 步重新開始推導！
+
+# 📝 Insert: 在步驟 5 和 6 之間插入說明
+derivation_insert_note(
+    after_step=5,
+    note="此處假設達穩態",
+    note_type="assumption"
 )
 ```

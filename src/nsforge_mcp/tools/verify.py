@@ -208,7 +208,9 @@ def register_verify_tools(mcp: Any) -> None:
                 "equation": equation,
                 "solution": solution,
                 "substituted": str(result),
-                "message": f"{variable}={solution} is valid" if is_zero else f"Result: {result} ≠ 0",
+                "message": f"{variable}={solution} is valid"
+                if is_zero
+                else f"Result: {result} ≠ 0",
             }
         except Exception as e:
             return {"verified": False, "error": str(e)}
@@ -248,10 +250,18 @@ def register_verify_tools(mcp: Any) -> None:
         try:
             # Map unit strings to sympy units
             unit_mapping = {
-                "m": u.meter, "kg": u.kilogram, "s": u.second,
-                "N": u.newton, "J": u.joule, "W": u.watt,
-                "Pa": u.pascal, "K": u.kelvin, "A": u.ampere,
-                "V": u.volt, "Hz": u.hertz, "rad": u.radian,
+                "m": u.meter,
+                "kg": u.kilogram,
+                "s": u.second,
+                "N": u.newton,
+                "J": u.joule,
+                "W": u.watt,
+                "Pa": u.pascal,
+                "K": u.kelvin,
+                "A": u.ampere,
+                "V": u.volt,
+                "Hz": u.hertz,
+                "rad": u.radian,
             }
 
             # Build substitution with units
@@ -356,7 +366,9 @@ def register_verify_tools(mcp: Any) -> None:
                 "result": result_expr,
                 "original": original_expr,
                 "reverse_check": str(reversed_result),
-                "message": "Reverse verification passed" if is_valid else "Reverse verification failed",
+                "message": "Reverse verification passed"
+                if is_valid
+                else "Reverse verification failed",
             }
         except Exception as e:
             return {"verified": False, "error": str(e)}

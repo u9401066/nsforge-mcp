@@ -27,10 +27,7 @@ class SymPyEngine(SymbolicEngine):
     """
 
     # Parser transformations for flexible input
-    TRANSFORMATIONS = (
-        standard_transformations +
-        (implicit_multiplication_application, convert_xor)
-    )
+    TRANSFORMATIONS = standard_transformations + (implicit_multiplication_application, convert_xor)
 
     def parse(self, expr_str: str, context: MathContext | None = None) -> Expression:
         """Parse a string into an Expression using SymPy."""
@@ -201,7 +198,7 @@ class SymPyEngine(SymbolicEngine):
         self,
         expr1: Expression,
         expr2: Expression,
-        context: MathContext | None = None,
+        context: MathContext | None = None,  # noqa: ARG002 - reserved for future use
     ) -> bool:
         """Check if two expressions are mathematically equal."""
         if not expr1.is_valid or not expr2.is_valid:

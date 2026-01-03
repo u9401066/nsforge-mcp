@@ -233,7 +233,17 @@ class FormulaParser:
     @classmethod
     def _is_latex(cls, s: str) -> bool:
         """檢測是否為 LaTeX 格式"""
-        latex_indicators = ["\\frac", "\\cdot", "\\times", "\\sqrt", "^{", "_{", "\\exp", "\\ln", "\\log"]
+        latex_indicators = [
+            "\\frac",
+            "\\cdot",
+            "\\times",
+            "\\sqrt",
+            "^{",
+            "_{",
+            "\\exp",
+            "\\ln",
+            "\\log",
+        ]
         return any(ind in s for ind in latex_indicators)
 
     @classmethod
@@ -383,7 +393,7 @@ class FormulaParser:
                 error_type="syntax",
                 message="Expression must be a string",
                 suggestion="Dict format requires 'expression', 'sympy', or 'latex' key with string value",
-                original_input=str(data)
+                original_input=str(data),
             )
 
         # 解析表達式

@@ -1,0 +1,72 @@
+assumptions:
+- 一級消除動力學
+- 線性蛋白結合（無飽和）
+- 穩態下蛋白結合平衡
+- 肝臟為主要代謝器官
+author: NSForge Demo
+category: derived
+clinical_context: 用於調整高度蛋白結合藥物（如 warfarin、phenytoin）的劑量，特別適用於低白蛋白血症患者
+created_at: '2026-01-03T09:30:41.067180'
+derivation_steps:
+- Load formula 'clearance' from textbook
+- Load formula 'clearance' from textbook
+- "\U0001F4CB [ASSUMPTION] 消除速率常數 k_e 範圍通常為 0.01-0.5 h⁻¹，取決於藥物性質和代謝途徑\n   Related:\
+  \ k_e"
+- "\U0001F52C [PHYSICAL] 分佈容積 V_d 對於親脂性藥物可能超過體重，表示藥物廣泛分佈於組織中\n   Related: V_d"
+- Load formula 'free_drug' from textbook
+- "\U0001F3E5 [CLINICAL] 蛋白結合率 f_b 範圍 0-1，高度結合藥物 (f_b > 0.9) 如 warfarin 需注意藥物交互作用\n\
+  \   Related: f_b"
+- "\U0001F4A1 [OBSERVATION] 總濃度 C_total 為實驗室測量值，但只有游離藥物具有藥理活性\n   Related: C_total"
+- Load formula 'effective_clearance' from textbook
+- "\U0001F52C [PHYSICAL] 內在清除率 CL_int 反映肝臟酵素的代謝能力，受 CYP450 誘導/抑制影響\n   Related: CL_int"
+- "\U0001F3E5 [CLINICAL] 游離分率 f_u = 1 - f_b，低白蛋白血症患者 f_u 增加，需調整劑量\n   Related: f_u,\
+  \ f_b"
+- 將游離分率定義代入有效清除率
+- "\U0001F4A1 [OBSERVATION] 當 f_b 接近 1 時（高度蛋白結合），有效清除率趨近於零，藥物半衰期顯著延長\n   Related:\
+  \ f_b, CL_int\n   See step 11"
+- "⚠️ [LIMITATION] 此模型假設線性動力學，高濃度時可能出現蛋白結合飽和現象\n   Related: f_b\n   See step 11"
+- '求解消除速率常數 k_e，結合三個公式
+
+
+  📝 Notes: 此公式整合了內在清除率、蛋白結合率與分佈容積三個參數'
+- "\U0001F52C [PHYSICAL] k_e 與 V_d 成反比：分佈容積大的藥物（如脂溶性藥物），消除速率常數會較小\n   Related: k_e,\
+  \ V_d\n   See step 14"
+- "\U0001F3E5 [CLINICAL] 可由此公式計算半衰期 t½ = ln(2)/k_e，用於臨床給藥間隔設計\n   Related: k_e\n \
+  \  See step 14"
+derived_from:
+- clearance
+- free_drug
+- effective_clearance
+description: 消除速率常數考慮內在清除率、蛋白結合率與分佈容積的綜合關係
+expression: CL_int*(1 - f_b)/V_d
+id: 37e9f2bb
+limitations:
+- 不適用於非線性動力學（如 phenytoin 高濃度）
+- 未考慮腎臟清除
+- 忽略腸肝循環
+- 蛋白結合飽和時失準
+name: two_compartment_drug_pk
+references:
+- Goodman & Gilman's Pharmacology, Ch.2
+- Clinical Pharmacokinetics, 5th Ed
+- Applied Clinical Pharmacokinetics, 3rd Ed
+tags:
+- pharmacokinetics
+- protein-binding
+- clearance
+- elimination
+- two-compartment
+variables:
+  CL_int:
+    description: ''
+    unit: ''
+  V_d:
+    description: ''
+    unit: ''
+  f_b:
+    description: ''
+    unit: ''
+verification_method: ''
+verified: false
+verified_at: null
+version: 1.0.0

@@ -147,9 +147,7 @@ class DerivationRepository:
         """List all derivation result IDs."""
         if category is None:
             return list(self._results.keys())
-        return [
-            rid for rid, r in self._results.items() if r.category == category
-        ]
+        return [rid for rid, r in self._results.items() if r.category == category]
 
     def search(self, query: str) -> list[DerivationResult]:
         """Search derivation results by keyword."""
@@ -209,9 +207,18 @@ class DerivationRepository:
 
         # Update allowed fields
         allowed_fields = {
-            "name", "description", "clinical_context", "assumptions",
-            "limitations", "references", "tags", "category", "version",
-            "verified", "verification_method", "verified_at"
+            "name",
+            "description",
+            "clinical_context",
+            "assumptions",
+            "limitations",
+            "references",
+            "tags",
+            "category",
+            "version",
+            "verified",
+            "verification_method",
+            "verified_at",
         }
 
         for key, value in updates.items():
@@ -240,7 +247,9 @@ class DerivationRepository:
 
         # Delete file if requested
         if delete_file and self._formulas_dir:
-            category_dir = self._formulas_dir / result.category if result.category else self._formulas_dir
+            category_dir = (
+                self._formulas_dir / result.category if result.category else self._formulas_dir
+            )
             file_path = category_dir / f"{result_id}.yaml"
             if file_path.exists():
                 file_path.unlink()

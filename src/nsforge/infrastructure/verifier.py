@@ -23,7 +23,7 @@ class BasicVerifier(Verifier):
         step_input: Expression,
         step_output: Expression,
         operation: str,
-        context: MathContext | None = None,
+        context: MathContext | None = None,  # noqa: ARG002 - reserved for future use
     ) -> VerificationResult:
         """Verify a single derivation step by checking the operation."""
         if not step_input.is_valid or not step_output.is_valid:
@@ -76,14 +76,12 @@ class BasicVerifier(Verifier):
                 failed_steps=failed_steps,
             )
 
-        return VerificationResult.success(
-            f"All {len(derivation.steps)} steps verified"
-        )
+        return VerificationResult.success(f"All {len(derivation.steps)} steps verified")
 
     def check_dimensions(
         self,
-        expr: Expression,
-        expected_dimension: str | None = None,
+        expr: Expression,  # noqa: ARG002 - not yet implemented
+        expected_dimension: str | None = None,  # noqa: ARG002 - not yet implemented
     ) -> VerificationResult:
         """
         Check dimensional consistency.
@@ -149,14 +147,12 @@ class BasicVerifier(Verifier):
         diff = sp.simplify(integral - input_expr.sympy_expr)
 
         # The difference should be a constant (no free_symbols except integration constant)
-        if diff.free_symbols <= {var}:
-            # Check if diff is constant w.r.t. var
-            if sp.diff(diff, var) == 0:
-                return VerificationResult(
-                    status=VerificationStatus.VERIFIED,
-                    message="Differentiation verified by reverse integration",
-                    reverse_check=True,
-                )
+        if diff.free_symbols <= {var} and sp.diff(diff, var) == 0:
+            return VerificationResult(
+                status=VerificationStatus.VERIFIED,
+                message="Differentiation verified by reverse integration",
+                reverse_check=True,
+            )
 
         return VerificationResult(
             status=VerificationStatus.INCONCLUSIVE,
@@ -176,7 +172,7 @@ class BasicVerifier(Verifier):
         """
         # Find variable
         free_symbols = input_expr.sympy_expr.free_symbols
-        var = sp.Symbol('x') if not free_symbols else list(free_symbols)[0]
+        var = sp.Symbol("x") if not free_symbols else list(free_symbols)[0]
 
         # Differentiate output
         derivative = sp.diff(output_expr.sympy_expr, var)

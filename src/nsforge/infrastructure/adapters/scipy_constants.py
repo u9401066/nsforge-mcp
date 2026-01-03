@@ -60,9 +60,7 @@ class ScipyConstantsAdapter(BaseAdapter):
         """List constants (treated as formulas with no variables)."""
         if category is None:
             return list(self._constants.keys())
-        return [
-            cid for cid, c in self._constants.items() if c.category == category
-        ]
+        return [cid for cid, c in self._constants.items() if c.category == category]
 
     def get_formula(self, formula_id: str) -> FormulaInfo | None:
         """Get constant as FormulaInfo."""

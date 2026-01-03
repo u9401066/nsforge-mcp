@@ -1,0 +1,407 @@
+{
+  "session_id": "37e9f2bb",
+  "name": "two_compartment_drug_pk",
+  "description": "雙房室藥物動力學模型 - 結合清除率、分佈容積與蛋白結合",
+  "status": "completed",
+  "formulas": {
+    "clearance": {
+      "id": "clearance",
+      "expression": "V_d*k_e",
+      "latex": "V_{d} k_{e}",
+      "variables": {
+        "V_d": {
+          "name": "V_d",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "k_e": {
+          "name": "k_e",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Goodman & Gilman's Pharmacology, Ch.2",
+      "original_input": "k_e * V_d",
+      "input_format": "sympy",
+      "name": "藥物清除率 CL",
+      "description": "清除率等於消除速率常數乘以分佈容積",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-03T09:29:06.110958"
+    },
+    "free_drug": {
+      "id": "free_drug",
+      "expression": "C_total*(1 - f_b)",
+      "latex": "C_{total} \\left(1 - f_{b}\\right)",
+      "variables": {
+        "f_b": {
+          "name": "f_b",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "C_total": {
+          "name": "C_total",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Clinical Pharmacokinetics, 5th Ed",
+      "original_input": "C_total * (1 - f_b)",
+      "input_format": "sympy",
+      "name": "游離藥物濃度 C_free",
+      "description": "游離藥物濃度 = 總濃度 × (1 - 蛋白結合率)",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-03T09:29:17.230128"
+    },
+    "effective_clearance": {
+      "id": "effective_clearance",
+      "expression": "CL_int*f_u",
+      "latex": "CL_{int} f_{u}",
+      "variables": {
+        "CL_int": {
+          "name": "CL_int",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "f_u": {
+          "name": "f_u",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        }
+      },
+      "source": "textbook",
+      "source_detail": "Applied Clinical Pharmacokinetics, 3rd Ed",
+      "original_input": "CL_int * f_u",
+      "input_format": "sympy",
+      "name": "有效清除率 CL_eff",
+      "description": "有效清除率 = 內在清除率 × 游離分率",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-03T09:29:27.544145"
+    }
+  },
+  "current_expression": "CL_int*(1 - f_b)/V_d",
+  "current_formula_id": "effective_clearance",
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "load_formula",
+      "description": "Load formula 'clearance' from textbook",
+      "input_expressions": {
+        "clearance": "CL = k_e * V_d"
+      },
+      "output_expression": "Eq(C*L, V_d*k_e)",
+      "output_latex": "C L = V_{d} k_{e}",
+      "sympy_command": "parse('CL = k_e * V_d')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:02.172032"
+    },
+    {
+      "step_number": 2,
+      "operation": "load_formula",
+      "description": "Load formula 'clearance' from textbook",
+      "input_expressions": {
+        "clearance": "k_e * V_d"
+      },
+      "output_expression": "V_d*k_e",
+      "output_latex": "V_{d} k_{e}",
+      "sympy_command": "parse('k_e * V_d')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:06.110958"
+    },
+    {
+      "step_number": 3,
+      "operation": "custom",
+      "description": "📋 [ASSUMPTION] 消除速率常數 k_e 範圍通常為 0.01-0.5 h⁻¹，取決於藥物性質和代謝途徑\n   Related: k_e",
+      "input_expressions": {
+        "note_type": "assumption",
+        "related_variables": "['k_e']",
+        "related_step": ""
+      },
+      "output_expression": "V_d*k_e",
+      "output_latex": "V_{d} k_{e}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:11.901594"
+    },
+    {
+      "step_number": 4,
+      "operation": "custom",
+      "description": "🔬 [PHYSICAL] 分佈容積 V_d 對於親脂性藥物可能超過體重，表示藥物廣泛分佈於組織中\n   Related: V_d",
+      "input_expressions": {
+        "note_type": "physical",
+        "related_variables": "['V_d']",
+        "related_step": ""
+      },
+      "output_expression": "V_d*k_e",
+      "output_latex": "V_{d} k_{e}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:11.949007"
+    },
+    {
+      "step_number": 5,
+      "operation": "load_formula",
+      "description": "Load formula 'free_drug' from textbook",
+      "input_expressions": {
+        "free_drug": "C_total * (1 - f_b)"
+      },
+      "output_expression": "C_total*(1 - f_b)",
+      "output_latex": "C_{total} \\left(1 - f_{b}\\right)",
+      "sympy_command": "parse('C_total * (1 - f_b)')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:17.230128"
+    },
+    {
+      "step_number": 6,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 蛋白結合率 f_b 範圍 0-1，高度結合藥物 (f_b > 0.9) 如 warfarin 需注意藥物交互作用\n   Related: f_b",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['f_b']",
+        "related_step": ""
+      },
+      "output_expression": "C_total*(1 - f_b)",
+      "output_latex": "C_{total} \\left(1 - f_{b}\\right)",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:23.047077"
+    },
+    {
+      "step_number": 7,
+      "operation": "custom",
+      "description": "💡 [OBSERVATION] 總濃度 C_total 為實驗室測量值，但只有游離藥物具有藥理活性\n   Related: C_total",
+      "input_expressions": {
+        "note_type": "observation",
+        "related_variables": "['C_total']",
+        "related_step": ""
+      },
+      "output_expression": "C_total*(1 - f_b)",
+      "output_latex": "C_{total} \\left(1 - f_{b}\\right)",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:23.095117"
+    },
+    {
+      "step_number": 8,
+      "operation": "load_formula",
+      "description": "Load formula 'effective_clearance' from textbook",
+      "input_expressions": {
+        "effective_clearance": "CL_int * f_u"
+      },
+      "output_expression": "CL_int*f_u",
+      "output_latex": "CL_{int} f_{u}",
+      "sympy_command": "parse('CL_int * f_u')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:27.544145"
+    },
+    {
+      "step_number": 9,
+      "operation": "custom",
+      "description": "🔬 [PHYSICAL] 內在清除率 CL_int 反映肝臟酵素的代謝能力，受 CYP450 誘導/抑制影響\n   Related: CL_int",
+      "input_expressions": {
+        "note_type": "physical",
+        "related_variables": "['CL_int']",
+        "related_step": ""
+      },
+      "output_expression": "CL_int*f_u",
+      "output_latex": "CL_{int} f_{u}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:33.017750"
+    },
+    {
+      "step_number": 10,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 游離分率 f_u = 1 - f_b，低白蛋白血症患者 f_u 增加，需調整劑量\n   Related: f_u, f_b",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['f_u', 'f_b']",
+        "related_step": ""
+      },
+      "output_expression": "CL_int*f_u",
+      "output_latex": "CL_{int} f_{u}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:33.066758"
+    },
+    {
+      "step_number": 11,
+      "operation": "substitute",
+      "description": "將游離分率定義代入有效清除率",
+      "input_expressions": {
+        "original": "CL_int*f_u",
+        "replacement": "f_u = 1 - f_b"
+      },
+      "output_expression": "CL_int*(1 - f_b)",
+      "output_latex": "CL_{int} \\left(1 - f_{b}\\right)",
+      "sympy_command": "expr.subs(f_u, 1 - f_b)",
+      "notes": "這一步連結了蛋白結合率與有效清除率的關係",
+      "assumptions": [
+        "f_u = 1 - f_b (游離分率與結合率互補)"
+      ],
+      "limitations": [
+        "假設蛋白結合為可逆且達平衡狀態"
+      ],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:40.791213"
+    },
+    {
+      "step_number": 12,
+      "operation": "custom",
+      "description": "💡 [OBSERVATION] 當 f_b 接近 1 時（高度蛋白結合），有效清除率趨近於零，藥物半衰期顯著延長\n   Related: f_b, CL_int\n   See step 11",
+      "input_expressions": {
+        "note_type": "observation",
+        "related_variables": "['f_b', 'CL_int']",
+        "related_step": "11"
+      },
+      "output_expression": "CL_int*(1 - f_b)",
+      "output_latex": "CL_{int} \\left(1 - f_{b}\\right)",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:47.167735"
+    },
+    {
+      "step_number": 13,
+      "operation": "custom",
+      "description": "⚠️ [LIMITATION] 此模型假設線性動力學，高濃度時可能出現蛋白結合飽和現象\n   Related: f_b\n   See step 11",
+      "input_expressions": {
+        "note_type": "limitation",
+        "related_variables": "['f_b']",
+        "related_step": "11"
+      },
+      "output_expression": "CL_int*(1 - f_b)",
+      "output_latex": "CL_{int} \\left(1 - f_{b}\\right)",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:29:47.199671"
+    },
+    {
+      "step_number": 14,
+      "operation": "solve",
+      "description": "求解消除速率常數 k_e，結合三個公式\n\n📝 Notes: 此公式整合了內在清除率、蛋白結合率與分佈容積三個參數",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "此公式整合了內在清除率、蛋白結合率與分佈容積三個參數"
+      },
+      "output_expression": "CL_int*(1 - f_b)/V_d",
+      "output_latex": "\\frac{CL_{int} \\left(1 - f_{b}\\right)}{V_{d}}",
+      "sympy_command": "# From sympy_mcp: CL_int * (1 - f_b) / V_d...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:30:23.041269"
+    },
+    {
+      "step_number": 15,
+      "operation": "custom",
+      "description": "🔬 [PHYSICAL] k_e 與 V_d 成反比：分佈容積大的藥物（如脂溶性藥物），消除速率常數會較小\n   Related: k_e, V_d\n   See step 14",
+      "input_expressions": {
+        "note_type": "physical",
+        "related_variables": "['k_e', 'V_d']",
+        "related_step": "14"
+      },
+      "output_expression": "CL_int*(1 - f_b)/V_d",
+      "output_latex": "\\frac{CL_{int} \\left(1 - f_{b}\\right)}{V_{d}}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:30:29.214451"
+    },
+    {
+      "step_number": 16,
+      "operation": "custom",
+      "description": "🏥 [CLINICAL] 可由此公式計算半衰期 t½ = ln(2)/k_e，用於臨床給藥間隔設計\n   Related: k_e\n   See step 14",
+      "input_expressions": {
+        "note_type": "clinical",
+        "related_variables": "['k_e']",
+        "related_step": "14"
+      },
+      "output_expression": "CL_int*(1 - f_b)/V_d",
+      "output_latex": "\\frac{CL_{int} \\left(1 - f_{b}\\right)}{V_{d}}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-03T09:30:29.256360"
+    }
+  ],
+  "created_at": "2026-01-03T09:28:55.532852",
+  "updated_at": "2026-01-03T09:30:41.024521",
+  "author": "NSForge Demo",
+  "tags": []
+}

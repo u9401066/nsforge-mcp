@@ -29,11 +29,12 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## ⚡ Three Core Capabilities
+## ⚡ Four Core Capabilities
 
 | Capability | Description | Tools |
 | ---------- | ----------- | ----- |
 | **DERIVE** | Create new formulas by composing base formulas | `substitute`, `simplify`, `differentiate`, `integrate` |
+| **CONTROL** | Full step control: review, edit, rollback, insert | `get_step`, `update_step`, `rollback`, `delete_step`, `insert_note` |
 | **VERIFY** | Ensure correctness through multiple methods | `check_dimensions`, `verify_derivative`, `symbolic_equal` |
 | **STORE**  | Save derived formulas with full provenance | `formulas/derivations/` repository |
 
@@ -116,6 +117,55 @@ NSForge provides features **not available in SymPy-MCP** by directly leveraging 
 │                                                                            │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🎛️ Step-by-Step Control (NEW in v0.2.2)
+
+NSForge now provides **full CRUD control over derivation steps**:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────┐
+│  🎛️ STEP CONTROL - Navigate and Edit Your Derivation!                     │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│   Step 1 → Step 2 → Step 3 → Step 4 → Step 5 → Step 6  (current)          │
+│                        ↑                                                   │
+│                        │                                                   │
+│   "Wait, step 3 looks wrong..."                                           │
+│                                                                            │
+│   ┌──────────────────────────────────────────────────────────────────┐    │
+│   │  🔍 READ    │ derivation_get_step(3) → View step details         │    │
+│   │  ✏️ UPDATE  │ derivation_update_step(3, notes="...") → Fix notes │    │
+│   │  ⏪ ROLLBACK│ derivation_rollback(2) → Return to step 2          │    │
+│   │  📝 INSERT  │ derivation_insert_note(2, "...") → Add explanation │    │
+│   │  🗑️ DELETE  │ derivation_delete_step(6) → Remove last step       │    │
+│   └──────────────────────────────────────────────────────────────────┘    │
+│                                                                            │
+│   After rollback: Step 1 → Step 2  (now current)                          │
+│   → Continue derivation from step 2, try a different path!                │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Step CRUD Tools (5 new tools)
+
+| Tool | Operation | Description |
+|------|-----------|-------------|
+| `derivation_get_step` | **Read** | Get details of any step (expression, notes, assumptions) |
+| `derivation_update_step` | **Update** | Modify metadata (notes, assumptions, limitations) - NOT expression |
+| `derivation_delete_step` | **Delete** | Remove the LAST step only (safety constraint) |
+| `derivation_rollback` | **Rollback** | ⚡ Jump back to any step, delete subsequent steps |
+| `derivation_insert_note` | **Insert** | Add explanatory note at any position |
+
+> 💡 **Key Insight**: Expressions can't be edited directly (that would break verification). Use `rollback` to return to a valid state, then re-derive with corrections.
+
+### Use Cases
+
+1. **Peer Review**: "Step 5's assumption is questionable" → `update_step(5, notes="Validated for T<42°C only")`
+2. **Wrong Path**: "We should have used integration instead" → `rollback(3)` → start fresh
+3. **Add Context**: "Need to explain the Arrhenius substitution" → `insert_note(4, "Temperature effect on enzyme kinetics...")`
+4. **Clean Up**: "Last step was a mistake" → `delete_step(8)`
 
 ---
 
@@ -317,9 +367,9 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
-NSForge provides **31 MCP tools** organized into 5 modules:
+NSForge provides **36 MCP tools** organized into 5 modules:
 
-### 🔥 Derivation Engine (21 tools)
+### 🔥 Derivation Engine (26 tools)
 
 | Tool | Purpose |
 | ---- | ---- |
@@ -344,6 +394,11 @@ NSForge provides **31 MCP tools** organized into 5 modules:
 | `derivation_repository_stats` | Repository statistics |
 | `derivation_list_sessions` | List all sessions |
 | `derivation_get_steps` | Get derivation steps |
+| `derivation_get_step` | 🆕 Get single step details |
+| `derivation_update_step` | 🆕 Update step metadata |
+| `derivation_delete_step` | 🆕 Delete last step |
+| `derivation_rollback` | 🆕 ⚡ Rollback to any step |
+| `derivation_insert_note` | 🆕 Insert note at position |
 
 ### ✅ Verification (6 tools)
 
@@ -450,8 +505,8 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions (31 tools)
-│           ├── derivation.py  #     - 🔥 Derivation engine (21 tools)
+│       └── tools/             #   - MCP tool definitions (36 tools)
+│           ├── derivation.py  #     - 🔥 Derivation engine (26 tools)
 │           ├── verify.py      #     - Verification (6 tools)
 │           ├── calculate.py   #     - Calculation (2 tools)
 │           ├── expression.py  #     - Expression parsing (3 tools)
@@ -502,10 +557,14 @@ uv run nsforge-mcp
 
 - [x] Design documents
 - [x] MVP Implementation
-  - [x] Derivation Engine (21 tools)
+  - [x] Derivation Engine (26 tools)
   - [x] SymPy Integration
   - [x] Verification Suite (6 tools)
   - [x] MCP Server
+- [x] Step Control System (v0.2.2)
+  - [x] Read/Update/Delete steps
+  - [x] Rollback to any point
+  - [x] Insert notes at any position
 - [x] Agent Skills System
   - [x] 5 NSForge-specific workflows
   - [x] 13 general development skills

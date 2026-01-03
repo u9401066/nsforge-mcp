@@ -48,6 +48,7 @@ class CalculateUseCase:
             CalculationResult with the result or error
         """
         import time
+
         start = time.perf_counter()
 
         try:
@@ -77,12 +78,7 @@ class CalculateUseCase:
         except Exception as e:
             return CalculationResult.from_error(str(e))
 
-    def _evaluate(
-        self,
-        expr: Expression,
-        context: MathContext | None,
-        **kwargs: Any
-    ) -> Expression:
+    def _evaluate(self, expr: Expression, context: MathContext | None, **kwargs: Any) -> Expression:
         """Evaluate expression with substitutions."""
         if "substitutions" in kwargs:
             return self.engine.substitute(expr, kwargs["substitutions"], context)
@@ -102,7 +98,7 @@ class SimplifyUseCase:
     def execute(
         self,
         expression: str,
-        strategy: str = "default",
+        strategy: str = "default",  # noqa: ARG002 - reserved for future use
         context: MathContext | None = None,
     ) -> CalculationResult:
         """
@@ -264,12 +260,7 @@ class VerifyUseCase:
             original_expr = self.engine.parse(original, context)
             result_expr = self.engine.parse(result, context)
 
-            return self.verifier.verify_step(
-                original_expr,
-                result_expr,
-                operation,
-                context
-            )
+            return self.verifier.verify_step(original_expr, result_expr, operation, context)
         except Exception as e:
             return VerificationResult.failure(f"Verification error: {e}")
 

@@ -32,11 +32,7 @@ class SymbolicEngine(ABC):
 
     @abstractmethod
     def differentiate(
-        self,
-        expr: Expression,
-        variable: str,
-        order: int = 1,
-        context: MathContext | None = None
+        self, expr: Expression, variable: str, order: int = 1, context: MathContext | None = None
     ) -> Expression:
         """Differentiate an expression."""
         ...
@@ -48,37 +44,28 @@ class SymbolicEngine(ABC):
         variable: str,
         lower: Any = None,
         upper: Any = None,
-        context: MathContext | None = None
+        context: MathContext | None = None,
     ) -> Expression:
         """Integrate an expression."""
         ...
 
     @abstractmethod
     def solve(
-        self,
-        equation: Expression,
-        variable: str,
-        context: MathContext | None = None
+        self, equation: Expression, variable: str, context: MathContext | None = None
     ) -> list[Expression]:
         """Solve an equation for a variable."""
         ...
 
     @abstractmethod
     def substitute(
-        self,
-        expr: Expression,
-        substitutions: dict[str, Any],
-        context: MathContext | None = None
+        self, expr: Expression, substitutions: dict[str, Any], context: MathContext | None = None
     ) -> Expression:
         """Substitute values into an expression."""
         ...
 
     @abstractmethod
     def equals(
-        self,
-        expr1: Expression,
-        expr2: Expression,
-        context: MathContext | None = None
+        self, expr1: Expression, expr2: Expression, context: MathContext | None = None
     ) -> bool:
         """Check if two expressions are mathematically equal."""
         ...
@@ -97,25 +84,21 @@ class Verifier(ABC):
         step_input: Expression,
         step_output: Expression,
         operation: str,
-        context: MathContext | None = None
+        context: MathContext | None = None,
     ) -> VerificationResult:
         """Verify a single derivation step."""
         ...
 
     @abstractmethod
     def verify_derivation(
-        self,
-        derivation: Derivation,
-        context: MathContext | None = None
+        self, derivation: Derivation, context: MathContext | None = None
     ) -> VerificationResult:
         """Verify an entire derivation."""
         ...
 
     @abstractmethod
     def check_dimensions(
-        self,
-        expr: Expression,
-        expected_dimension: str | None = None
+        self, expr: Expression, expected_dimension: str | None = None
     ) -> VerificationResult:
         """Check dimensional consistency."""
         ...
@@ -129,27 +112,18 @@ class FormulaRepository(ABC):
     """
 
     @abstractmethod
-    def find_formula(
-        self,
-        name: str,
-        domain: str | None = None
-    ) -> dict[str, Any] | None:
+    def find_formula(self, name: str, domain: str | None = None) -> dict[str, Any] | None:
         """Find a formula by name."""
         ...
 
     @abstractmethod
     def list_formulas(
-        self,
-        domain: str | None = None,
-        tags: list[str] | None = None
+        self, domain: str | None = None, tags: list[str] | None = None
     ) -> list[dict[str, Any]]:
         """List available formulas."""
         ...
 
     @abstractmethod
-    def get_derivation(
-        self,
-        formula_name: str
-    ) -> Derivation | None:
+    def get_derivation(self, formula_name: str) -> Derivation | None:
         """Get the derivation of a formula if available."""
         ...

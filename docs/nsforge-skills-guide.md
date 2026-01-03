@@ -119,8 +119,13 @@ NSForge 做法：Agent 規劃步驟 → SymPy 執行 → 每步可驗證可追�
    derivation_solve_for(variable)          # 求解
    derivation_differentiate(var)           # 微分
    derivation_integrate(var)               # 積分
-4. check_dimensions(expr, units_map)       # 驗證維度 ⚠️ 重要
-5. derivation_complete(description, ...)   # 完成並存檔
+4. 🆕 步驟 CRUD（需要修改時）：
+   derivation_get_step(step_number)        # 查看單一步驟
+   derivation_update_step(step, notes...)  # 更新元資料
+   derivation_rollback(to_step)            # ⏪ 回滾到指定步驟
+   derivation_insert_note(after_step, ...) # 插入說明
+5. check_dimensions(expr, units_map)       # 驗證維度 ⚠️ 重要
+6. derivation_complete(description, ...)   # 完成並存檔
 ```
 
 ### 📋 Agent 會看到的觸發詞
@@ -305,9 +310,9 @@ extract_symbols(expression)            # 提取符號
 
 ---
 
-## 工具總覽（41 個）
+## 工具總覽（46 個）
 
-### 推導引擎（17 個）
+### 推導引擎（22 個）
 | 工具 | 說明 |
 |------|------|
 | `derivation_start` | 開始推導會話 |
@@ -320,7 +325,12 @@ extract_symbols(expression)            # 提取符號
 | `derivation_solve_for` | 求解變數 |
 | `derivation_differentiate` | 微分 |
 | `derivation_integrate` | 積分 |
-| `derivation_get_steps` | 取得步驟 |
+| `derivation_get_steps` | 取得所有步驟 |
+| `derivation_get_step` | 🆕 取得單一步驟詳情 |
+| `derivation_update_step` | 🆕 更新步驟元資料 |
+| `derivation_delete_step` | 🆕 刪除最後一步 |
+| `derivation_rollback` | 🆕 回滾到指定步驟 |
+| `derivation_insert_note` | 🆕 插入說明 |
 | `derivation_complete` | 完成推導 |
 | `derivation_abort` | 放棄推導 |
 | `derivation_list_saved` | 列出已存檔 |
