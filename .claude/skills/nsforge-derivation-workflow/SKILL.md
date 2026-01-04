@@ -8,7 +8,16 @@ description: 步進式推導工作流。觸發詞：推導, derive, 組合公式
 ## 核心原則
 
 > **SymPy-MCP 做計算，NSForge 記錄知識！**
-> **每步都要 `print_latex_expression` 顯示給用戶！**
+> **每步都要顯示給用戶看！** 使用：
+> - `derivation_show()` (NSForge) - 顯示當前推導狀態
+> - `print_latex_expression()` (SymPy-MCP) - 顯示計算結果
+
+## ⚠️ 黃金法則：永遠向用戶展示公式！
+
+```
+❌ 錯誤：執行計算後直接下一步
+✅ 正確：執行計算 → derivation_show() 或 print_latex_expression() → 等用戶確認 → 下一步
+```
 
 ## 工作流程
 
@@ -18,10 +27,12 @@ Phase 1: derivation_start(name, description)
 Phase 2: 循環 {
     SymPy-MCP: intro_many → introduce_expression → 計算 → print_latex_expression
     NSForge:   derivation_record_step(expression, description, notes?)
+    NSForge:   derivation_show()  ← 🆕 顯示當前狀態！
     NSForge:   derivation_add_note(note, note_type?)  # 可選
 }
     ↓
 Phase 3: derivation_complete(description, assumptions?, limitations?, references?)
+         derivation_show()  ← 🆕 顯示最終結果！
 ```
 
 ## 工具速查
@@ -32,6 +43,7 @@ Phase 3: derivation_complete(description, assumptions?, limitations?, references
 | 計算 | SymPy | `intro_many`, `introduce_expression`, `substitute_expression`... | 符號計算 |
 | 顯示 | SymPy | `print_latex_expression` | ⚠️ 必須！ |
 | 記錄 | NSForge | `derivation_record_step(expr, desc, notes?, source?)` | 記錄步驟+知識 |
+| 🆕 顯示 | NSForge | `derivation_show(format?, show_steps?)` | ⚠️ 必須！顯示當前狀態 |
 | 說明 | NSForge | `derivation_add_note(note, note_type?)` | 純文字洞見 |
 | 完成 | NSForge | `derivation_complete(...)` | 存檔+元資料 |
 

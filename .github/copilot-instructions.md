@@ -101,7 +101,7 @@ uv add --dev pytest ruff
 
 > **「先用 SymPy-MCP 計算驗證，再用 NSForge 存檔管理！」**
 >
-> **「每步計算都要用 `print_latex_expression` 顯示給用戶確認！」**
+> **「每步計算都要用 `print_latex_expression` 或 `derivation_show()` 顯示給用戶確認！」**
 >
 > **「人類的推導是一步一步的，每步都可加入新元素！」**
 
@@ -157,11 +157,15 @@ uv add --dev pytest ruff
 │  │       note="建議加入校正因子",                         │ │
 │  │       note_type="correction"     # ⚡ 修正建議         │ │
 │  │     )                                                  │ │
+│  ├────────────────────────────────────────────────────────┤ │
+│  │ 2d. NSForge: 顯示當前狀態（必須！）                    │ │
+│  │     derivation_show()            # 🆕 顯示給用戶！     │ │
 │  └────────────────────────────────────────────────────────┘ │
-│  → 重複 2a-2c，每步都可加入新洞見 → 演化成新公式！          │
+│  → 重複 2a-2d，每步都可加入新洞見 → 演化成新公式！          │
 ├─────────────────────────────────────────────────────────────┤
 │  Phase 3: NSForge 完成存檔                                  │
 │     derivation_complete(...)        # 存檔 + 元資料        │
+│     derivation_show()               # 🆕 顯示最終結果！    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -170,14 +174,14 @@ uv add --dev pytest ruff
 | 任務 | 工具 | 原因 |
 |------|------|------|
 | **計算求解** | SymPy-MCP | 功能完整（ODE、矩陣、單位） |
-| **公式顯示** | `print_latex_expression` | 讓用戶確認結果 |
+| **公式顯示** | `print_latex_expression` 或 `derivation_show()` | 讓用戶確認結果 |
 | **知識存檔** | NSForge | 有溯源、分類、搜尋 |
 | **簡單驗證** | NSForge | `check_dimensions` 等 |
 
 #### ❌ 禁止行為
 
 - 不要直接用 `generate_python_function` 生成未經驗證的程式碼
-- 不要跳過 `print_latex_expression`，用戶需要看到公式
+- **不要跳過顯示步驟**，用 `print_latex_expression` 或 `derivation_show()` 讓用戶看到公式
 - 不要把 SymPy-MCP 的計算結果存成 YAML 檔案（應存為 Markdown）
 
 #### 🔄 Handoff 機制：無法計算時怎麼辦？

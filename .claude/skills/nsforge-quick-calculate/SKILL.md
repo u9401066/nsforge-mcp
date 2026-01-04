@@ -5,6 +5,10 @@ description: 快速計算（無需會話）。觸發詞：計算, 簡化, 求解
 
 # 快速計算 Skill
 
+> **⚠️ 每次計算後必須向用戶展示結果！**
+> - 在推導中使用 `derivation_show()` 顯示當前狀態
+> - 單獨計算用 `print_latex_expression()` (SymPy-MCP)
+
 ## 工具分工
 
 | 我想要... | MCP | 工具 |
@@ -48,8 +52,11 @@ description: 快速計算（無需會話）。觸發詞：計算, 簡化, 求解
 intro("x", ["real"], [])                    # 定義變數
 expr = introduce_expression("x**2 - 1")     # 建立表達式
 result = simplify_expression(expr)          # 計算
-print_latex_expression(result)              # ⚠️ 必須顯示給用戶！
+print_latex_expression(result)              # ⚠️ 必須！永遠不要跳過！
 ```
+
+> **❌ 禁止**：計算後不顯示結果就繼續下一步
+> **✅ 正確**：每次計算後都用 `print_latex_expression` 或 `derivation_show()` 展示
 
 ## NSForge 獨特工具範例
 

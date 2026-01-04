@@ -5,6 +5,11 @@ description: 外部公式搜尋。觸發詞：搜尋公式, Wikidata, BioModels,
 
 # 外部公式搜尋 Skill
 
+> **⚠️ 搜尋後必須向用戶展示結果！**
+> - 搜尋結果用表格形式列出（名稱、公式、來源）
+> - 取得詳情後顯示完整 LaTeX 公式
+> - 物理常數要顯示數值和單位
+
 ## 概述
 
 從外部權威來源（Wikidata、BioModels、SciPy）檢索準確的公式。
