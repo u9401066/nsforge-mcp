@@ -61,6 +61,12 @@ NSForge works WITH other MCP servers, not against them:
 │  └── 🔨 Derivation framework: compose, verify, generate code               │
 │  └── 📁 Derivation repository: store CREATED formulas with provenance      │
 │  └── ✅ Verification layer: dimensional analysis, reverse verification     │
+│  └── 🔗 Optimization bridge: prepare formulas for USolver                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  usolver-mcp (Optional collaboration)                                       │
+│  └── 🎯 Find optimal values for NSForge-derived formulas                   │
+│  └── Solvers: Z3, OR-Tools, CVXPY, HiGHS                                   │
+│  └── Use case: dose optimization, circuit parameter selection              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -552,6 +558,59 @@ uv run mypy src/
 # Start dev server
 uv run nsforge-mcp
 ```
+
+---
+
+## 🔗 Collaboration with USolver (Optional)
+
+NSForge can work with [USolver](https://github.com/sdiehl/usolver) to provide **domain-expert formula derivation + mathematical optimization**:
+
+### Workflow: NSForge → USolver
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│  Problem: Find optimal Fentanyl dose for 65yo patient with 30% BF,    │
+│           concurrent midazolam, targeting 2.5 ng/mL at t=5min          │
+├────────────────────────────────────────────────────────────────────────┤
+│  Step 1: NSForge derives modified formula                              │
+│  ├─ Consider: CYP3A4 competition (-30% CL)                             │
+│  ├─ Consider: Body fat 30% (+25% Vd)                                   │
+│  ├─ Consider: Age 65 (-15% CL)                                         │
+│  └─ Output: C(t, dose) = dose/15.875 × exp(-0.476×t/15.875)           │
+├────────────────────────────────────────────────────────────────────────┤
+│  Step 2: Prepare for optimization                                      │
+│  └─ derivation_prepare_for_optimization()                              │
+│     → Variables: [dose], Parameters: {CL: 0.476, V1: 15.875}           │
+│     → Constraints: dose ∈ [0.01, 0.10], C(5) ∈ [2.0, 4.0]            │
+├────────────────────────────────────────────────────────────────────────┤
+│  Step 3: USolver finds optimal value                                   │
+│  └─ usolver.solve(objective="C(5, dose) = 2.5", constraints=[...])    │
+│     → optimal_dose = 0.0354 mg (35.4 mcg)                              │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why Combine?
+
+| Tool | Strength | Output |
+|------|----------|--------|
+| **NSForge** | Domain knowledge (drug interactions, body composition) | Modified formula |
+| **USolver** | Mathematical optimization (Z3, OR-Tools, CVXPY) | Optimal parameters |
+| **Together** | Domain-smart + Math-precise | Best clinical decision |
+
+### Setup
+
+1. Install USolver: `uv run https://github.com/sdiehl/usolver/install.py`
+2. In NSForge, after completing derivation, call:
+   ```python
+   result = derivation_prepare_for_optimization()
+   # Copy result.usolver_template to USolver
+   ```
+3. USolver returns optimal values
+4. Use optimal values in NSForge-derived formula for final calculation
+
+> 📖 **Skill**: `.claude/skills/nsforge-usolver-collab/SKILL.md`
+
+---
 
 ## 📋 Roadmap
 

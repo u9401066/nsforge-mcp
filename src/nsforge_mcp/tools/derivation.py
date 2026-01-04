@@ -1726,3 +1726,149 @@ def register_derivation_tools(mcp: Any) -> None:
 └─────────────────────────────────────────────────────────────┘
 """,
         }
+
+    @mcp.tool()
+    def derivation_prepare_for_optimization() -> dict[str, Any]:
+        """
+        準備推導結果給優化求解器（如 USolver）
+
+        將 NSForge 推導的符號公式轉換為優化求解器可用的格式。
+        
+        工作流程：
+        1. NSForge 推導修正後的公式（考慮領域知識）
+        2. 調用此工具取得優化器輸入格式
+        3. 送給 USolver 等優化器找最優解
+
+        Returns:
+            優化器輸入資料
+
+        Example:
+            # 在 NSForge 完成推導後
+            derivation_prepare_for_optimization()
+            → {
+                "function_str": "dose/15.875 * exp(-0.476*t/15.875)",
+                "variables": ["dose", "t"],
+                "parameters": {"CL": 0.476, "V1": 15.875},
+                "suggested_constraints": [
+                    "dose >= 0.01",
+                    "dose <= 0.10",
+                    "t >= 0"
+                ],
+                "usolver_template": "..."
+              }
+        """
+        session = _get_current_session()
+
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active derivation session",
+                "message": "Use derivation_start() first",
+            }
+
+        if session.current_expression is None:
+            return {
+                "success": False,
+                "error": "No expression in current session",
+                "message": "Complete a derivation first before preparing for optimization",
+            }
+
+        from sympy import symbols, latex
+        
+        expr = session.current_expression
+        free_vars = sorted(expr.free_symbols, key=lambda x: str(x))
+        
+        # 分類變數：可優化變數 vs 參數
+        # 簡單啟發式：小寫單字母或包含 "dose", "time" 等關鍵字的是變數
+        optimization_vars = []
+        parameters = {}
+        
+        for sym in free_vars:
+            sym_str = str(sym)
+            # 判斷是否為優化變數
+            if any(keyword in sym_str.lower() for keyword in ["dose", "time", "t", "x", "y"]):
+                optimization_vars.append(sym_str)
+            else:
+                # 參數（數值已從步驟中確定）
+                # 嘗試從推導步驟中提取數值
+                param_value = "unknown"
+                for step in session.steps:
+                    notes = step.get("notes", "")
+                    if sym_str in notes:
+                        # 嘗試提取數值
+                        import re
+                        match = re.search(rf"{sym_str}\s*[=:]\s*([\d.]+)", notes)
+                        if match:
+                            param_value = float(match.group(1))
+                            break
+                parameters[sym_str] = param_value
+
+        # 生成函數字串
+        function_str = str(expr)
+        latex_str = latex(expr)
+
+        # 建議的約束條件（基於變數類型）
+        suggested_constraints = []
+        for var in optimization_vars:
+            if "dose" in var.lower():
+                suggested_constraints.extend([
+                    f"{var} >= 0.001",  # 最小劑量 1mg
+                    f"{var} <= 0.100",  # 最大劑量 100mg
+                ])
+            elif var.lower() in ["t", "time"]:
+                suggested_constraints.append(f"{var} >= 0")
+            else:
+                suggested_constraints.append(f"{var} >= 0")
+
+        # USolver 模板
+        usolver_template = f"""
+# USolver Optimization Template
+
+Use usolver to optimize the following problem:
+
+**Objective**: Find optimal values for {', '.join(optimization_vars)}
+
+**Function**: 
+  {function_str}
+
+**LaTeX**: 
+  {latex_str}
+
+**Suggested Constraints**:
+{chr(10).join('  - ' + c for c in suggested_constraints)}
+
+**Example Constraints** (customize based on your problem):
+  - Therapeutic window: C(t=5) >= 2.0 AND C(t=5) <= 4.0
+  - Safety margin: C(t=30) >= 1.5
+  - Cost constraint: dose * unit_cost <= budget
+
+**Optimization Type**:
+  - If linear/convex: Use CVXPY or HiGHS
+  - If integer variables: Use OR-Tools or Z3
+  - If complex constraints: Use Z3 SMT solver
+"""
+
+        return {
+            "success": True,
+            "session_id": session.session_id,
+            "session_name": session.name,
+            "function_str": function_str,
+            "function_latex": latex_str,
+            "variables": optimization_vars,
+            "parameters": parameters,
+            "suggested_constraints": suggested_constraints,
+            "usolver_template": usolver_template,
+            "workflow_next_steps": [
+                "1. Review and customize constraints based on your problem domain",
+                "2. Copy the USolver template to USolver MCP",
+                "3. USolver will find optimal values",
+                "4. Use optimal values to calculate final results",
+            ],
+            "example_usolver_call": f"""
+usolver.solve(
+    problem_type="convex_optimization",
+    objective="minimize (target - {function_str})**2",
+    constraints={suggested_constraints},
+)
+""",
+        }

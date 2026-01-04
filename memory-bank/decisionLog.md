@@ -15,6 +15,141 @@
 | 2026-01-02 | 新增橋接工具 | `derivation_record_step` + `derivation_add_note` 讓人類知識可以在推導過程中隨時注入 |
 | 2026-01-02 | **強化 NSForge 推導工具** | 5 個推導工具（substitute, simplify, solve_for, differentiate, integrate）直接支援 notes/assumptions/limitations 參數，每步計算都帶知識記錄 |
 | 2026-01-02 | **Handoff 機制** | 新增 `derivation_export_for_sympy` + `derivation_import_from_sympy` + `derivation_handoff_status`，實現 NSForge ↔ SymPy-MCP 無縫轉換。當 NSForge 無法處理（ODE, 矩陣, 極限等）時自動轉給 SymPy-MCP，完成後再導入回來繼續步進式推導。 |
+| 2026-01-04 | **USolver 協作橋接** | 新增 `derivation_prepare_for_optimization()` 支援與 USolver MCP 協作。NSForge 負責推導領域修正公式，USolver 負責找最佳參數值。採用橋接工具模式：自動分類變數類型、提取參數值、生成領域約束、輸出 USolver 範本。協作帶來價值：領域智慧（藥物交互作用、體脂、年齡）+ 數學精確（Z3/OR-Tools/CVXPY/HiGHS 優化）= 可操作的最佳值。 |
+
+---
+
+## [2026-01-04] USolver 協作橋接：從推導到優化
+
+### 核心問題
+> **「NSForge 可以推導出修正後的公式，但如何找到最佳參數值？」**
+
+NSForge 強項：
+- 推導領域修正公式
+- 注入專業知識（藥物交互作用、體質差異）
+- 追蹤推導溯源
+
+USolver 強項：
+- 找到最佳參數值
+- 四種求解器（Z3, OR-Tools, CVXPY, HiGHS）
+- 滿足約束條件
+
+### 解決方案：橋接工具模式
+
+#### `derivation_prepare_for_optimization()`
+
+**功能**：將 NSForge 推導結果轉換為 USolver 可用格式
+
+**自動處理**：
+1. **變數分類** - 啟發式識別優化變數 vs 參數
+   ```python
+   if "dose" in var.lower() or var in ["t", "x", "y"]:
+       optimization_vars.append(var)  # 需要找最佳值
+   else:
+       parameters[var] = extract_from_steps(var)  # 從推導中提取
+   ```
+
+2. **約束生成** - 根據變數類型生成領域約束
+   - `dose`: 0.001 ≤ dose ≤ 0.100 (mg)
+   - `t`: t ≥ 0
+   - `concentration`: C ≥ 0
+
+3. **範本輸出** - 提供完整 USolver 使用範例
+
+**返回**：
+- `function_str`: 函數字串
+- `function_latex`: LaTeX 顯示
+- `variables`: 優化變數列表
+- `parameters`: 參數與值
+- `suggested_constraints`: 建議約束
+- `usolver_template`: 可直接使用的範本
+- `workflow_next_steps`: 工作流指引
+
+### 完整工作流程
+
+```
+Phase 1: NSForge 推導
+────────────────────
+derivation_start("Fentanyl dosing with modifications")
+derivation_substitute("CL", "CL_ref * (1 - 0.3*BF) * (1 - 0.02*age)")
+derivation_substitute("V1", "V1_ref * (1 + 0.5*BF)")
+...
+→ C(t, dose) = dose/V1_adj × exp(-CL_adj/V1_adj × t)
+
+Phase 2: 準備優化
+────────────────────
+derivation_prepare_for_optimization()
+→ 返回:
+  - variables: ["dose", "t"]
+  - parameters: {"CL_adj": 9.52, "V1_adj": 15.875}
+  - constraints: ["dose >= 0.001", "dose <= 0.100", "t >= 0"]
+  - USolver template with examples
+
+Phase 3: USolver 求解
+────────────────────
+[使用 USolver MCP]
+solve_optimization(
+    function="dose/15.875 * exp(-9.52/15.875 * t)",
+    objective="C(t=5) close to 2.5",
+    constraints=["dose >= 0.001", "dose <= 0.100"]
+)
+→ optimal_dose = 0.035 mg (35 mcg)
+```
+
+### 範例：Fentanyl 劑量優化
+
+**情境**：65 歲體脂 30% 併用 midazolam 的病人
+
+**NSForge 推導**：
+- 體脂修正清除率：-30%
+- 年齡修正：-2%/年
+- 藥物交互作用（midazolam）：-25%
+- → 最終清除率降至 9.52 L/hr
+
+**USolver 優化**：
+- 目標：術後 5 分鐘血中濃度 2-3 ng/mL（鎮痛有效）
+- 約束：劑量 1-100 mcg
+- → 最佳劑量 = 35 mcg
+
+### 價值主張
+
+| 單獨使用 | 協作使用 |
+|---------|---------|
+| NSForge: 推導公式，但不知道給多少 | NSForge: 考量所有修正因子 |
+| USolver: 優化參數，但用標準公式 | USolver: 找到最佳值 |
+| 結果: 精確但不貼近現實 | 結果: **35 mcg，同時考量體質、年齡、交互作用** |
+
+### 設計決策
+
+**為何不在 NSForge 內建優化？**
+1. 職責分離：NSForge 專注推導，USolver 專注優化
+2. 避免重複造輪子：USolver 已有 4 種工業級求解器
+3. 擴展性：未來可與其他 MCP 協作（Lean4 驗證、CORE 文獻）
+
+**為何選擇橋接工具模式？**
+1. 自動化：減少 Agent 手動格式轉換
+2. 領域知識注入：約束條件來自專業判斷
+3. 可追溯：完整工作流記錄在 Skill 文檔
+
+### Skill 文檔
+
+創建 `.claude/skills/nsforge-usolver-collab/SKILL.md`（~300 行）：
+- 4 階段工作流程
+- 3 個典型用例（藥物劑量、電路設計、資源分配）
+- 完整 Fentanyl 範例（含數值）
+- 故障排除（變數分類錯誤、約束過嚴）
+- 求解器選擇指南（線性→HiGHS、組合→OR-Tools）
+
+### 生態系統擴展
+
+NSForge 定位更新：
+```
+原來: 推導領域修正公式（終點）
+現在: 推導領域修正公式（起點） → 為下游工具準備輸入
+       ├─ USolver: 優化求解
+       ├─ SymPy-MCP: 複雜計算（已有 Handoff）
+       └─ 未來: Lean4 形式驗證、CORE 文獻檢索
+```
 
 ---
 

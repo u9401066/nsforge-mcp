@@ -56,7 +56,61 @@ CONSTITUTION.md (最高原則)
 - 使用 pytest markers 分類
 
 ---
-*Last updated: 2025-12-15*
+*Last updated: 2026-01-04*
+
+## MCP-to-MCP 協作模式
+
+### 橋接工具模式（Bridge Tool Pattern）
+NSForge 與 USolver 協作展示的新模式：
+
+```
+Source MCP (NSForge):
+  └── 推導領域修正公式
+  └── derivation_prepare_for_optimization()  ← 橋接工具
+       ├─ 自動分類變數類型（優化 vs 參數）
+       ├─ 提取參數值（從推導步驟）
+       ├─ 生成領域約束（劑量、時間）
+       └─ 輸出目標 MCP 範本
+Target MCP (USolver):
+  └── 接收標準化輸入
+  └── 執行優化求解
+  └── 返回最佳參數值
+```
+
+**關鍵設計元素**：
+1. **自動適配**：源 MCP 了解目標 MCP 的輸入需求
+2. **領域注入**：橋接工具加入領域知識（約束條件）
+3. **範本生成**：提供完整使用範例
+4. **雙向文檔**：Skill 檔案說明完整工作流
+
+**適用場景**：
+- 跨 MCP 組合複雜任務
+- 需要領域知識轉換
+- Agent 需要工作流指引
+
+**實例**：
+- NSForge → USolver: 推導 → 優化
+- 未來可能: NSForge → Lean4: 驗證形式正確性
+
+### 變數分類啟發式（Heuristic Classification）
+橋接工具中的自動分類策略：
+
+```python
+# 優化變數（需要找到最佳值）
+if "dose" in var.lower() or var in ["t", "x", "y"]:
+    optimization_vars.append(var)
+
+# 參數（從推導步驟提取固定值）
+else:
+    parameters[var] = extract_from_steps(var)
+```
+
+**權衡**：
+- ✅ 自動化大多數常見情況
+- ✅ 減少 Agent 手動工作
+- ⚠️ 可能誤判（通過 USolver 手動覆蓋）
+
+---
 
 ## Compact SKILL.md Design
 

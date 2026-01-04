@@ -4,9 +4,60 @@
 
 ## 🎯 當前焦點
 
-**v0.2.2 步驟控制系統完成！** 5 個新 MCP 工具實現完整 CRUD 控制。
+**v0.2.3 USolver 協作橋接完成！** 新增優化求解器協作功能，擴展 NSForge 生態系統。
 
-## ✅ 本次完成 (2026-01-03)
+## ✅ 本次完成 (2026-01-04)
+
+### 🔗 USolver 協作功能
+
+新增與 USolver MCP 的協作能力，擴展 NSForge 從推導到優化：
+
+| 功能層 | 內容 | 說明 |
+|--------|------|------|
+| **MCP 工具** | `derivation_prepare_for_optimization` | 自動分類變數/參數、生成約束、輸出 USolver 範本 |
+| **Agent Skill** | `.claude/skills/nsforge-usolver-collab/SKILL.md` | 完整協作工作流程文檔（~300 行） |
+| **文檔** | README + README.zh-TW 更新 | 生態系統圖、協作流程、比較表格 |
+
+**協作流程**：
+```
+NSForge: 推導領域修正公式 → derivation_prepare_for_optimization()
+    ↓ 自動分類：優化變數 vs 參數
+    ↓ 生成約束：劑量範圍、時間非負...
+    ↓ 輸出範本：USolver 可用格式
+USolver: 求解最佳值 → optimal_dose, objective_value
+    ↓ 四種求解器：Z3, OR-Tools, CVXPY, HiGHS
+結果: 領域智慧 + 數學精確 → 可操作的最佳值
+```
+
+**範例用例**：65 歲體脂 30% + midazolam 併用 → 最佳 Fentanyl 劑量 = 35mcg
+
+### 🔍 技術發現
+
+- **USolver 能力**：
+  - Z3: SMT 求解器（邏輯謎題、約束滿足）
+  - OR-Tools: 組合優化（排程、路由）
+  - CVXPY: 凸優化（投資組合、信號處理）
+  - HiGHS: 線性/整數規劃（生產、物流）
+  
+- **SymPy-MCP 安裝**：
+  - 位置：`vendor/sympy-mcp/`
+  - 依賴：mcp[cli]>=1.9.0, sympy>=1.14.0
+
+### 📖 文檔更新
+
+- **README.md** (英文):
+  - 新增 USolver 生態系統條目
+  - 新增協作專區（流程圖、比較表、設定指引）
+  
+- **README.zh-TW.md** (中文):
+  - 同步所有英文更新
+  - 本地化範例和說明
+
+- **新增 Skill**:
+  - `.claude/skills/nsforge-usolver-collab/SKILL.md`
+  - 包含：工作流程、用例、故障排除、求解器選擇指南
+
+## ✅ 上次完成 (2026-01-03)
 
 ### 🎛️ 步驟 CRUD 功能
 
