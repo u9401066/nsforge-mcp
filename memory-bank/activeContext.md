@@ -4,11 +4,47 @@
 
 ## 🎯 當前焦點
 
-**v0.2.3 USolver 協作橋接完成！** 新增優化求解器協作功能，擴展 NSForge 生態系統。
+**v0.2.4 Phase 1+2 工具實作完成！** 新增 14 個進階代數和積分變換工具，SymPy 涵蓋率提升至 92%。
 
 ## ✅ 本次完成 (2026-01-04)
 
-### 🔗 USolver 協作功能
+### � Phase 1: 進階代數簡化 (10 工具)
+
+| 類別 | 工具 | 用途 |
+|------|------|------|
+| **P0 基礎** | expand, factor, collect | 展開、因式分解、收集同類項 |
+| **P0 特殊** | trigsimp, powsimp, radsimp, combsimp | 三角、冪次、根式、階乘 |
+| **P1 有理** | apart, cancel, together | 🔥 部分分式、約分、合併 |
+
+**關鍵功能**: `apart_expression` 是反 Laplace 變換的必備前置步驟！
+
+### 📊 Phase 2: 積分變換 (4 工具)
+
+| 工具 | 變換 | 藥動學應用 |
+|------|------|------------|
+| `laplace_transform` | f(t) → F(s) | ODE 轉代數 |
+| `inverse_laplace_transform` | F(s) → f(t) | 🔥 多隔室 PK 解析解 |
+| `fourier_transform` | f(x) → F(k) | 週期給藥頻譜 |
+| `inverse_fourier_transform` | F(k) → f(x) | 訊號重建 |
+
+**完整工作流**:
+```
+apart_expression("1/((s+λ1)*(s+λ2))", "s")  → 部分分式
+inverse_laplace_transform(...)                → 時域解
+→ C(t) = A·e^(-λ1·t) + B·e^(-λ2·t)
+```
+
+### 📖 外部公式資料來源調研
+
+調研了多個外部公式資料來源，已整合至 `FORMULA_APIS.md`：
+
+| 來源 | 類型 | 優先度 | 狀態 |
+|------|------|--------|------|
+| Wikidata | SPARQL API | ⭐⭐⭐ | 🚧 設計中 |
+| HuggingFace | 本地 RAG | ⭐⭐⭐ | 🚧 設計中 |
+| BioModels | SBML API | ⭐⭐ | 🚧 設計中 |
+
+### �🔗 USolver 協作功能
 
 新增與 USolver MCP 的協作能力，擴展 NSForge 從推導到優化：
 

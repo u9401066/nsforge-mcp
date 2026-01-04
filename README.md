@@ -91,6 +91,8 @@ NSForge provides features **not available in SymPy-MCP** by directly leveraging 
 | **Limits & Series** | `sympy.limit`, `sympy.series` | Steady-state, accumulation | ✅ v0.2.1 |
 | **Inequality Solving** | `sympy.solvers.inequalities` | Therapeutic window | ✅ v0.2.1 |
 | **Assumption Queries** | `sympy.assumptions` | Auto-validation | ✅ v0.2.1 |
+| **Advanced Algebra** | `sympy.expand/factor/apart...` | Expression manipulation | ✅ v0.2.4 |
+| **Integral Transforms** | `sympy.laplace_transform/fourier_transform` | ODE solving, frequency analysis | ✅ v0.2.4 |
 | **Derivation Workflow** | NSForge exclusive | Step tracking, provenance | ✅ Available |
 | **Verification Suite** | NSForge exclusive | Dimension analysis | ✅ Available |
 
@@ -373,7 +375,7 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
-NSForge provides **36 MCP tools** organized into 5 modules:
+NSForge provides **50 MCP tools** organized into 6 modules:
 
 ### 🔥 Derivation Engine (26 tools)
 
@@ -440,6 +442,30 @@ NSForge provides **36 MCP tools** organized into 5 modules:
 | `generate_latex_derivation` | Generate LaTeX document |
 | `generate_derivation_report` | Generate Markdown report |
 | `generate_sympy_script` | Generate standalone SymPy script |
+
+### 🔢 Advanced Algebra (10 tools) - NEW in v0.2.4
+
+| Tool | Purpose |
+| ---- | ---- |
+| `expand_expression` | Expand products: (x+1)² → x²+2x+1 |
+| `factor_expression` | Factorize: x²-1 → (x-1)(x+1) |
+| `collect_expression` | Collect terms by variable |
+| `trigsimp_expression` | Trig simplify: sin²+cos² → 1 |
+| `powsimp_expression` | Power simplify: x²·x³ → x⁵ |
+| `radsimp_expression` | Radical simplify |
+| `combsimp_expression` | Factorial simplify: n!/(n-2)! → n(n-1) |
+| `apart_expression` | 🔥 Partial fractions (for inverse Laplace) |
+| `cancel_expression` | Cancel common factors |
+| `together_expression` | Combine fractions |
+
+### 📊 Integral Transforms (4 tools) - NEW in v0.2.4
+
+| Tool | Purpose |
+| ---- | ---- |
+| `laplace_transform_expression` | 🔥 f(t) → F(s) for ODE solving |
+| `inverse_laplace_transform_expression` | 🔥 F(s) → f(t) multi-compartment PK |
+| `fourier_transform_expression` | f(x) → F(k) frequency analysis |
+| `inverse_fourier_transform_expression` | F(k) → f(x) signal reconstruction |
 
 ## 🧠 Agent Skills Architecture
 

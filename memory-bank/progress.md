@@ -2,6 +2,25 @@
 
 ## Done
 
+### Phase 1+2 工具實作 (2026-01-04)
+- ✅ **Phase 1: 10 個進階代數簡化工具**
+  - expand, factor, collect, trigsimp, powsimp, radsimp, combsimp
+  - apart (部分分式 - 反 Laplace 必備), cancel, together
+- ✅ **Phase 2: 4 個積分變換工具**
+  - laplace_transform, inverse_laplace_transform
+  - fourier_transform, inverse_fourier_transform
+- ✅ **測試**: test_phase1_tools.py (10 tests), test_phase2_tools.py (10 tests)
+- ✅ **文檔**: phase1/2 報告, 快速參考, 涵蓋率分析更新
+- ✅ **SymPy 涵蓋率**: 85% → 92% (+7%)
+- ✅ **工具總數**: 36 → 50 (+14)
+
+### 外部公式資料來源調研 (2026-01-04)
+- ✅ Wikidata SPARQL (P2534 定義公式)
+- ✅ HuggingFace Datasets (RAG 向量檢索)
+- ✅ BioModels (SBML 藥動學模型)
+- ✅ MCP 工具設計草案 (formula_search, formula_get, formula_categories)
+- ⏳ 狀態: 設計階段，尚未實作
+
 ### SymPy 功能涵蓋分析 (2026-01-04)
 - ✅ 完整分析 SymPy-MCP 工具（37 個）
 - ✅ 完整分析 NSForge 工具（55 個）
@@ -42,10 +61,10 @@
 
 ## Doing
 
-- Git commit + push (v0.2.3 變更)
+- (無進行中項目)
 
 ## Next
 
-- 重啟 MCP 伺服器以載入新工具
-- 測試 NSForge-USolver 協作流程
-- 考慮其他 MCP 協作機會
+- 重啟 MCP 伺服器以載入新工具 (14 個新工具)
+- 實作外部公式搜尋功能 (Wikidata adapter)
+- 測試 apart + inverse_laplace 多隔室 PK 工作流
