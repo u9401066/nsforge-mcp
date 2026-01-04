@@ -5,6 +5,56 @@
 格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/)，
 專案遵循 [語義化版本](https://semver.org/lang/zh-TW/)。
 
+## [Unreleased]
+
+### Added
+
+- 🆕 **Phase 2 - 積分變換工具** (4 個新 MCP 工具)
+  - **P2 Laplace 變換** (2 個，🔥🔥 高優先度)：
+    - `laplace_transform_expression` - Laplace 變換 exp(-k*t) → 1/(s+k)
+    - `inverse_laplace_transform_expression` - 反 Laplace 變換（ODE 代數解 → 時域解）
+  - **P2 Fourier 變換** (2 個，🔥 優先度)：
+    - `fourier_transform_expression` - Fourier 變換（頻域分析）
+    - `inverse_fourier_transform_expression` - 反 Fourier 變換（頻域 → 時域）
+- 🧪 **Phase 2 測試套件**：`tests/test_phase2_tools.py` - 所有 4 個工具通過測試
+- 📊 **涵蓋率提升**：SymPy 涵蓋率從 90% 提升至 92%
+- 🔬 **藥動學應用增強**：
+  - 與 `apart_expression` 搭配，完整 Laplace 變換工作流
+  - 多隔室模型完整求解（s-domain → time-domain）
+  - 轉移函數分析（穩定性、響應）
+- 🆕 **Phase 1 - 進階代數簡化工具** (10 個新 MCP 工具)
+  - **P0 基礎代數** (7 個)：
+    - `expand_expression` - 展開表達式 (x+1)² → x²+2x+1
+    - `factor_expression` - 因式分解 x²-1 → (x-1)(x+1)
+    - `collect_expression` - 收集同類項
+    - `trigsimp_expression` - 三角函數化簡 sin²+cos² → 1
+    - `powsimp_expression` - 冪次化簡 x²·x³ → x⁵
+    - `radsimp_expression` - 根式化簡 1/(√3+√2) → -√2+√3
+    - `combsimp_expression` - 組合函數化簡 n!/(n-2)! → n(n-1)
+  - **P1 有理函數處理** (3 個)：
+    - `apart_expression` - 部分分式分解（關鍵：反 Laplace 變換準備）
+    - `cancel_expression` - 約分有理式
+    - `together_expression` - 合併分式
+
+### Changed
+
+- 🔧 **工具註冊系統**
+  - 擴展 `simplify.py` 模組至 1150+ 行（Phase 1 + Phase 2）
+  - Phase 2 工具整合至同一註冊函數
+
+### Technical Details
+
+- **Phase 2 設計原則**：
+  - Laplace 變換：ODE → 代數方程（s-domain）
+  - 反 Laplace：與 apart_expression 完美搭配
+  - Fourier 變換：週期性給藥分析、頻譜分析
+- **變數處理**：正確的符號替換（t→s、x→k）
+- **收斂條件**：Laplace 變換返回收斂平面資訊
+- **Phase 1 設計原則**：精確控制（expand vs simplify 的確定性差異）
+- **Python 兼容**：加入 `from __future__ import annotations` 支援 Python 3.9
+
+---
+
 ## [0.2.2] - 2026-01-03
 
 ### Added

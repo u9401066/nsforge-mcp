@@ -10,6 +10,387 @@ NSForge 提供多個層級的公式獲取 API，分為三個主要部分：
 
 ---
 
+# 🌐 外部公式資料來源調研（設計中）
+
+> **狀態**: 🚧 設計階段，尚未實作  
+> **目標**: 建立 `formula_search(query)` MCP 工具，讓 Agent 可即時檢索準確的 LaTeX/SymPy 公式
+
+## 資料來源總覽
+
+| 優先級 | 來源 | 類型 | 格式 | 覆蓋領域 | 授權 |
+|-------|------|------|------|---------|------|
+| ⭐⭐⭐ | **Wikidata** | 線上 API | SPARQL → LaTeX | 跨領域 | CC0 |
+| ⭐⭐⭐ | **HuggingFace Datasets** | 本地下載 | JSON/Parquet | 數學/物理 | 各異 |
+| ⭐⭐ | **BioModels** | 線上 API | SBML (XML) | 藥學/生物 | CC0 |
+| ⭐⭐ | **SymPy 內建** | Python 庫 | Python | 數學通用 | BSD |
+| ⭐ | **Astropy** | Python 庫 | Python | 天文物理 | BSD |
+| ⭐ | **MetPy** | Python 庫 | Python | 氣象學 | BSD |
+| ⭐ | **Pint** | Python 庫 | 定義檔 | 單位換算 | BSD |
+
+---
+
+## 1️⃣ Wikidata（最強大的公開結構化來源）
+
+### 特點
+- **P2534**: 定義公式（Defining Formula）屬性
+- 包含 LaTeX、變數定義、單位量綱
+- 跨領域：物理、化學、經濟學、工程
+- 完全免費，CC0 授權
+
+### SPARQL 查詢範例
+
+```sparql
+# 搜尋「雷諾數」公式
+SELECT ?item ?itemLabel ?formula WHERE {
+  ?item wdt:P2534 ?formula.  # P2534 = defining formula
+  ?item rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = "en")
+  FILTER(CONTAINS(LCASE(?itemLabel), "reynolds number"))
+}
+```
+
+```sparql
+# 列出所有有定義公式的物理量
+SELECT ?item ?itemLabel ?formula ?dimension WHERE {
+  ?item wdt:P2534 ?formula.
+  OPTIONAL { ?item wdt:P4020 ?dimension. }  # P4020 = 量綱
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+LIMIT 100
+```
+
+### MCP 實作思路
+
+```python
+# src/nsforge/infrastructure/adapters/wikidata_formulas.py
+import httpx
+
+WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
+
+class WikidataFormulaAdapter:
+    """Wikidata 公式查詢適配器"""
+    
+    async def search_formula(self, query: str) -> list[dict]:
+        """搜尋公式"""
+        sparql = f'''
+        SELECT ?item ?itemLabel ?formula WHERE {{
+          ?item wdt:P2534 ?formula.
+          ?item rdfs:label ?itemLabel.
+          FILTER(LANG(?itemLabel) = "en")
+          FILTER(CONTAINS(LCASE(?itemLabel), "{query.lower()}"))
+        }}
+        LIMIT 20
+        '''
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                WIKIDATA_SPARQL,
+                params={"query": sparql, "format": "json"}
+            )
+            return self._parse_results(resp.json())
+    
+    def _parse_results(self, data: dict) -> list[dict]:
+        results = []
+        for binding in data["results"]["bindings"]:
+            results.append({
+                "id": binding["item"]["value"].split("/")[-1],
+                "name": binding["itemLabel"]["value"],
+                "latex": binding["formula"]["value"],
+            })
+        return results
+```
+
+---
+
+## 2️⃣ Hugging Face Datasets（本地向量檢索）
+
+### 推薦資料集
+
+| 資料集 | 內容 | 大小 | 用途 |
+|-------|------|------|------|
+| `hendrycks/competition_math` | 競賽數學題 + 解答 | ~12K | 數學推理 |
+| `nvidia/OpenMathInstruct-1` | 數學指令 + Python | 1.8M | 程式碼生成 |
+| `wikipedia-math` | 維基百科 `<math>` 標籤 | 大量 | LaTeX 公式庫 |
+| `camel-ai/physics` | 物理問答 | ~20K | 物理公式 |
+
+### MCP 實作思路（RAG 檢索）
+
+```python
+# src/nsforge/infrastructure/adapters/hf_formulas.py
+from datasets import load_dataset
+from sentence_transformers import SentenceTransformer
+import faiss
+
+class HuggingFaceFormulaAdapter:
+    """HuggingFace 數學公式 RAG 檢索"""
+    
+    def __init__(self):
+        # 載入向量模型
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.index = None
+        self.formulas = []
+    
+    def build_index(self, dataset_name: str = "wikipedia-math"):
+        """建立向量索引"""
+        ds = load_dataset(dataset_name, split="train")
+        
+        # 提取公式和描述
+        for item in ds:
+            self.formulas.append({
+                "description": item["context"],
+                "latex": item["formula"],
+            })
+        
+        # 建立 FAISS 索引
+        embeddings = self.model.encode([f["description"] for f in self.formulas])
+        self.index = faiss.IndexFlatL2(embeddings.shape[1])
+        self.index.add(embeddings)
+    
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
+        """語義搜尋公式"""
+        query_vec = self.model.encode([query])
+        distances, indices = self.index.search(query_vec, top_k)
+        return [self.formulas[i] for i in indices[0]]
+```
+
+---
+
+## 3️⃣ BioModels（藥學/生物系統專用）
+
+### 特點
+- 數千個已發表的生物數學模型
+- SBML 格式（XML），機器可讀
+- 包含藥物動力學、酵素動力學、代謝路徑
+
+### 資源
+- 網站：https://www.ebi.ac.uk/biomodels/
+- API：https://www.ebi.ac.uk/biomodels/docs/
+
+### MCP 實作思路
+
+```python
+# src/nsforge/infrastructure/adapters/biomodels.py
+import httpx
+import libsbml  # pip install python-libsbml
+
+BIOMODELS_API = "https://www.ebi.ac.uk/biomodels"
+
+class BioModelsAdapter:
+    """BioModels SBML 公式提取"""
+    
+    async def search_models(self, query: str) -> list[dict]:
+        """搜尋模型"""
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{BIOMODELS_API}/search",
+                params={"query": query, "format": "json"}
+            )
+            return resp.json()["models"]
+    
+    async def get_kinetic_laws(self, model_id: str) -> list[dict]:
+        """提取模型中的動力學公式"""
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{BIOMODELS_API}/model/download/{model_id}")
+            sbml_str = resp.text
+        
+        # 解析 SBML
+        doc = libsbml.readSBMLFromString(sbml_str)
+        model = doc.getModel()
+        
+        formulas = []
+        for reaction in model.getListOfReactions():
+            kl = reaction.getKineticLaw()
+            if kl:
+                formulas.append({
+                    "reaction_id": reaction.getId(),
+                    "name": reaction.getName(),
+                    "math": libsbml.formulaToString(kl.getMath()),
+                    "parameters": self._extract_params(kl),
+                })
+        return formulas
+```
+
+---
+
+## 4️⃣ Python 庫 Introspection
+
+### SymPy 內建公式
+
+```python
+# 已整合的物理模組
+from sympy.physics.mechanics import *      # 古典力學
+from sympy.physics.quantum import *        # 量子力學
+from sympy.physics.optics import *         # 光學
+from sympy.physics.units import *          # 單位系統
+from sympy.stats import *                  # 統計分佈
+
+# 內建恆等式
+from sympy import trigsimp, expand_trig    # 三角恆等式
+from sympy import integrate                 # 積分表
+```
+
+### Astropy（天文物理）
+
+```python
+from astropy import constants as const
+from astropy.cosmology import Planck18
+
+# 可用常數
+print(const.c)      # 光速
+print(const.G)      # 引力常數
+print(const.h)      # 普朗克常數
+
+# 宇宙學計算
+z = 0.5  # 紅移
+print(Planck18.luminosity_distance(z))
+```
+
+### MetPy（氣象學）
+
+```python
+import metpy.calc as mpcalc
+from metpy.units import units
+
+# 露點計算
+dewpoint = mpcalc.dewpoint_from_relative_humidity(
+    25 * units.degC, 
+    0.75  # 相對濕度
+)
+
+# 風寒指數
+wind_chill = mpcalc.windchill(
+    -10 * units.degC,
+    30 * units.km/units.hour
+)
+```
+
+### Pint（單位換算）
+
+```python
+from pint import UnitRegistry
+ureg = UnitRegistry()
+
+# 單位換算公式內建於定義檔
+# ~/.local/lib/python3.x/site-packages/pint/default_en.txt
+# 例如：degF = 5/9 * kelvin; offset: 255.372222
+
+temp_f = 100 * ureg.degF
+temp_c = temp_f.to(ureg.degC)  # 自動套用換算公式
+```
+
+---
+
+## 5️⃣ GitHub 開源公式庫
+
+### 搜尋關鍵字
+- `physics formulas json`
+- `latex math database`
+- `scientific equations dataset`
+
+### 已知專案
+
+| 專案 | 格式 | 內容 |
+|-----|------|------|
+| `physicsFormulas` | JSON | 高中/大學物理公式 |
+| `math-formulas` | LaTeX | 數學公式集 |
+| `equations-database` | YAML | 工程公式 |
+
+---
+
+## 🎯 實作優先序建議
+
+### Phase 1：快速可用（1-2 天）
+1. **Wikidata SPARQL 適配器** - 即時查詢，無需下載
+2. **SymPy 內建公式索引** - 整理現有資源
+
+### Phase 2：本地增強（1 週）
+3. **HuggingFace Dataset RAG** - 下載 + 向量索引
+4. **本地 YAML 公式庫** - 手動整理高頻公式
+
+### Phase 3：領域專精（視需求）
+5. **BioModels 整合** - 藥學/PK-PD 模型
+6. **Astropy/MetPy 整合** - 特定領域
+
+---
+
+## 📐 MCP 工具設計（預期介面）
+
+```python
+# 預期 MCP 工具介面
+
+@mcp.tool()
+def formula_search(
+    query: str,
+    source: str = "all",  # "wikidata", "local", "biomodels"
+    domain: str | None = None,  # "physics", "chemistry", "pharmacology"
+    limit: int = 10,
+) -> dict[str, Any]:
+    """
+    搜尋公式
+    
+    Args:
+        query: 搜尋關鍵字（如 "Reynolds number", "Arrhenius"）
+        source: 資料來源
+        domain: 限定領域
+        limit: 返回數量上限
+    
+    Returns:
+        {
+            "results": [
+                {
+                    "id": "Q179057",
+                    "name": "Reynolds number",
+                    "latex": "Re = \\frac{\\rho v L}{\\mu}",
+                    "sympy": "rho * v * L / mu",
+                    "variables": {
+                        "rho": {"description": "密度", "unit": "kg/m³"},
+                        "v": {"description": "流速", "unit": "m/s"},
+                        ...
+                    },
+                    "source": "wikidata",
+                    "url": "https://www.wikidata.org/wiki/Q179057"
+                }
+            ],
+            "total": 1,
+            "query": "Reynolds number"
+        }
+    """
+
+@mcp.tool()
+def formula_get(
+    formula_id: str,
+    source: str = "wikidata",
+) -> dict[str, Any]:
+    """
+    獲取公式詳情
+    
+    Args:
+        formula_id: 公式 ID（如 Wikidata Q 號）
+        source: 資料來源
+    
+    Returns:
+        完整公式資訊（LaTeX、SymPy、變數、單位、參考）
+    """
+
+@mcp.tool()
+def formula_categories(
+    source: str = "all",
+) -> dict[str, Any]:
+    """
+    列出公式分類
+    
+    Returns:
+        {
+            "categories": [
+                {"name": "mechanics", "count": 150},
+                {"name": "thermodynamics", "count": 80},
+                ...
+            ]
+        }
+    """
+```
+
+---
+
 ## 1. Domain Layer - 核心接口
 
 位置: `src/nsforge/domain/`

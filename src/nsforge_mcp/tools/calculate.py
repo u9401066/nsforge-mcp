@@ -34,6 +34,8 @@ WORKFLOW: Use these tools alongside SymPy-MCP
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 import sympy as sp

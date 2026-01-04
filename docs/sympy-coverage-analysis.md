@@ -1,6 +1,7 @@
 # SymPy 功能涵蓋分析報告
 
 > **Generated:** 2026-01-04  
+> **Updated:** 2026-01-04 (Phase 1+2 完成)  
 > **Purpose:** 系統性分析 SymPy 功能是否被 NSForge + SymPy-MCP 完整涵蓋  
 > **Method:** 逐一檢查 SymPy 模組，比對 SymPy-MCP 和 NSForge 實現
 
@@ -8,23 +9,58 @@
 
 ## 🎯 執行摘要
 
-### 統計結果
+### 統計結果 (Phase 2 後)
 
 | 項目 | 數量 |
 |------|------|
 | **SymPy-MCP 工具總數** | 37 |
-| **NSForge 工具總數** | 55 |
-| **NSForge 獨有工具** | 43 |
+| **NSForge 工具總數** | 69 (+14) |
+| **NSForge 獨有工具** | 57 (+14) |
 | **重複功能** | 12 (已驗證無衝突) |
-| **SymPy 核心模組覆蓋率** | ~85% |
-| **發現的遺漏** | 6 類功能 |
+| **SymPy 核心模組覆蓋率** | ~92% (+7%) |
+| **發現的遺漏** | 4 類功能（降低） |
+| **Phase 1 新增** | 10 工具 (P0: 7, P1: 3) |
+| **Phase 2 新增** | 4 工具 (P2: Laplace/Fourier 變換) |
 
 ### 結論
 
 ✅ **核心計算功能：完全涵蓋**  
-⚠️ **進階模組：部分遺漏**  
+✅ **進階代數：Phase 1 完成**（expand, factor, apart, etc.）  
+✅ **積分變換：Phase 2 完成**（Laplace/Fourier 變換）  
 ✅ **領域專用：NSForge 補充**  
 ❌ **錯誤描述：未發現**
+
+### Phase 2 實作摘要
+
+**P2 - 積分變換** (4 工具) 🔥🔥:
+
+- `laplace_transform_expression` - Laplace 變換 f(t) → F(s)
+- `inverse_laplace_transform_expression` - 反 Laplace（與 apart 完美搭配）
+- `fourier_transform_expression` - Fourier 變換（頻域分析）
+- `inverse_fourier_transform_expression` - 反 Fourier 變換
+
+**影響**：
+
+- 涵蓋率從 90% 提升至 92%
+- 完整 Laplace 工作流（ODE → s-domain → time-domain）
+- 多隔室 PK 模型完整求解
+
+### Phase 1 實作摘要
+
+**P0 - 基礎代數簡化** (7 工具)：
+
+- expand_expression, factor_expression, collect_expression
+- trigsimp_expression, powsimp_expression, radsimp_expression, combsimp_expression
+
+**P1 - 有理函數處理** (3 工具)：
+
+- apart_expression (關鍵：反 Laplace 變換準備)
+- cancel_expression, together_expression
+
+**影響**：
+
+- 涵蓋率從 85% 提升至 90%
+- 補完藥動學常用功能（部分分式、因式分解）
 
 ---
 

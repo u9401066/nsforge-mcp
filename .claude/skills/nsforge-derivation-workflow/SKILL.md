@@ -49,6 +49,8 @@ Phase 3: derivation_complete(description, assumptions?, limitations?, references
 
 ## Handoff：NSForge 做不到時
 
+⚠️ **Phase 2 後更新**：Laplace/Fourier 變換已實作，無需 Handoff！
+
 當需要 ODE/PDE、矩陣運算、聯立方程組：
 
 ```python
