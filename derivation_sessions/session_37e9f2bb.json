@@ -9,15 +9,15 @@
       "expression": "V_d*k_e",
       "latex": "V_{d} k_{e}",
       "variables": {
-        "V_d": {
-          "name": "V_d",
+        "k_e": {
+          "name": "k_e",
           "description": "",
           "unit": null,
           "constraints": "positive",
           "value": null
         },
-        "k_e": {
-          "name": "k_e",
+        "V_d": {
+          "name": "V_d",
           "description": "",
           "unit": null,
           "constraints": "positive",
@@ -25,15 +25,15 @@
         }
       },
       "source": "textbook",
-      "source_detail": "Goodman & Gilman's Pharmacology, Ch.2",
-      "original_input": "k_e * V_d",
+      "source_detail": "",
+      "original_input": "V_d*k_e",
       "input_format": "sympy",
-      "name": "藥物清除率 CL",
-      "description": "清除率等於消除速率常數乘以分佈容積",
+      "name": "",
+      "description": "",
       "category": "",
       "tags": [],
       "references": [],
-      "created_at": "2026-01-03T09:29:06.110958"
+      "created_at": "2026-01-04T23:54:23.076427"
     },
     "free_drug": {
       "id": "free_drug",
@@ -56,50 +56,649 @@
         }
       },
       "source": "textbook",
-      "source_detail": "Clinical Pharmacokinetics, 5th Ed",
-      "original_input": "C_total * (1 - f_b)",
+      "source_detail": "",
+      "original_input": "C_total*(1 - f_b)",
       "input_format": "sympy",
-      "name": "游離藥物濃度 C_free",
-      "description": "游離藥物濃度 = 總濃度 × (1 - 蛋白結合率)",
+      "name": "",
+      "description": "",
       "category": "",
       "tags": [],
       "references": [],
-      "created_at": "2026-01-03T09:29:17.230128"
+      "created_at": "2026-01-04T23:54:23.104426"
     },
     "effective_clearance": {
       "id": "effective_clearance",
       "expression": "CL_int*f_u",
       "latex": "CL_{int} f_{u}",
       "variables": {
-        "CL_int": {
-          "name": "CL_int",
-          "description": "",
-          "unit": null,
-          "constraints": "positive",
-          "value": null
-        },
         "f_u": {
           "name": "f_u",
           "description": "",
           "unit": null,
           "constraints": "real",
           "value": null
+        },
+        "CL_int": {
+          "name": "CL_int",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
         }
       },
       "source": "textbook",
-      "source_detail": "Applied Clinical Pharmacokinetics, 3rd Ed",
-      "original_input": "CL_int * f_u",
+      "source_detail": "",
+      "original_input": "CL_int*f_u",
       "input_format": "sympy",
-      "name": "有效清除率 CL_eff",
-      "description": "有效清除率 = 內在清除率 × 游離分率",
+      "name": "",
+      "description": "",
       "category": "",
       "tags": [],
       "references": [],
-      "created_at": "2026-01-03T09:29:27.544145"
+      "created_at": "2026-01-04T23:54:23.104426"
+    },
+    "one_compartment_solution": {
+      "id": "one_compartment_solution",
+      "expression": "0",
+      "latex": "0",
+      "variables": {},
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "C0*exp(-k*t)",
+      "input_format": "sympy",
+      "name": "One-compartment PK solution",
+      "description": "Concentration-time solution for IV bolus one-compartment model.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:54:43.394510"
+    },
+    "k_rel": {
+      "id": "k_rel",
+      "expression": "Eq(k, C*L/V)",
+      "latex": "k = \\frac{C L}{V}",
+      "variables": {
+        "V": {
+          "name": "V",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "C": {
+          "name": "C",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "L": {
+          "name": "L",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "k = CL/V",
+      "input_format": "sympy",
+      "name": "k from CL and V",
+      "description": "Relation between elimination rate constant k, clearance CL, and volume V.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:54:48.739137"
+    },
+    "k_rel_expr": {
+      "id": "k_rel_expr",
+      "expression": "-C*L/V + k",
+      "latex": "- \\frac{C L}{V} + k",
+      "variables": {
+        "V": {
+          "name": "V",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "C": {
+          "name": "C",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "L": {
+          "name": "L",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "k - CL/V",
+      "input_format": "sympy",
+      "name": "k_rel_expr",
+      "description": "k - CL/V = 0 (relation)",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:54:53.473728"
+    },
+    "k_rel_CLint": {
+      "id": "k_rel_CLint",
+      "expression": "-CL_int/V + k",
+      "latex": "- \\frac{CL_{int}}{V} + k",
+      "variables": {
+        "V": {
+          "name": "V",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "CL_int": {
+          "name": "CL_int",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "k - CL_int/V",
+      "input_format": "sympy",
+      "name": "k_rel_CLint",
+      "description": "k - CL_int/V = 0 relation using CL_int symbol for clearance.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:55:05.315573"
+    },
+    "michaelis_menten_expr4": {
+      "id": "michaelis_menten_expr4",
+      "expression": "-a*m*s*v*x + v*(k*m + s)",
+      "latex": "- a m s v x + v \\left(k m + s\\right)",
+      "variables": {
+        "x": {
+          "name": "x",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "v": {
+          "name": "v",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "m": {
+          "name": "m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "s": {
+          "name": "s",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "v*(km + s) - vmax*s",
+      "input_format": "sympy",
+      "name": "Michaelis–Menten (lowercase)",
+      "description": "Lowercase version: v*(km + s) - vmax*s = 0",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:55:35.833813"
+    },
+    "arrhenius_vmax_expr": {
+      "id": "arrhenius_vmax_expr",
+      "expression": "a*m*v*x - vmax_ref*exp(-a*e*(-1/t_ref + 1/t)/r)",
+      "latex": "a m v x - vmax_{ref} e^{- \\frac{a e \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}",
+      "variables": {
+        "x": {
+          "name": "x",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "t_ref": {
+          "name": "t_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "v": {
+          "name": "v",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "e": {
+          "name": "e",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "m": {
+          "name": "m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "vmax_ref": {
+          "name": "vmax_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "t": {
+          "name": "t",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "r": {
+          "name": "r",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "vmax - vmax_ref*exp(-ea/r*(1/t - 1/t_ref))",
+      "input_format": "sympy",
+      "name": "Arrhenius for Vmax (expr)",
+      "description": "vmax - vmax_ref*exp(-Ea/R*(1/T - 1/T_ref)) = 0; T in K.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:55:43.412956"
+    },
+    "sigmoid_emax_expr": {
+      "id": "sigmoid_emax_expr",
+      "expression": "-a*c**g*e*m*x/(50**g*c*e + c**g) + e",
+      "latex": "- \\frac{a c^{g} e m x}{50^{g} c e + c^{g}} + e",
+      "variables": {
+        "c": {
+          "name": "c",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "x": {
+          "name": "x",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "g": {
+          "name": "g",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "e": {
+          "name": "e",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "m": {
+          "name": "m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "e - (e0 + emax*c**g/(ec50**g + c**g))",
+      "input_format": "sympy",
+      "name": "Sigmoid Emax (expr)",
+      "description": "e - (e0 + emax*c^g/(ec50^g + c^g)) = 0, sigmoid Emax PD model.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:55:50.002126"
+    },
+    "cl_vmax_over_km": {
+      "id": "cl_vmax_over_km",
+      "expression": "-a*m**2*v*x/k + c*l",
+      "latex": "- \\frac{a m^{2} v x}{k} + c l",
+      "variables": {
+        "c": {
+          "name": "c",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "l": {
+          "name": "l",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "x": {
+          "name": "x",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "v": {
+          "name": "v",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "m": {
+          "name": "m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "cl - vmax/km",
+      "input_format": "sympy",
+      "name": "CL approx from Vmax/Km",
+      "description": "In low substrate regime, intrinsic clearance CL ≈ Vmax / Km.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:55:55.112399"
+    },
+    "cl_T_expr": {
+      "id": "cl_T_expr",
+      "expression": "c*l - m*vmax_ref*exp(-a*e*(-1/t_ref + 1/t)/r)/k",
+      "latex": "c l - \\frac{m vmax_{ref} e^{- \\frac{a e \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{k}",
+      "variables": {
+        "c": {
+          "name": "c",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "l": {
+          "name": "l",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "t_ref": {
+          "name": "t_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "e": {
+          "name": "e",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "m": {
+          "name": "m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "vmax_ref": {
+          "name": "vmax_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "t": {
+          "name": "t",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "r": {
+          "name": "r",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "cl - (vmax_ref*exp(-ea/r*(1/t - 1/t_ref)))/km",
+      "input_format": "sympy",
+      "name": "CL(T) derived",
+      "description": "CL(T) approximated as Vmax(T)/Km with Arrhenius temperature dependence applied to Vmax.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:56:08.461281"
+    },
+    "k_T_expr": {
+      "id": "k_T_expr",
+      "expression": "k - m*vmax_ref*exp(-a*e*(-1/t_ref + 1/t)/r)/(k*v)",
+      "latex": "k - \\frac{m vmax_{ref} e^{- \\frac{a e \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{k v}",
+      "variables": {
+        "t_ref": {
+          "name": "t_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "v": {
+          "name": "v",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "e": {
+          "name": "e",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "m": {
+          "name": "m",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "a": {
+          "name": "a",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "vmax_ref": {
+          "name": "vmax_ref",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "t": {
+          "name": "t",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        },
+        "r": {
+          "name": "r",
+          "description": "",
+          "unit": null,
+          "constraints": "real",
+          "value": null
+        },
+        "k": {
+          "name": "k",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "k - (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/km)/v",
+      "input_format": "sympy",
+      "name": "k(T) from CL(T)",
+      "description": "k(T) = CL(T)/V, with CL(T)=Vmax(T)/Km and Arrhenius applied to Vmax.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:56:15.069299"
+    },
+    "C_t_T_expr": {
+      "id": "C_t_T_expr",
+      "expression": "C",
+      "latex": "C",
+      "variables": {
+        "C": {
+          "name": "C",
+          "description": "",
+          "unit": null,
+          "constraints": "positive",
+          "value": null
+        }
+      },
+      "source": "user_input",
+      "source_detail": "",
+      "original_input": "C - C0*exp(- (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/(km*v)) * t)",
+      "input_format": "sympy",
+      "name": "C(t;T) expression",
+      "description": "Concentration C(t;T) with k(T) = CL(T)/V and CL(T)=Vmax(T)/Km; Vmax(T) given by Arrhenius.",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-04T23:56:22.417328"
     }
   },
-  "current_expression": "CL_int*(1 - f_b)/V_d",
-  "current_formula_id": "effective_clearance",
+  "current_expression": "-a*e*m*x*(C0*exp(-t*vmax_ref*exp(-ea*(-1/t_ref + 1/t)/r)/(km*v)))**g/(50**g*C0*e*exp(-t*vmax_ref*exp(-ea*(-1/t_ref + 1/t)/r)/(km*v)) + (C0*exp(-t*vmax_ref*exp(-ea*(-1/t_ref + 1/t)/r)/(km*v)))**g) + e",
+  "current_formula_id": "C_t_T_expr",
   "steps": [
     {
       "step_number": 1,
@@ -398,10 +997,219 @@
       "status": "success",
       "verification_result": "",
       "timestamp": "2026-01-03T09:30:29.256360"
+    },
+    {
+      "step_number": 17,
+      "operation": "load_formula",
+      "description": "Load formula 'one_compartment_solution' from user_input",
+      "input_expressions": {
+        "one_compartment_solution": "C0*exp(-k*t)"
+      },
+      "output_expression": "0",
+      "output_latex": "0",
+      "sympy_command": "parse('C0*exp(-k*t)')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:54:43.394510"
+    },
+    {
+      "step_number": 18,
+      "operation": "load_formula",
+      "description": "Load formula 'k_rel' from user_input",
+      "input_expressions": {
+        "k_rel": "k = CL/V"
+      },
+      "output_expression": "Eq(k, C*L/V)",
+      "output_latex": "k = \\frac{C L}{V}",
+      "sympy_command": "parse('k = CL/V')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:54:48.739137"
+    },
+    {
+      "step_number": 19,
+      "operation": "load_formula",
+      "description": "Load formula 'k_rel_expr' from user_input",
+      "input_expressions": {
+        "k_rel_expr": "k - CL/V"
+      },
+      "output_expression": "-C*L/V + k",
+      "output_latex": "- \\frac{C L}{V} + k",
+      "sympy_command": "parse('k - CL/V')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:54:53.473728"
+    },
+    {
+      "step_number": 20,
+      "operation": "load_formula",
+      "description": "Load formula 'k_rel_CLint' from user_input",
+      "input_expressions": {
+        "k_rel_CLint": "k - CL_int/V"
+      },
+      "output_expression": "-CL_int/V + k",
+      "output_latex": "- \\frac{CL_{int}}{V} + k",
+      "sympy_command": "parse('k - CL_int/V')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:55:05.316574"
+    },
+    {
+      "step_number": 21,
+      "operation": "load_formula",
+      "description": "Load formula 'michaelis_menten_expr4' from user_input",
+      "input_expressions": {
+        "michaelis_menten_expr4": "v*(km + s) - vmax*s"
+      },
+      "output_expression": "-a*m*s*v*x + v*(k*m + s)",
+      "output_latex": "- a m s v x + v \\left(k m + s\\right)",
+      "sympy_command": "parse('v*(km + s) - vmax*s')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:55:35.834813"
+    },
+    {
+      "step_number": 22,
+      "operation": "load_formula",
+      "description": "Load formula 'arrhenius_vmax_expr' from user_input",
+      "input_expressions": {
+        "arrhenius_vmax_expr": "vmax - vmax_ref*exp(-ea/r*(1/t - 1/t_ref))"
+      },
+      "output_expression": "a*m*v*x - vmax_ref*exp(-a*e*(-1/t_ref + 1/t)/r)",
+      "output_latex": "a m v x - vmax_{ref} e^{- \\frac{a e \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}",
+      "sympy_command": "parse('vmax - vmax_ref*exp(-ea/r*(1/t - 1/t_ref))')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:55:43.414956"
+    },
+    {
+      "step_number": 23,
+      "operation": "load_formula",
+      "description": "Load formula 'sigmoid_emax_expr' from user_input",
+      "input_expressions": {
+        "sigmoid_emax_expr": "e - (e0 + emax*c**g/(ec50**g + c**g))"
+      },
+      "output_expression": "-a*c**g*e*m*x/(50**g*c*e + c**g) + e",
+      "output_latex": "- \\frac{a c^{g} e m x}{50^{g} c e + c^{g}} + e",
+      "sympy_command": "parse('e - (e0 + emax*c**g/(ec50**g + c**g))')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:55:50.003126"
+    },
+    {
+      "step_number": 24,
+      "operation": "load_formula",
+      "description": "Load formula 'cl_vmax_over_km' from user_input",
+      "input_expressions": {
+        "cl_vmax_over_km": "cl - vmax/km"
+      },
+      "output_expression": "-a*m**2*v*x/k + c*l",
+      "output_latex": "- \\frac{a m^{2} v x}{k} + c l",
+      "sympy_command": "parse('cl - vmax/km')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:55:55.112399"
+    },
+    {
+      "step_number": 25,
+      "operation": "load_formula",
+      "description": "Load formula 'cl_T_expr' from user_input",
+      "input_expressions": {
+        "cl_T_expr": "cl - (vmax_ref*exp(-ea/r*(1/t - 1/t_ref)))/km"
+      },
+      "output_expression": "c*l - m*vmax_ref*exp(-a*e*(-1/t_ref + 1/t)/r)/k",
+      "output_latex": "c l - \\frac{m vmax_{ref} e^{- \\frac{a e \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{k}",
+      "sympy_command": "parse('cl - (vmax_ref*exp(-ea/r*(1/t - 1/t_ref)))/km')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:56:08.462282"
+    },
+    {
+      "step_number": 26,
+      "operation": "load_formula",
+      "description": "Load formula 'k_T_expr' from user_input",
+      "input_expressions": {
+        "k_T_expr": "k - (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/km)/v"
+      },
+      "output_expression": "k - m*vmax_ref*exp(-a*e*(-1/t_ref + 1/t)/r)/(k*v)",
+      "output_latex": "k - \\frac{m vmax_{ref} e^{- \\frac{a e \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{k v}",
+      "sympy_command": "parse('k - (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/km)/v')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:56:15.070297"
+    },
+    {
+      "step_number": 27,
+      "operation": "load_formula",
+      "description": "Load formula 'C_t_T_expr' from user_input",
+      "input_expressions": {
+        "C_t_T_expr": "C - C0*exp(- (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/(km*v)) * t)"
+      },
+      "output_expression": "C",
+      "output_latex": "C",
+      "sympy_command": "parse('C - C0*exp(- (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/(km*v)) * t)')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:56:22.417328"
+    },
+    {
+      "step_number": 28,
+      "operation": "substitute",
+      "description": "Substitute C(t;T) into PD Emax model to obtain E(t;T)",
+      "input_expressions": {
+        "original": "-a*c**g*e*m*x/(50**g*c*e + c**g) + e",
+        "replacement": "c = C0*exp(- (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/(km*v)) * t)"
+      },
+      "output_expression": "-a*e*m*x*(C0*exp(-t*vmax_ref*exp(-ea*(-1/t_ref + 1/t)/r)/(km*v)))**g/(50**g*C0*e*exp(-t*vmax_ref*exp(-ea*(-1/t_ref + 1/t)/r)/(km*v)) + (C0*exp(-t*vmax_ref*exp(-ea*(-1/t_ref + 1/t)/r)/(km*v)))**g) + e",
+      "output_latex": "- \\frac{a e m x \\left(C_{0} e^{- \\frac{t vmax_{ref} e^{- \\frac{ea \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{km v}}\\right)^{g}}{50^{g} C_{0} e e^{- \\frac{t vmax_{ref} e^{- \\frac{ea \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{km v}} + \\left(C_{0} e^{- \\frac{t vmax_{ref} e^{- \\frac{ea \\left(- \\frac{1}{t_{ref}} + \\frac{1}{t}\\right)}{r}}}{km v}}\\right)^{g}} + e",
+      "sympy_command": "expr.subs(c, C0*exp(- (vmax_ref*exp(-ea/r*(1/t - 1/t_ref))/(km*v)) * t))",
+      "notes": "Symbol names mapped to lowercase 'c' for concentration in the loaded PD formula",
+      "assumptions": [
+        "Using previously loaded C(t;T) functional form"
+      ],
+      "limitations": [
+        "Parser symbol mapping may alter exact variable names"
+      ],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-04T23:56:42.959977"
     }
   ],
   "created_at": "2026-01-03T09:28:55.532852",
-  "updated_at": "2026-01-03T09:30:41.024521",
+  "updated_at": "2026-01-04T23:56:42.959977",
   "author": "NSForge Demo",
   "tags": []
 }

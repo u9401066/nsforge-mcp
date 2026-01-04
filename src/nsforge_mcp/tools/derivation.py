@@ -1793,7 +1793,8 @@ def register_derivation_tools(mcp: Any) -> None:
                 # 嘗試從推導步驟中提取數值
                 param_value = "unknown"
                 for step in session.steps:
-                    notes = step.get("notes", "")
+                    # DerivationStep 是 dataclass，使用屬性存取
+                    notes = getattr(step, "notes", "") or ""
                     if sym_str in notes:
                         # 嘗試提取數值
                         import re
