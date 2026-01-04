@@ -91,14 +91,14 @@ def register_formula_tools(mcp: Any) -> None:
         if search_wikidata:
             try:
                 from nsforge.infrastructure.adapters.wikidata_formulas import WikidataFormulaAdapter
-                
+
                 adapter = WikidataFormulaAdapter()
                 try:
                     if domain:
                         wikidata_results = adapter.search_by_category(domain, query, limit)
                     else:
                         wikidata_results = adapter.search(query, limit)
-                    
+
                     for r in wikidata_results:
                         results.append(r.to_dict())
                     sources_searched.append("wikidata")
@@ -111,7 +111,7 @@ def register_formula_tools(mcp: Any) -> None:
         if search_biomodels:
             try:
                 from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
-                
+
                 adapter = BioModelsAdapter()
                 try:
                     if domain == "pharmacokinetics":
@@ -122,7 +122,7 @@ def register_formula_tools(mcp: Any) -> None:
                         biomodels_results = adapter.search_enzyme_kinetics(query, limit)
                     else:
                         biomodels_results = adapter.search(query, limit)
-                    
+
                     for r in biomodels_results:
                         results.append(r.to_dict())
                     sources_searched.append("biomodels")
@@ -135,10 +135,10 @@ def register_formula_tools(mcp: Any) -> None:
         if search_scipy:
             try:
                 from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
-                
+
                 adapter = ScipyConstantsAdapter()
                 scipy_results = adapter.search(query)
-                
+
                 for r in scipy_results[:limit]:
                     results.append(r.to_dict())
                 sources_searched.append("scipy")
@@ -207,7 +207,7 @@ def register_formula_tools(mcp: Any) -> None:
         if source == "wikidata":
             try:
                 from nsforge.infrastructure.adapters.wikidata_formulas import WikidataFormulaAdapter
-                
+
                 adapter = WikidataFormulaAdapter()
                 try:
                     result = adapter.get_formula(formula_id)
@@ -223,7 +223,7 @@ def register_formula_tools(mcp: Any) -> None:
         elif source == "biomodels":
             try:
                 from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
-                
+
                 adapter = BioModelsAdapter()
                 try:
                     result = adapter.get_formula(formula_id)
@@ -239,7 +239,7 @@ def register_formula_tools(mcp: Any) -> None:
         elif source == "scipy":
             try:
                 from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
-                
+
                 adapter = ScipyConstantsAdapter()
                 result = adapter.get_formula(formula_id)
             except Exception as e:
@@ -357,15 +357,15 @@ def register_formula_tools(mcp: Any) -> None:
         """
         try:
             from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
-            
+
             adapter = BioModelsAdapter()
             try:
                 search_query = f"{query} {drug}".strip() if drug else query
                 if not search_query:
                     search_query = "pharmacokinetics"
-                
+
                 results = adapter.search_pk_models(search_query, limit)
-                
+
                 return {
                     "success": True,
                     "results": [r.to_dict() for r in results],
@@ -413,11 +413,11 @@ def register_formula_tools(mcp: Any) -> None:
         """
         try:
             from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
-            
+
             adapter = BioModelsAdapter()
             try:
                 kinetic_laws = adapter.get_kinetic_laws(model_id)
-                
+
                 return {
                     "success": True,
                     "model_id": model_id,
@@ -467,19 +467,19 @@ def register_formula_tools(mcp: Any) -> None:
         """
         try:
             from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
-            
+
             adapter = ScipyConstantsAdapter()
-            
+
             if query:
                 results = adapter.search(query)
             else:
                 formula_ids = adapter.list_formulas(category)
                 results = [
-                    adapter.get_formula(fid) 
-                    for fid in formula_ids 
+                    adapter.get_formula(fid)
+                    for fid in formula_ids
                     if adapter.get_formula(fid)
                 ]
-            
+
             return {
                 "success": True,
                 "results": [r.to_dict() for r in results if r],

@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from sympy import Expr, sympify
+from sympy import Basic, sympify
 
 
 @dataclass
@@ -66,7 +66,7 @@ class DerivationResult:
     author: str = ""
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_sympy(self) -> Expr:
+    def to_sympy(self) -> Basic:
         """Convert expression string to SymPy expression."""
         return sympify(self.expression)
 

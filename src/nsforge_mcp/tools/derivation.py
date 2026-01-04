@@ -1733,7 +1733,7 @@ def register_derivation_tools(mcp: Any) -> None:
         準備推導結果給優化求解器（如 USolver）
 
         將 NSForge 推導的符號公式轉換為優化求解器可用的格式。
-        
+
         工作流程：
         1. NSForge 推導修正後的公式（考慮領域知識）
         2. 調用此工具取得優化器輸入格式
@@ -1773,16 +1773,16 @@ def register_derivation_tools(mcp: Any) -> None:
                 "message": "Complete a derivation first before preparing for optimization",
             }
 
-        from sympy import symbols, latex
-        
+        from sympy import latex
+
         expr = session.current_expression
         free_vars = sorted(expr.free_symbols, key=lambda x: str(x))
-        
+
         # 分類變數：可優化變數 vs 參數
         # 簡單啟發式：小寫單字母或包含 "dose", "time" 等關鍵字的是變數
         optimization_vars = []
         parameters = {}
-        
+
         for sym in free_vars:
             sym_str = str(sym)
             # 判斷是否為優化變數
@@ -1829,10 +1829,10 @@ Use usolver to optimize the following problem:
 
 **Objective**: Find optimal values for {', '.join(optimization_vars)}
 
-**Function**: 
+**Function**:
   {function_str}
 
-**LaTeX**: 
+**LaTeX**:
   {latex_str}
 
 **Suggested Constraints**:

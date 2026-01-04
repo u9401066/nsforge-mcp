@@ -146,7 +146,7 @@ class DerivationSession:
     # 狀態
     status: SessionStatus = SessionStatus.ACTIVE
     formulas: dict[str, Formula] = field(default_factory=dict)
-    current_expression: sp.Expr | None = None
+    current_expression: sp.Basic | None = None  # Basic 包含 Expr 和 Equality
     current_formula_id: str | None = None
 
     # 歷史記錄
@@ -181,7 +181,7 @@ class DerivationSession:
         operation: OperationType,
         description: str,
         input_expressions: dict[str, str],
-        output_expr: sp.Expr,
+        output_expr: sp.Basic,  # Basic 包含 Expr 和 Equality
         sympy_command: str,
         status: StepStatus = StepStatus.SUCCESS,
         # 🆕 人類知識

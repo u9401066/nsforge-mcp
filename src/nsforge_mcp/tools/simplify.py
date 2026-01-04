@@ -46,7 +46,7 @@ Example:
     # Step 1: Expand
     expand_expression("(x + a)**2")
     → {"result": "x**2 + 2*a*x + a**2"}
-    
+
     # Step 2: Record
     derivation_record_step(
         expression="x**2 + 2*a*x + a**2",
@@ -861,7 +861,7 @@ def register_simplify_tools(mcp: Any) -> None:
             # Create symbols with proper assumptions
             t = sp.Symbol(time_var, real=True, positive=True)
             s = sp.Symbol(freq_var)
-            
+
             # Substitute to ensure expr uses the correct symbols
             expr = expr.subs(sp.Symbol(time_var), t)
 
@@ -945,7 +945,7 @@ def register_simplify_tools(mcp: Any) -> None:
             # Create symbols with proper assumptions
             s = sp.Symbol(freq_var)
             t = sp.Symbol(time_var, real=True, positive=True)
-            
+
             # Substitute to ensure expr uses the correct symbols
             expr = expr.subs(sp.Symbol(freq_var), s)
 
@@ -1019,7 +1019,7 @@ def register_simplify_tools(mcp: Any) -> None:
             # Create symbols with proper assumptions
             x = sp.Symbol(space_var, real=True)
             k = sp.Symbol(freq_var, real=True)
-            
+
             # Substitute to ensure expr uses the correct symbols
             expr = expr.subs(sp.Symbol(space_var), x)
 
@@ -1087,7 +1087,7 @@ def register_simplify_tools(mcp: Any) -> None:
             # Create symbols with proper assumptions
             k = sp.Symbol(freq_var, real=True)
             x = sp.Symbol(space_var, real=True)
-            
+
             # Substitute to ensure expr uses the correct symbols
             expr = expr.subs(sp.Symbol(freq_var), k)
 

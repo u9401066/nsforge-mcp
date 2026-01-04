@@ -14,11 +14,9 @@ import re
 from typing import Any
 
 import httpx
-from sympy import latex, sympify
 from sympy.parsing.latex import parse_latex
 
 from .base import BaseAdapter, FormulaInfo
-
 
 # Wikidata SPARQL 端點
 WIKIDATA_SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
@@ -37,23 +35,23 @@ WD_PROPS = {
 class WikidataFormulaAdapter(BaseAdapter):
     """
     Wikidata 公式查詢適配器
-    
+
     提供對 Wikidata 物理量和公式的查詢功能。
-    
+
     Example:
         adapter = WikidataFormulaAdapter()
         results = adapter.search("Reynolds number")
         formula = adapter.get_formula("Q179057")
     """
-    
+
     def __init__(self, timeout: float = 30.0):
         self._timeout = timeout
         self._client: httpx.Client | None = None
-    
+
     @property
     def source_name(self) -> str:
         return "wikidata"
-    
+
     def _get_client(self) -> httpx.Client:
         """獲取 HTTP 客戶端（懶加載）"""
         if self._client is None:
@@ -65,7 +63,7 @@ class WikidataFormulaAdapter(BaseAdapter):
                 }
             )
         return self._client
-    
+
     def _execute_sparql(self, query: str) -> dict[str, Any]:
         """執行 SPARQL 查詢"""
         client = self._get_client()
@@ -75,15 +73,15 @@ class WikidataFormulaAdapter(BaseAdapter):
         )
         response.raise_for_status()
         return response.json()
-    
+
     def search(self, query: str, limit: int = 10) -> list[FormulaInfo]:
         """
         搜尋公式
-        
+
         Args:
             query: 搜尋關鍵字（如 "Reynolds number", "Arrhenius"）
             limit: 返回數量上限
-            
+
         Returns:
             匹配的公式列表
         """
@@ -102,7 +100,7 @@ class WikidataFormulaAdapter(BaseAdapter):
         }}
         LIMIT {limit}
         '''
-        
+
         try:
             data = self._execute_sparql(sparql)
             return self._parse_search_results(data)
@@ -110,16 +108,16 @@ class WikidataFormulaAdapter(BaseAdapter):
             # 記錄錯誤但不中斷
             print(f"Wikidata search error: {e}")
             return []
-    
+
     def search_by_category(
-        self, 
-        category: str, 
-        query: str = "", 
+        self,
+        category: str,
+        query: str = "",
         limit: int = 20
     ) -> list[FormulaInfo]:
         """
         按分類搜尋公式
-        
+
         Args:
             category: 分類（如 "mechanics", "thermodynamics"）
             query: 額外關鍵字過濾
@@ -136,9 +134,9 @@ class WikidataFormulaAdapter(BaseAdapter):
             "chemistry": "Q2329",         # 化學
             "pharmacokinetics": "Q899794", # 藥動學
         }
-        
+
         wikidata_category = category_mapping.get(category.lower())
-        
+
         if wikidata_category:
             # 按分類查詢
             sparql = f'''
@@ -158,21 +156,21 @@ class WikidataFormulaAdapter(BaseAdapter):
         else:
             # 回退到關鍵字搜尋
             return self.search(f"{category} {query}".strip(), limit)
-        
+
         try:
             data = self._execute_sparql(sparql)
             return self._parse_search_results(data)
         except Exception as e:
             print(f"Wikidata category search error: {e}")
             return []
-    
+
     def get_formula(self, formula_id: str) -> FormulaInfo | None:
         """
         獲取單個公式詳情
-        
+
         Args:
             formula_id: Wikidata Q 號（如 "Q179057"）
-            
+
         Returns:
             公式詳細資訊
         """
@@ -180,7 +178,7 @@ class WikidataFormulaAdapter(BaseAdapter):
         qid = formula_id.upper()
         if not qid.startswith("Q"):
             qid = f"Q{qid}"
-        
+
         sparql = f'''
         SELECT ?itemLabel ?formula ?description ?dimension ?symbol WHERE {{
           BIND(wd:{qid} AS ?item)
@@ -196,17 +194,17 @@ class WikidataFormulaAdapter(BaseAdapter):
         }}
         LIMIT 1
         '''
-        
+
         try:
             data = self._execute_sparql(sparql)
             bindings = data.get("results", {}).get("bindings", [])
-            
+
             if not bindings:
                 return None
-            
+
             binding = bindings[0]
             latex_formula = binding.get("formula", {}).get("value", "")
-            
+
             # 嘗試解析 LaTeX 為 SymPy
             sympy_expr = None
             sympy_str = ""
@@ -215,10 +213,10 @@ class WikidataFormulaAdapter(BaseAdapter):
                 sympy_str = str(sympy_expr)
             except Exception:
                 sympy_str = latex_formula  # 降級為原始字串
-            
+
             # 提取變數
             variables = self._extract_variables_from_latex(latex_formula)
-            
+
             return FormulaInfo(
                 id=qid,
                 name=binding.get("itemLabel", {}).get("value", ""),
@@ -237,12 +235,12 @@ class WikidataFormulaAdapter(BaseAdapter):
         except Exception as e:
             print(f"Wikidata get_formula error: {e}")
             return None
-    
+
     def list_categories(self) -> list[str]:
         """列出可用的公式分類"""
         return [
             "mechanics",
-            "thermodynamics", 
+            "thermodynamics",
             "electromagnetism",
             "optics",
             "quantum",
@@ -250,17 +248,17 @@ class WikidataFormulaAdapter(BaseAdapter):
             "chemistry",
             "pharmacokinetics",
         ]
-    
+
     def _parse_search_results(self, data: dict[str, Any]) -> list[FormulaInfo]:
         """解析 SPARQL 搜尋結果"""
         results = []
         bindings = data.get("results", {}).get("bindings", [])
-        
+
         for binding in bindings:
             item_uri = binding.get("item", {}).get("value", "")
             qid = item_uri.split("/")[-1] if item_uri else ""
             latex_formula = binding.get("formula", {}).get("value", "")
-            
+
             # 嘗試轉換 LaTeX 為 SymPy
             sympy_str = ""
             try:
@@ -268,7 +266,7 @@ class WikidataFormulaAdapter(BaseAdapter):
                 sympy_str = str(sympy_expr)
             except Exception:
                 sympy_str = latex_formula
-            
+
             results.append(FormulaInfo(
                 id=qid,
                 name=binding.get("itemLabel", {}).get("value", ""),
@@ -279,43 +277,43 @@ class WikidataFormulaAdapter(BaseAdapter):
                 description=binding.get("description", {}).get("value", ""),
                 url=f"https://www.wikidata.org/wiki/{qid}" if qid else "",
             ))
-        
+
         return results
-    
+
     def _extract_variables_from_latex(self, latex_str: str) -> dict[str, dict[str, Any]]:
         """從 LaTeX 公式中提取變數"""
         variables = {}
-        
+
         # 常見的單字母變數
         single_vars = re.findall(r'(?<![a-zA-Z])([a-zA-Z])(?![a-zA-Z])', latex_str)
-        
+
         # 帶下標的變數 (如 v_0, T_c)
         subscript_vars = re.findall(r'([a-zA-Z])_\{?([a-zA-Z0-9]+)\}?', latex_str)
-        
+
         # 希臘字母
         greek_vars = re.findall(r'\\(alpha|beta|gamma|delta|epsilon|theta|lambda|mu|nu|rho|sigma|tau|omega|Omega)', latex_str)
-        
+
         for var in single_vars:
             if var not in ['d', 'e', 'i']:  # 排除微分符號、自然對數、虛數
                 variables[var] = {"type": "variable"}
-        
+
         for base, sub in subscript_vars:
             var_name = f"{base}_{sub}"
             variables[var_name] = {"type": "variable", "subscript": sub}
-        
+
         for greek in greek_vars:
             variables[greek] = {"type": "variable", "greek": True}
-        
+
         return variables
-    
+
     def close(self):
         """關閉 HTTP 客戶端"""
         if self._client:
             self._client.close()
             self._client = None
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()

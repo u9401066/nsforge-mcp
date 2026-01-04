@@ -380,7 +380,7 @@ class ScipyConstantsAdapter(BaseAdapter):
     # =========================================================================
     # Search
     # =========================================================================
-    def search(self, query: str) -> list[FormulaInfo]:
+    def search(self, query: str, limit: int = 10) -> list[FormulaInfo]:  # noqa: ARG002
         """Search constants by keyword."""
         results = []
         query_lower = query.lower()
@@ -388,7 +388,7 @@ class ScipyConstantsAdapter(BaseAdapter):
             if (
                 query_lower in const.name.lower()
                 or query_lower in const.symbol.lower()
-                or query_lower in const.description.lower()
+                or const.description and query_lower in const.description.lower()
                 or query_lower in const.category.lower()
             ):
                 formula_info = self.get_formula(cid)
