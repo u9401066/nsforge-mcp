@@ -47,14 +47,14 @@ NSForge works WITH other MCP servers, not against them:
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    MCP Scientific Computing Ecosystem                       │
-│                         🔢 107 Tools Total 🔢                               │
+│                         🔢 108 Tools Total 🔢                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  sympy-mcp (32 tools)                                                       │
 │  └── Base formulas: F=ma, PV=nRT, Arrhenius...                             │
 │  └── Physical constants: c, G, h, R... (SciPy CODATA)                      │
 │  └── Symbolic computation engine (ODE, PDE, matrices)                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  nsforge-mcp (75 tools) ← YOU ARE HERE                                      │
+│  nsforge-mcp (76 tools) ← YOU ARE HERE                                      │
 │  └── 🔨 Derivation framework: compose, verify, generate code               │
 │  └── 📁 Derivation repository: store CREATED formulas with provenance      │
 │  └── ✅ Verification layer: dimensional analysis, reverse verification     │
@@ -379,7 +379,7 @@ Agent calls NSForge:
 
 NSForge provides **75 MCP tools** organized into 7 modules:
 
-### 🔥 Derivation Engine (30 tools)
+### 🔥 Derivation Engine (31 tools)
 
 | Tool | Purpose |
 | ---- | ---- |
@@ -387,6 +387,7 @@ NSForge provides **75 MCP tools** organized into 7 modules:
 | `derivation_resume` | Resume a previous session |
 | `derivation_list_sessions` | List all sessions |
 | `derivation_status` | Get current session status |
+| `derivation_show` | 🆕 **Display current formula** (like SymPy's print_latex_expression) |
 | `derivation_load_formula` | Load base formulas |
 | `derivation_substitute` | Variable substitution |
 | `derivation_simplify` | Simplify expression |
@@ -565,8 +566,8 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions (75 tools)
-│           ├── derivation.py  #     - 🔥 Derivation engine (30 tools)
+│       └── tools/             #   - MCP tool definitions (76 tools)
+│           ├── derivation.py  #     - 🔥 Derivation engine (31 tools)
 │           ├── calculate.py   #     - 🔢 Calculation (12 tools)
 │           ├── simplify.py    #     - 🆕 Advanced algebra (10+4 tools)
 │           ├── formula.py     #     - 🆕 Formula search (6 tools)

@@ -173,6 +173,115 @@ def register_derivation_tools(mcp: Any) -> None:
             **session.get_current(),
         }
 
+    @mcp.tool()
+    def derivation_show(
+        format: str = "all",
+        show_steps: bool = False,
+    ) -> dict[str, Any]:
+        """
+        顯示當前推導狀態和公式（類似 SymPy-MCP 的 print_latex_expression）
+
+        ═══════════════════════════════════════════════════════════════════════
+        ⚠️ 重要：Agent 必須在每次推導操作後調用此工具向用戶展示結果！
+        ═══════════════════════════════════════════════════════════════════════
+
+        這個工具確保用戶能看到：
+        1. 當前公式的 LaTeX 渲染結果
+        2. 推導進度（第幾步）
+        3. 會話名稱和狀態
+
+        Args:
+            format: 輸出格式
+                - "all": 完整資訊（預設）
+                - "latex": 只返回 LaTeX
+                - "sympy": 只返回 SymPy 字串
+                - "summary": 簡短摘要
+            show_steps: 是否顯示所有步驟歷史
+
+        Returns:
+            當前公式和推導狀態
+
+        Example:
+            derivation_show()
+            → {
+                "latex": "C_{0} e^{- k t}",
+                "sympy": "C_0*exp(-k*t)",
+                "session_name": "drug_elimination",
+                "step_count": 3,
+                "status": "active",
+                "display_text": "📊 **drug_elimination** (Step 3)\\n\\n$$C_{0} e^{- k t}$$"
+              }
+        """
+        from sympy import latex
+
+        session = _get_current_session()
+        if session is None:
+            return {
+                "success": False,
+                "error": "No active session. Use derivation_start or derivation_resume first.",
+                "display_text": "❌ 沒有活躍的推導會話。請先使用 `derivation_start()` 開始新推導。",
+            }
+
+        expr = session.current_expression
+        if expr is None:
+            return {
+                "success": True,
+                "session_name": session.name,
+                "step_count": len(session.steps),
+                "status": session.status.value,
+                "latex": "",
+                "sympy": "",
+                "display_text": f"📊 **{session.name}** (Step {len(session.steps)})\n\n_尚未載入公式_",
+            }
+
+        latex_str = latex(expr)
+        sympy_str = str(expr)
+
+        # 構建顯示文字
+        display_lines = [
+            f"📊 **{session.name}** (Step {len(session.steps)}, {session.status.value})",
+            "",
+            "$$",
+            f"{latex_str}",
+            "$$",
+        ]
+
+        if format == "summary":
+            display_text = f"Step {len(session.steps)}: ${latex_str}$"
+        else:
+            display_text = "\n".join(display_lines)
+
+        result = {
+            "success": True,
+            "session_name": session.name,
+            "session_id": session.session_id,
+            "step_count": len(session.steps),
+            "status": session.status.value,
+            "latex": latex_str,
+            "sympy": sympy_str,
+            "display_text": display_text,
+        }
+
+        # 可選：顯示步驟歷史
+        if show_steps and session.steps:
+            steps_summary = []
+            for step in session.steps:
+                step_latex = step.output_latex or step.output_expression
+                steps_summary.append({
+                    "step": step.step_number,
+                    "operation": step.operation.value,
+                    "description": step.description[:50] + "..." if len(step.description) > 50 else step.description,
+                    "latex": step_latex,
+                })
+            result["steps"] = steps_summary
+
+        if format == "latex":
+            return {"latex": latex_str, "display_text": f"$${latex_str}$$"}
+        elif format == "sympy":
+            return {"sympy": sympy_str, "display_text": f"`{sympy_str}`"}
+
+        return result
+
     # ═══════════════════════════════════════════════════════════════════════
     # 公式載入
     # ═══════════════════════════════════════════════════════════════════════
