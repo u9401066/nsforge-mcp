@@ -90,10 +90,11 @@ uv add --dev pytest ruff
 |-------|------|--------|
 | **nsforge-derivation-workflow** | 完整推導工作流 | 推導, derive, 組合公式 |
 | **nsforge-formula-management** | 公式庫管理 | 找公式, 列出, 更新公式 |
-| **nsforge-formula-search** | 🆕 外部公式搜尋 | Wikidata, BioModels, 物理常數, PK模型 |
+| **nsforge-formula-search** | 外部公式搜尋 | Wikidata, BioModels, 物理常數, PK模型 |
 | **nsforge-verification-suite** | 驗證工具組合 | 驗證, 維度, check |
 | **nsforge-code-generation** | 程式碼/報告生成 | 生成程式碼, LaTeX, 報告 |
 | **nsforge-quick-calculate** | 快速計算（無需會話） | 計算, 簡化, 求解 |
+| **nsforge-usolver-collab** | 🆕 USolver 協作 | 優化, 最佳化, 劑量優化 |
 
 > 詳細說明見 `docs/nsforge-skills-guide.md`
 
@@ -105,7 +106,7 @@ uv add --dev pytest ruff
 >
 > **「人類的推導是一步一步的，每步都可加入新元素！」**
 
-#### � 86 工具快速選擇指南（v0.2.1）
+#### 📊 108 工具快速選擇指南（v0.2.4）
 
 | 我想要... | 用哪個？ | 工具 |
 |-----------|---------|------|
@@ -115,6 +116,12 @@ uv add --dev pytest ruff
 | ODE/PDE | SymPy-MCP | `dsolve_ode`, `pdsolve_pde` |
 | 矩陣 | SymPy-MCP | `matrix_*` 系列 |
 | 單位換算 | SymPy-MCP | `convert_to_units` |
+| **展開/因式分解** | **NSForge** | `expand_expression`, `factor_expression`, `collect_expression` |
+| **三角/冪次化簡** | **NSForge** | `trigsimp_expression`, `powsimp_expression`, `radsimp_expression` |
+| **部分分式** | **NSForge** | `apart_expression` 🔥 反 Laplace 必備 |
+| **約分/合併** | **NSForge** | `cancel_expression`, `together_expression` |
+| **Laplace 變換** | **NSForge** | `laplace_transform_expression`, `inverse_laplace_transform_expression` 🔥 |
+| **Fourier 變換** | **NSForge** | `fourier_transform_expression`, `inverse_fourier_transform_expression` |
 | **極限** | **NSForge** | `calculate_limit` |
 | **級數展開** | **NSForge** | `calculate_series` |
 | **求和 Σ** | **NSForge** | `calculate_summation` |
@@ -123,14 +130,15 @@ uv add --dev pytest ruff
 | **假設查詢** | **NSForge** | `query_assumptions`, `refine_expression` |
 | 數值計算 | NSForge | `evaluate_numeric` |
 | 等價檢查 | NSForge | `symbolic_equal` |
-| 推導追蹤 | NSForge | `derivation_*` 系列 |
+| 推導追蹤 | NSForge | `derivation_*` 系列 (31 工具) |
 | 公式存取 | NSForge | `formula_*` 系列 |
 | 驗證 | NSForge | `verify_*`, `check_dimensions` |
 | 程式碼生成 | NSForge | `generate_python_function`, `generate_*` |
+| **優化求解** | **USolver** | 與 `derivation_prepare_for_optimization` 協作 |
 
-> 💡 **新增 10 個獨特工具！**詳見 `nsforge-quick-calculate` Skill。
+> 💡 **76 NSForge + 32 SymPy-MCP = 108 工具！** 詳見各 Skill 文檔。
 
-#### �🔥 步進式推導工作流（核心）
+#### 🔥 步進式推導工作流（核心）
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
