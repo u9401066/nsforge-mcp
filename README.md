@@ -40,29 +40,30 @@
 
 ---
 
-## � Ecosystem: Don't Reinvent the Wheel
+## 🌍 Ecosystem: Don't Reinvent the Wheel
 
 NSForge works WITH other MCP servers, not against them:
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         MCP Formula Ecosystem                               │
+│                    MCP Scientific Computing Ecosystem                       │
+│                         🔢 107 Tools Total 🔢                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  sympy-mcp                                                                  │
+│  sympy-mcp (32 tools)                                                       │
 │  └── Base formulas: F=ma, PV=nRT, Arrhenius...                             │
 │  └── Physical constants: c, G, h, R... (SciPy CODATA)                      │
-│  └── Symbolic computation engine                                            │
+│  └── Symbolic computation engine (ODE, PDE, matrices)                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  medical-calc-mcp (75+ tools)                                               │
-│  └── Clinical scores: APACHE, SOFA, GCS, MELD, qSOFA...                    │
-│  └── Medical calculations: eGFR, IBW, BSA, MEWS...                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  nsforge-mcp ← YOU ARE HERE                                                 │
+│  nsforge-mcp (75 tools) ← YOU ARE HERE                                      │
 │  └── 🔨 Derivation framework: compose, verify, generate code               │
 │  └── 📁 Derivation repository: store CREATED formulas with provenance      │
 │  └── ✅ Verification layer: dimensional analysis, reverse verification     │
 │  └── 🌐 Formula search: Wikidata, BioModels, SciPy constants               │
 │  └── 🔗 Optimization bridge: prepare formulas for USolver                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  medical-calc-mcp (75+ tools)                                               │
+│  └── Clinical scores: APACHE, SOFA, GCS, MELD, qSOFA...                    │
+│  └── Medical calculations: eGFR, IBW, BSA, MEWS...                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  usolver-mcp (Optional collaboration)                                       │
 │  └── 🎯 Find optimal values for NSForge-derived formulas                   │
