@@ -376,14 +376,15 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
-NSForge provides **56 MCP tools** organized into 7 modules:
+NSForge provides **75 MCP tools** organized into 7 modules:
 
-### 🔥 Derivation Engine (26 tools)
+### 🔥 Derivation Engine (30 tools)
 
 | Tool | Purpose |
 | ---- | ---- |
 | `derivation_start` | Start a new derivation session |
 | `derivation_resume` | Resume a previous session |
+| `derivation_list_sessions` | List all sessions |
 | `derivation_status` | Get current session status |
 | `derivation_load_formula` | Load base formulas |
 | `derivation_substitute` | Variable substitution |
@@ -393,21 +394,24 @@ NSForge provides **56 MCP tools** organized into 7 modules:
 | `derivation_integrate` | Integrate expression |
 | `derivation_record_step` | Record step with notes (**⚠️ MUST display formula to user after!**) |
 | `derivation_add_note` | Add human insights |
+| `derivation_get_steps` | Get all derivation steps |
+| `derivation_get_step` | Get single step details |
+| `derivation_update_step` | Update step metadata |
+| `derivation_delete_step` | Delete last step |
+| `derivation_rollback` | ⚡ Rollback to any step |
+| `derivation_insert_note` | Insert note at position |
 | `derivation_complete` | Complete and save |
 | `derivation_abort` | Abort current session |
 | `derivation_list_saved` | List saved derivations |
 | `derivation_get_saved` | Get saved derivation |
 | `derivation_search_saved` | Search derivations |
+| `derivation_repository_stats` | Repository statistics |
 | `derivation_update_saved` | Update metadata |
 | `derivation_delete_saved` | Delete derivation |
-| `derivation_repository_stats` | Repository statistics |
-| `derivation_list_sessions` | List all sessions |
-| `derivation_get_steps` | Get derivation steps |
-| `derivation_get_step` | 🆕 Get single step details |
-| `derivation_update_step` | 🆕 Update step metadata |
-| `derivation_delete_step` | 🆕 Delete last step |
-| `derivation_rollback` | 🆕 ⚡ Rollback to any step |
-| `derivation_insert_note` | 🆕 Insert note at position |
+| `derivation_export_for_sympy` | 🆕 Export state to SymPy-MCP |
+| `derivation_import_from_sympy` | 🆕 Import result from SymPy-MCP |
+| `derivation_handoff_status` | 🆕 Check handoff capabilities |
+| `derivation_prepare_for_optimization` | 🆕 Prepare for USolver |
 
 ### ✅ Verification (6 tools)
 
@@ -420,10 +424,20 @@ NSForge provides **56 MCP tools** organized into 7 modules:
 | `check_dimensions` | Dimensional analysis |
 | `reverse_verify` | Reverse operation verification |
 
-### 🔢 Calculation (2 tools)
+### 🔢 Calculation (12 tools)
 
 | Tool | Purpose |
 | ---- | ---- |
+| `calculate_limit` | Calculate limits |
+| `calculate_series` | Taylor/Laurent series expansion |
+| `calculate_summation` | Symbolic summation Σ |
+| `solve_inequality` | Solve single inequality |
+| `solve_inequality_system` | Solve system of inequalities |
+| `define_distribution` | Define probability distribution |
+| `distribution_stats` | Get distribution statistics (mean, var, skew) |
+| `distribution_probability` | Calculate probability P(condition) |
+| `query_assumptions` | Query symbol assumptions |
+| `refine_expression` | Refine expression with assumptions |
 | `evaluate_numeric` | Numerical evaluation |
 | `symbolic_equal` | Symbolic equality check |
 
@@ -550,12 +564,12 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions (56 tools)
-│           ├── derivation.py  #     - 🔥 Derivation engine (26 tools)
-│           ├── simplify.py    #     - 🆕 Advanced algebra (10 tools)
+│       └── tools/             #   - MCP tool definitions (75 tools)
+│           ├── derivation.py  #     - 🔥 Derivation engine (30 tools)
+│           ├── calculate.py   #     - 🔢 Calculation (12 tools)
+│           ├── simplify.py    #     - 🆕 Advanced algebra (10+4 tools)
 │           ├── formula.py     #     - 🆕 Formula search (6 tools)
 │           ├── verify.py      #     - Verification (6 tools)
-│           ├── calculate.py   #     - Calculation (2 tools)
 │           ├── expression.py  #     - Expression parsing (3 tools)
 │           └── codegen.py     #     - Code generation (4 tools)
 │

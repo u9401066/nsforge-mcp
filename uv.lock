@@ -498,6 +498,7 @@ name = "nsforge-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "httpx" },
     { name = "mcp" },
     { name = "pint" },
     { name = "pydantic" },
@@ -517,6 +518,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
     { name = "mcp", specifier = ">=1.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
     { name = "pint", specifier = ">=0.25.2" },
