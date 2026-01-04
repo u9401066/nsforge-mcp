@@ -2,6 +2,20 @@
 
 ## Done
 
+### SymPy 功能涵蓋分析 (2026-01-04)
+- ✅ 完整分析 SymPy-MCP 工具（37 個）
+- ✅ 完整分析 NSForge 工具（55 個）
+- ✅ 比對遺漏功能（發現 6 類，4 類低優先度）
+- ✅ 比對重複功能（12 個無衝突）
+- ✅ 檢查錯誤描述（0 錯誤）
+- ✅ 生成完整報告 `docs/sympy-coverage-analysis.md`
+- ✅ 更新 `docs/nsforge-vs-sympy-mcp.md`
+
+**核心發現**：
+- 整體涵蓋率：**85%**（高頻功能 100%）
+- 遺漏功能主要為低頻專業模組（geometry, logic）
+- 建議新增：expand, factor, trigsimp（中高優先度）
+
 ### v0.2.3 USolver 協作橋接 (2026-01-04)
 - ✅ Git pull 合併遠端更新（72 檔案，+12,728/-810 行）
 - ✅ SymPy-MCP 安裝到 vendor/ 目錄

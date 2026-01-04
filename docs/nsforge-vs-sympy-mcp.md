@@ -49,6 +49,11 @@
 
 ## Overview
 
+> 📊 **完整涵蓋分析**：參見 [sympy-coverage-analysis.md](sympy-coverage-analysis.md)  
+> - SymPy-MCP: 37 工具  
+> - NSForge: 55 工具  
+> - 整體涵蓋率: **85%**（高頻功能 100%）
+
 NSForge builds ON TOP of SymPy-MCP, but also provides **unique capabilities** by directly leveraging SymPy modules that SymPy-MCP hasn't exposed.
 
 ```text
@@ -287,6 +292,16 @@ See [ROADMAP.md](../ROADMAP.md) for implementation timeline:
 | Derivation Workflow | - | ❌ | ✅ Core feature |
 | Provenance Tracking | - | ❌ | ✅ Core feature |
 | Verification Suite | - | ❌ | ✅ Core feature |
+
+---
+
+## 🔍 完整涵蓋分析
+
+詳見 [sympy-coverage-analysis.md](sympy-coverage-analysis.md)，包含：
+- ✅ 功能遺漏檢查（發現 6 類，4 類低優先度）
+- ✅ 重複功能分析（12 個無衝突）
+- ✅ 錯誤描述檢查（0 錯誤）
+- ✅ 核心模組覆蓋率（85%，高頻 100%）
 
 ---
 
