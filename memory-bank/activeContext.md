@@ -34,15 +34,17 @@ inverse_laplace_transform(...)                → 時域解
 → C(t) = A·e^(-λ1·t) + B·e^(-λ2·t)
 ```
 
-### 📖 外部公式資料來源調研
+### 📖 外部公式資料來源 - ✅ 已實作
 
-調研了多個外部公式資料來源，已整合至 `FORMULA_APIS.md`：
+Background agent 已實作外部公式搜尋功能：
 
-| 來源 | 類型 | 優先度 | 狀態 |
-|------|------|--------|------|
-| Wikidata | SPARQL API | ⭐⭐⭐ | 🚧 設計中 |
-| HuggingFace | 本地 RAG | ⭐⭐⭐ | 🚧 設計中 |
-| BioModels | SBML API | ⭐⭐ | 🚧 設計中 |
+| 來源 | 工具 | 狀態 |
+|------|------|------|
+| Wikidata | `formula_search`, `formula_get` | ✅ 已實作 |
+| BioModels | `formula_pk_models`, `formula_kinetic_laws` | ✅ 已實作 |
+| SciPy | `formula_constants` | ✅ 已實作 |
+
+**新增 Skill**: `nsforge-formula-search`
 
 ### �🔗 USolver 協作功能
 

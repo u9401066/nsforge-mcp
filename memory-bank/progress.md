@@ -15,11 +15,12 @@
 - ✅ **工具總數**: 36 → 50 (+14)
 
 ### 外部公式資料來源調研 (2026-01-04)
-- ✅ Wikidata SPARQL (P2534 定義公式)
-- ✅ HuggingFace Datasets (RAG 向量檢索)
-- ✅ BioModels (SBML 藥動學模型)
-- ✅ MCP 工具設計草案 (formula_search, formula_get, formula_categories)
-- ⏳ 狀態: 設計階段，尚未實作
+- ✅ Wikidata SPARQL (P2534 定義公式) - **已實作**
+- ✅ BioModels (SBML 藥動學模型) - **已實作**
+- ✅ SciPy constants - **已實作**
+- ✅ MCP 工具實作: formula_search, formula_get, formula_categories, formula_pk_models, formula_kinetic_laws, formula_constants
+- ✅ 對應 Skill: `nsforge-formula-search`
+- ✅ **工具總數**: 50 → 56 (+6)
 
 ### SymPy 功能涵蓋分析 (2026-01-04)
 - ✅ 完整分析 SymPy-MCP 工具（37 個）

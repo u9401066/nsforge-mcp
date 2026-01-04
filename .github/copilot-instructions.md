@@ -90,6 +90,7 @@ uv add --dev pytest ruff
 |-------|------|--------|
 | **nsforge-derivation-workflow** | 完整推導工作流 | 推導, derive, 組合公式 |
 | **nsforge-formula-management** | 公式庫管理 | 找公式, 列出, 更新公式 |
+| **nsforge-formula-search** | 🆕 外部公式搜尋 | Wikidata, BioModels, 物理常數, PK模型 |
 | **nsforge-verification-suite** | 驗證工具組合 | 驗證, 維度, check |
 | **nsforge-code-generation** | 程式碼/報告生成 | 生成程式碼, LaTeX, 報告 |
 | **nsforge-quick-calculate** | 快速計算（無需會話） | 計算, 簡化, 求解 |

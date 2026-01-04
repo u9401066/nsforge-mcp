@@ -375,7 +375,7 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
-NSForge provides **50 MCP tools** organized into 6 modules:
+NSForge provides **56 MCP tools** organized into 7 modules:
 
 ### 🔥 Derivation Engine (26 tools)
 
@@ -466,6 +466,17 @@ NSForge provides **50 MCP tools** organized into 6 modules:
 | `inverse_laplace_transform_expression` | 🔥 F(s) → f(t) multi-compartment PK |
 | `fourier_transform_expression` | f(x) → F(k) frequency analysis |
 | `inverse_fourier_transform_expression` | F(k) → f(x) signal reconstruction |
+
+### 🌐 Formula Search (6 tools) - NEW in v0.2.4
+
+| Tool | Purpose |
+| ---- | ---- |
+| `formula_search` | 🔍 Unified search (Wikidata, BioModels, SciPy) |
+| `formula_get` | 📄 Get formula details by ID |
+| `formula_categories` | 📂 List available categories |
+| `formula_pk_models` | 💊 PK models (1/2-compartment, Michaelis-Menten) |
+| `formula_kinetic_laws` | ⚗️ Reaction kinetics (Hill, etc.) |
+| `formula_constants` | 🔬 Physical constants (from SciPy) |
 
 ## 🧠 Agent Skills Architecture
 
