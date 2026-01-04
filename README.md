@@ -61,6 +61,7 @@ NSForge works WITH other MCP servers, not against them:
 │  └── 🔨 Derivation framework: compose, verify, generate code               │
 │  └── 📁 Derivation repository: store CREATED formulas with provenance      │
 │  └── ✅ Verification layer: dimensional analysis, reverse verification     │
+│  └── 🌐 Formula search: Wikidata, BioModels, SciPy constants               │
 │  └── 🔗 Optimization bridge: prepare formulas for USolver                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  usolver-mcp (Optional collaboration)                                       │
@@ -480,14 +481,15 @@ NSForge provides **56 MCP tools** organized into 7 modules:
 
 ## 🧠 Agent Skills Architecture
 
-NSForge includes **18 pre-built Skills** that teach AI agents how to use the tools effectively:
+NSForge includes **19 pre-built Skills** that teach AI agents how to use the tools effectively:
 
-### 🔥 NSForge-Specific Skills (5)
+### 🔥 NSForge-Specific Skills (6)
 
 | Skill | Trigger Words | Description |
 | ----- | ------------- | ----------- |
 | `nsforge-derivation-workflow` | derive, 推導, prove | Complete derivation workflow with session management |
 | `nsforge-formula-management` | list, 公式庫, find formula | Query, update, delete saved formulas |
+| `nsforge-formula-search` | Wikidata, BioModels, 物理常數 | 🆕 Search external formula sources |
 | `nsforge-verification-suite` | verify, check, 維度 | Equality, derivative, integral, dimension checks |
 | `nsforge-code-generation` | generate, export, LaTeX | Python functions, reports, SymPy scripts |
 | `nsforge-quick-calculate` | calculate, simplify, solve | Quick calculations without session |
@@ -496,7 +498,7 @@ NSForge includes **18 pre-built Skills** that teach AI agents how to use the too
 
 Includes `git-precommit`, `memory-updater`, `code-reviewer`, `test-generator`, and more.
 
-> 📖 **Details**: See [NSForge Skills Guide](docs/nsforge-skills-guide.md) for complete documentation (588 lines).
+> 📖 **Details**: See [NSForge Skills Guide](docs/nsforge-skills-guide.md) for complete documentation.
 
 ### Golden Rule: SymPy-MCP First!
 
@@ -548,8 +550,10 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions (36 tools)
+│       └── tools/             #   - MCP tool definitions (56 tools)
 │           ├── derivation.py  #     - 🔥 Derivation engine (26 tools)
+│           ├── simplify.py    #     - 🆕 Advanced algebra (10 tools)
+│           ├── formula.py     #     - 🆕 Formula search (6 tools)
 │           ├── verify.py      #     - Verification (6 tools)
 │           ├── calculate.py   #     - Calculation (2 tools)
 │           ├── expression.py  #     - Expression parsing (3 tools)
@@ -662,9 +666,17 @@ NSForge can work with [USolver](https://github.com/sdiehl/usolver) to provide **
   - [x] Rollback to any point
   - [x] Insert notes at any position
 - [x] Agent Skills System
-  - [x] 5 NSForge-specific workflows
+  - [x] 6 NSForge-specific workflows
   - [x] 13 general development skills
-  - [x] Skills documentation (1,110 lines)
+  - [x] Skills documentation
+- [x] Advanced Algebra & Transforms (v0.2.4)
+  - [x] 10 simplification tools (expand, factor, apart...)
+  - [x] 4 integral transforms (Laplace, Fourier)
+  - [x] SymPy coverage: 85% → 92%
+- [x] External Formula Search (v0.2.4)
+  - [x] Wikidata SPARQL adapter
+  - [x] BioModels adapter
+  - [x] SciPy constants
 - [x] Pharmacokinetics Domain
   - [x] Temperature-corrected elimination
   - [x] NPO antibiotic effect model
