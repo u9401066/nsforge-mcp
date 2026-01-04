@@ -1,6 +1,13 @@
-# Progress (Updated: 2026-01-04)
+# Progress (Updated: 2026-01-05)
 
 ## Done
+
+### derivation_show() + Skill 更新 (2026-01-05)
+- ✅ **derivation_show() 工具**：顯示當前推導狀態（LaTeX/SymPy/摘要）
+- ✅ **Skill 文檔更新**：所有 NSForge Skill 添加「必須向用戶展示公式」提醒
+- ✅ **Bug 修復**：DerivationStep 屬性存取、類型標註
+- ✅ **Lint 通過**：Ruff + ty 全數通過
+- ✅ **工具數量**：76 NSForge + 32 SymPy = 108 總計
 
 ### Phase 1+2 工具實作 (2026-01-04)
 - ✅ **Phase 1: 10 個進階代數簡化工具**
