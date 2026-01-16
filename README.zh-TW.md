@@ -40,28 +40,30 @@
 
 ---
 
-## � 生態系：不重複造輪子
+## 🌍 生態系：不重複造輪子
 
 NSForge 與其他 MCP 伺服器協作，而非競爭：
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         MCP 公式生態系                                       │
+│                         MCP 科學計算生態系                                   │
+│                          🔢 108 個工具總計 🔢                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  sympy-mcp                                                                  │
+│  sympy-mcp (32 工具)                                                        │
 │  └── 基礎公式：F=ma、PV=nRT、Arrhenius...                                   │
 │  └── 物理常數：c、G、h、R...（SciPy CODATA）                                │
-│  └── 符號運算引擎                                                            │
+│  └── 符號運算引擎（ODE、PDE、矩陣）                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  medical-calc-mcp（75+ 工具）                                                │
-│  └── 臨床評分：APACHE、SOFA、GCS、MELD、qSOFA...                            │
-│  └── 醫學計算：eGFR、IBW、BSA、MEWS...                                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  nsforge-mcp ← 你在這裡                                                      │
+│  nsforge-mcp (76 工具) ← 你在這裡                                           │
 │  └── 🔨 推導框架：組合、驗證、生成程式碼                                     │
 │  └── 📁 推導成果庫：存放創造的公式與溯源資訊                                 │
 │  └── ✅ 驗證層：維度分析、逆向驗證                                          │
-│  └── 🔗 優化橋接：為 USolver 準備公式（可選協作）                            │
+│  └── 🌐 公式搜尋：Wikidata、BioModels、SciPy 常數                           │
+│  └── 🔗 優化橋接：為 USolver 準備公式                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  medical-calc-mcp (75+ 工具)                                                │
+│  └── 臨床評分：APACHE、SOFA、GCS、MELD、qSOFA...                            │
+│  └── 醫學計算：eGFR、IBW、BSA、MEWS...                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  usolver-mcp（可選協作）                                                     │
 │  └── 🎯 為 NSForge 推導的公式找到最佳值                                      │
@@ -91,6 +93,8 @@ NSForge 直接調用 SymPy 模組，提供 **SymPy-MCP 沒有的功能**：
 | **極限與級數** | `sympy.limit`, `sympy.series` | 穩態近似、累積分析 | ✅ v0.2.1 |
 | **不等式求解** | `sympy.solvers.inequalities` | 治療窗口計算 | ✅ v0.2.1 |
 | **假設查詢** | `sympy.assumptions` | 自動驗證約束 | ✅ v0.2.1 |
+| **進階代數** | `sympy.expand/factor/apart...` | 表達式操作 | ✅ v0.2.4 |
+| **積分變換** | `sympy.laplace/fourier_transform` | ODE 求解、頻率分析 | ✅ v0.2.4 |
 | **推導工作流** | NSForge 獨有 | 步驟追蹤、溯源 | ✅ 可用 |
 | **驗證套件** | NSForge 獨有 | 維度分析 | ✅ 可用 |
 
@@ -237,6 +241,7 @@ formulas/
 | [NPO 抗生素效應](formulas/derivations/pharmacokinetics/npo_antibiotic_effect.md) | PK/PD | Henderson-Hasselbalch + Emax 模型（pH 依賴性吸收） |
 | [溫度校正 Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | 藥動學 | 非線性飽和動力學含溫度效應 |
 | [Cisatracurium 多次給藥](formulas/derived/ce30161d.yaml) | 藥動學 | 水解型藥物累積含溫度校正 |
+| [生理學 Vd 體組成調整](formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md) | PK/PBPK | PBPK 方法體組成調整分布容積 (logP > 2) |
 
 ### NPO（禁食）對抗生素效力的影響範例
 
@@ -368,9 +373,9 @@ Agent 呼叫 NSForge：
 
 ## 🛠️ MCP 工具
 
-NSForge 提供 **36 個 MCP 工具**，分為 5 個模組：
+NSForge 提供 **76 個 MCP 工具**，分為多個模組：
 
-### 🔥 推導引擎 (26 個工具)
+### 🔥 推導引擎 (31 個工具)
 
 | 工具 | 用途 |
 | ---- | ---- |
@@ -522,7 +527,8 @@ nsforge-mcp/
 ├── docs/                      # 📖 文檔
 │   └── nsforge-skills-guide.md #   - Skills 使用指南 (588 行)
 ├── examples/                  # 🐍 Python 範例
-│   └── npo_antibiotic_analysis.py  # 臨床應用
+│   ├── npo_antibiotic_analysis.py  # 臨床應用
+│   └── physiological_vd_model.py   # PBPK 體組成模型
 ├── tests/                     # 測試
 └── pyproject.toml             # 專案配置 (uv/hatch)
 ```

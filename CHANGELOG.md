@@ -9,6 +9,14 @@
 
 ### Added
 
+- 🧬 **生理學 Vd 體組成調整模型** (2026-01-16)
+  - **完整 PBPK 推導**：Poulin-Theil 組織分布模型
+  - **驗證分析**：9 種藥物測試，發現 logP-only Kp 預測的根本限制
+  - **公式重新定位**：從「通用 Vd 預測」→「體組成調整公式」
+  - **適用範圍定義**：logP > 2、中性分子、被動擴散
+  - **文檔**：`formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md`
+  - **Python 實作**：`examples/physiological_vd_model.py` (PhysiologicalVdModel 類別)
+
 - 🆕 **Phase 2 - 積分變換工具** (4 個新 MCP 工具)
   - **P2 Laplace 變換** (2 個，🔥🔥 高優先度)：
     - `laplace_transform_expression` - Laplace 變換 exp(-k*t) → 1/(s+k)

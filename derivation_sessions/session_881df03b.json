@@ -1,0 +1,107 @@
+{
+  "session_id": "881df03b",
+  "name": "physiological_vd_corrected",
+  "description": "校正版生理學 Vd 模型 - 考慮組織結合與非線性分布",
+  "status": "completed",
+  "formulas": {},
+  "current_expression": "1/(10**(0.5*logP - 0.3)/alpha + 1)",
+  "current_formula_id": null,
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "custom",
+      "description": "Step 1: 問題分析 - 原公式低估的原因\n\n📝 Notes: 原公式假設：只有血漿中的游離藥物能進入組織。但實際上：(1) 組織也有蛋白結合位點 (2) 高脂溶性藥物在組織中的親和力可能比血漿更高 (3) f_u/f_ut 比值才是真正的分布驅動力",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "原公式假設：只有血漿中的游離藥物能進入組織。但實際上：(1) 組織也有蛋白結合位點 (2) 高脂溶性藥物在組織中的親和力可能比血漿更高 (3) f_u/f_ut 比值才是真正的分布驅動力"
+      },
+      "output_expression": "V_plasma + f_u*(Kp*V_fat + V_lean)",
+      "output_latex": "V_{plasma} + f_{u} \\left(Kp V_{fat} + V_{lean}\\right)",
+      "sympy_command": "# From sympy_mcp: V_plasma + f_u * (V_lean + Kp * V_fat)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T11:03:11.836766"
+    },
+    {
+      "step_number": 2,
+      "operation": "custom",
+      "description": "Step 2: 引入組織游離分率 f_ut - Poulin & Theil 模型基礎\n\n📝 Notes: 關鍵修正：加入 f_ut（組織游離分率）。分布驅動力 = f_u/f_ut 比值。當 f_ut << f_u 時，藥物大量蓄積在組織中（如 Propofol）。文獻來源：Poulin & Theil (2002) J Pharm Sci",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "關鍵修正：加入 f_ut（組織游離分率）。分布驅動力 = f_u/f_ut 比值。當 f_ut << f_u 時，藥物大量蓄積在組織中（如 Propofol）。文獻來源：Poulin & Theil (2002) J Pharm Sci"
+      },
+      "output_expression": "V_plasma + f_u*(Kp*V_fat + V_lean)/f_ut",
+      "output_latex": "V_{plasma} + \\frac{f_{u} \\left(Kp V_{fat} + V_{lean}\\right)}{f_{ut}}",
+      "sympy_command": "# From sympy_mcp: V_plasma + (f_u / f_ut) * (V_lean + Kp * V_fat)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T11:03:30.314805"
+    },
+    {
+      "step_number": 3,
+      "operation": "custom",
+      "description": "Step 3: f_ut 預測公式 - 組織結合比血漿更強\n\n📝 Notes: 組織游離分率 f_ut 比血漿 f_u 更低（組織結合更強）。參數 α 反映組織/血漿結合強度比。α < 1 表示組織結合更強。對於高脂溶性藥物，α 約 0.03-0.1。",
+      "input_expressions": {
+        "source": "sympy_mcp",
+        "notes": "組織游離分率 f_ut 比血漿 f_u 更低（組織結合更強）。參數 α 反映組織/血漿結合強度比。α < 1 表示組織結合更強。對於高脂溶性藥物，α 約 0.03-0.1。"
+      },
+      "output_expression": "1/(10**(0.5*logP - 0.3)/alpha + 1)",
+      "output_latex": "\\frac{1}{\\frac{10^{0.5 logP - 0.3}}{\\alpha} + 1}",
+      "sympy_command": "# From sympy_mcp: 1 / (1 + 10**(0.5 * logP - 0.3) / alpha)...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T11:03:47.131429"
+    },
+    {
+      "step_number": 4,
+      "operation": "custom",
+      "description": "🔧 [CORRECTION] 🎯 核心錯誤修正！原公式 Vd = V_plasma + f_u × (V_lean + Kp × V_fat) 是錯的！\n\nf_u 描述的是血漿中游離藥物比例，但 Kp（分配係數）已經考慮了藥物在組織vs血漿的分配比。\nPBPK 標準方法：Vd,ss = V_plasma + Σ(Kp_i × V_i)，不需要再乘 f_u！\n\n驗證：Propofol 使用 PBPK 公式 → Vd = 819 L (9.6 L/kg) ✅ 符合文獻 170-850 L\n   Related: f_u, Kp, Vd",
+      "input_expressions": {
+        "note_type": "correction",
+        "related_variables": "['f_u', 'Kp', 'Vd']",
+        "related_step": ""
+      },
+      "output_expression": "1/(10**(0.5*logP - 0.3)/alpha + 1)",
+      "output_latex": "\\frac{1}{\\frac{10^{0.5 logP - 0.3}}{\\alpha} + 1}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T11:06:21.704157"
+    },
+    {
+      "step_number": 5,
+      "operation": "custom",
+      "description": "⚠️ [LIMITATION] 【多藥物驗證結果】\n\n測試 9 種藥物，只有 1/9 符合文獻範圍！\n\n問題診斷：\n1. 公式架構（PBPK）是正確的\n2. 但「只用 logP 預測 Kp」過於簡化\n\nKp 還受到影響：\n- f_u（蛋白結合）：Warfarin 99% 結合\n- 主動轉運：Morphine 有 P-gp 外排\n- pH 分配：弱酸/鹼解離度不同\n- 特異性組織結合：Digoxin 結合 Na/K-ATPase\n\n【公式重新定位】\n✗ 不是「通用 Vd 預測公式」\n✓ 是「體組成調整公式」\n\n正確用法：\n1. 已知某藥物在標準人的 Vd（文獻值）\n2. 用此公式預測不同體組成（肥胖/瘦弱）的相對變化\n   Related: Kp, logP, f_u, Vd",
+      "input_expressions": {
+        "note_type": "limitation",
+        "related_variables": "['Kp', 'logP', 'f_u', 'Vd']",
+        "related_step": ""
+      },
+      "output_expression": "1/(10**(0.5*logP - 0.3)/alpha + 1)",
+      "output_latex": "\\frac{1}{\\frac{10^{0.5 logP - 0.3}}{\\alpha} + 1}",
+      "sympy_command": "# Note (no computation)",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T11:12:13.501415"
+    }
+  ],
+  "created_at": "2026-01-16T11:02:56.921907",
+  "updated_at": "2026-01-16T11:16:10.438130",
+  "author": "NSForge Derivation",
+  "tags": []
+}

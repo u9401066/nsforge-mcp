@@ -1,0 +1,175 @@
+{
+  "session_id": "18947cb7",
+  "name": "body_composition_adjusted_vd",
+  "description": "考慮體型參數（BW/BSA/BMI）和藥物脂溶性/水溶性的分布體積推導",
+  "status": "paused",
+  "formulas": {
+    "basic_vd": {
+      "id": "basic_vd",
+      "expression": "0",
+      "latex": "0",
+      "variables": {},
+      "source": "textbook",
+      "source_detail": "Basic Pharmacokinetics",
+      "original_input": "D / C0",
+      "input_format": "sympy",
+      "name": "基礎分布體積",
+      "description": "分布體積的基本定義：劑量除以初始濃度",
+      "category": "",
+      "tags": [],
+      "references": [],
+      "created_at": "2026-01-16T10:33:20.221953"
+    }
+  },
+  "current_expression": "10**logP*BW*f_fat + 0.73*BW*f_lean",
+  "current_formula_id": "basic_vd",
+  "steps": [
+    {
+      "step_number": 1,
+      "operation": "load_formula",
+      "description": "Load formula 'basic_vd' from textbook",
+      "input_expressions": {
+        "basic_vd": "D / C0"
+      },
+      "output_expression": "0",
+      "output_latex": "0",
+      "sympy_command": "parse('D / C0')",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:33:20.221953"
+    },
+    {
+      "step_number": 2,
+      "operation": "custom",
+      "description": "基礎分布體積定義\n\n📝 Notes: 分布體積 (Vd) 是藥物在體內「表觀」分布的空間大小。定義為劑量與初始血漿濃度的比值。這是一個表觀體積，不代表實際的解剖空間。",
+      "input_expressions": {
+        "source": "manual",
+        "notes": "分布體積 (Vd) 是藥物在體內「表觀」分布的空間大小。定義為劑量與初始血漿濃度的比值。這是一個表觀體積，不代表實際的解剖空間。"
+      },
+      "output_expression": "D/C0",
+      "output_latex": "\\frac{D}{C_{0}}",
+      "sympy_command": "# From manual: D / C0...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:34:23.319269"
+    },
+    {
+      "step_number": 3,
+      "operation": "custom",
+      "description": "體重線性模型 - 最簡單的體型校正\n\n📝 Notes: 水溶性藥物（logP < 0）的 Vd 主要與瘦體重相關，通常與 BW 成線性關係。α 是比例常數 (L/kg)，水溶性藥物約 0.5-0.7 L/kg。",
+      "input_expressions": {
+        "source": "manual",
+        "notes": "水溶性藥物（logP < 0）的 Vd 主要與瘦體重相關，通常與 BW 成線性關係。α 是比例常數 (L/kg)，水溶性藥物約 0.5-0.7 L/kg。"
+      },
+      "output_expression": "BW*alpha",
+      "output_latex": "BW \\alpha",
+      "sympy_command": "# From manual: alpha * BW...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:34:37.928806"
+    },
+    {
+      "step_number": 4,
+      "operation": "custom",
+      "description": "異速縮放模型 (Allometric Scaling)\n\n📝 Notes: 異速縮放是更精確的體型校正方法。指數 0.75 來自生物學縮放定律（West-Brown-Enquist 理論）。BW_ref 通常設為 70 kg（標準成人體重），V_ref 為標準參考體積。",
+      "input_expressions": {
+        "source": "manual",
+        "notes": "異速縮放是更精確的體型校正方法。指數 0.75 來自生物學縮放定律（West-Brown-Enquist 理論）。BW_ref 通常設為 70 kg（標準成人體重），V_ref 為標準參考體積。"
+      },
+      "output_expression": "V_ref*(BW/BW_ref)**0.75",
+      "output_latex": "V_{ref} \\left(\\frac{BW}{BW_{ref}}\\right)^{0.75}",
+      "sympy_command": "# From manual: V_ref * (BW / BW_ref)**0.75...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:34:59.470698"
+    },
+    {
+      "step_number": 5,
+      "operation": "custom",
+      "description": "Du Bois 體表面積公式\n\n📝 Notes: Du Bois 公式（1916）是最常用的 BSA 計算公式。BW 單位為 kg，BH 單位為 cm，結果為 m²。標準成人 BSA 約 1.73 m²。",
+      "input_expressions": {
+        "source": "literature",
+        "notes": "Du Bois 公式（1916）是最常用的 BSA 計算公式。BW 單位為 kg，BH 單位為 cm，結果為 m²。標準成人 BSA 約 1.73 m²。"
+      },
+      "output_expression": "0.007184*BH**0.725*BW**0.425",
+      "output_latex": "0.007184 BH^{0.725} BW^{0.425}",
+      "sympy_command": "# From literature: 0.007184 * BW**0.425 * BH**0.725...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:35:14.676329"
+    },
+    {
+      "step_number": 6,
+      "operation": "custom",
+      "description": "雙相分配模型 - 水相與脂肪相\n\n📝 Notes: 這是考慮藥物在水相和脂肪相分配的核心公式。P_fat/water 是脂肪/水分配係數，與 logP 相關（P = 10^logP）。水溶性藥物 P 小（Vd ≈ V_water），脂溶性藥物 P 大（Vd >> 體重）。",
+      "input_expressions": {
+        "source": "manual",
+        "notes": "這是考慮藥物在水相和脂肪相分配的核心公式。P_fat/water 是脂肪/水分配係數，與 logP 相關（P = 10^logP）。水溶性藥物 P 小（Vd ≈ V_water），脂溶性藥物 P 大（Vd >> 體重）。"
+      },
+      "output_expression": "P_fat_water*V_fat + V_water",
+      "output_latex": "P_{fat water} V_{fat} + V_{water}",
+      "sympy_command": "# From manual: V_water + P_fat_water * V_fat...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:35:31.279216"
+    },
+    {
+      "step_number": 7,
+      "operation": "custom",
+      "description": "完整體型-脂溶性分布模型\n\n📝 Notes: 整合模型：V_water = 0.73 × 瘦體重（瘦組織含水量約73%）。P_fat/water = 10^logP。f_lean + f_fat ≈ 1。高脂溶性藥物(logP>3)的Vd可達數百L；水溶性藥物(logP<0)的Vd約40-50L。",
+      "input_expressions": {
+        "source": "manual",
+        "notes": "整合模型：V_water = 0.73 × 瘦體重（瘦組織含水量約73%）。P_fat/water = 10^logP。f_lean + f_fat ≈ 1。高脂溶性藥物(logP>3)的Vd可達數百L；水溶性藥物(logP<0)的Vd約40-50L。"
+      },
+      "output_expression": "10**logP*BW*f_fat + 0.73*BW*f_lean",
+      "output_latex": "10^{logP} BW f_{fat} + 0.73 BW f_{lean}",
+      "sympy_command": "# From manual: f_lean * BW * 0.73 + 10**logP * f_fat * BW...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:36:35.701637"
+    },
+    {
+      "step_number": 8,
+      "operation": "custom",
+      "description": "BMI-logP 整合模型（最終公式）\n\n📝 Notes: 最終整合公式！用 BMI 估算脂肪比例 (f_fat ≈ 1.2×BMI/100 + 0.23 for adult males)，結合 logP 決定藥物分配。範例：BMI=25, logP=3 → Vd ≈ 70×(1000×0.53 - 0.219 + 0.5621) ≈ 很大的分布體積（高脂溶性）",
+      "input_expressions": {
+        "source": "manual",
+        "notes": "最終整合公式！用 BMI 估算脂肪比例 (f_fat ≈ 1.2×BMI/100 + 0.23 for adult males)，結合 logP 決定藥物分配。範例：BMI=25, logP=3 → Vd ≈ 70×(1000×0.53 - 0.219 + 0.5621) ≈ 很大的分布體積（高脂溶性）"
+      },
+      "output_expression": "BW*(10**logP*(0.012*BMI + 0.23) - 0.00876*BMI + 0.5621)",
+      "output_latex": "BW \\left(10^{logP} \\left(0.012 BMI + 0.23\\right) - 0.00876 BMI + 0.5621\\right)",
+      "sympy_command": "# From manual: BW * (10**logP * (0.012 * BMI + 0.23) - 0.00876 * ...",
+      "notes": "",
+      "assumptions": [],
+      "limitations": [],
+      "status": "success",
+      "verification_result": "",
+      "timestamp": "2026-01-16T10:37:01.737551"
+    }
+  ],
+  "created_at": "2026-01-16T10:33:09.480384",
+  "updated_at": "2026-01-16T10:37:01.737551",
+  "author": "NSForge",
+  "tags": []
+}

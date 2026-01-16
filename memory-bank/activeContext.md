@@ -4,78 +4,58 @@
 
 ## 🎯 當前焦點
 
-**v0.2.4 derivation_show() 工具 + Skill 文檔大更新！** 確保 Agent 每次操作後都向用戶展示公式。
+**v0.2.5 生理學 Vd 體組成調整模型！** 完成 PBPK 方法論推導、多藥物驗證、Python 實作。
 
-## ✅ 本次完成 (2026-01-05)
+## ✅ 本次完成 (2026-01-16)
 
-### 🆕 derivation_show() 工具
+### 🧪 生理學 Vd 模型推導
 
-新增推導狀態顯示工具，類似 SymPy-MCP 的 `print_latex_expression`：
+**核心公式：**
+$$V_{d,ss} = V_{plasma} + K_{p,lean} \times V_{lean} + K_{p,fat} \times V_{fat}$$
 
-| 功能 | 說明 |
-|------|------|
-| `derivation_show(format="all")` | 顯示 LaTeX + SymPy + 摘要 |
-| `derivation_show(format="latex")` | 只顯示 LaTeX |
-| `derivation_show(show_steps=True)` | 包含步驟歷史 |
+**推導歷程：**
 
-**工具數量**: 75 → 76 (NSForge)，107 → 108 (生態系統)
+| 階段 | 發現 | 行動 |
+|------|------|------|
+| 初始公式 | 原公式乘 f_u 導致 40x 低估 | 改用 PBPK 標準方法 |
+| 驗證 | 9 種藥物僅 1/9 符合 | 重新定位公式用途 |
+| 定位 | logP 無法準確預測 Kp | 改為「體組成調整公式」|
 
-### 📖 Skill 文檔大更新
+**驗證結果 (9 種藥物)：**
 
-更新所有 NSForge 相關 Skill，強調「必須向用戶展示公式」：
+| 藥物 | 計算 Vd | 文獻 Vd | 比率 | 判定 |
+|------|---------|---------|------|------|
+| Propofol | 3.83 | 2-10 | ✓ | 符合 |
+| Diazepam | 0.48 | 0.7-2.6 | 54% | 低估 |
+| Midazolam | 0.66 | 0.8-1.5 | 83% | 偏低 |
+| Fentanyl | 0.80 | 3-8 | 20% | 低估 |
+| ... | | | | |
 
-| Skill | 新增內容 |
-|-------|----------|
-| nsforge-derivation-workflow | 🆕 黃金法則區塊 + 2d 步驟 |
-| nsforge-quick-calculate | ⚠️ 顯示結果提醒 |
-| nsforge-verification-suite | ⚠️ 驗證後展示結果 |
-| nsforge-formula-management | ⚠️ 公式展示（LaTeX 格式） |
-| nsforge-code-generation | ⚠️ 生成後展示程式碼 |
-| nsforge-formula-search | ⚠️ 搜尋結果表格展示 |
-| copilot-instructions.md | 工作流圖 + 分工表更新 |
+### 📄 產出檔案
 
-### 🔧 Bug 修復 + Lint
+| 檔案 | 內容 | 行數 |
+|------|------|------|
+| `formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md` | 完整推導文檔 | ~400 |
+| `examples/physiological_vd_model.py` | Python 實作 (PhysiologicalVdModel) | ~300 |
+| `formulas/derived/881df03b.yaml` | NSForge 推導記錄 | auto |
 
-- 修復 `DerivationStep` 屬性存取錯誤（`step.get()` → `getattr()`）
-- 修復類型標註（`sp.Expr` → `sp.Basic` 支援 `Equality`）
-- Ruff + ty 檢查全數通過
+### 🎯 公式適用範圍
 
-### 📊 Commits 摘要 (2026-01-05)
+- ✅ **適用**：logP > 2、中性分子、被動擴散、脂肪組織為主要分布
+- ❌ **不適用**：離子化藥物、主動轉運、特殊蛋白結合
 
-| Commit | 說明 |
-|--------|------|
-| `945a11e` | README Ecosystem 更新 (107 tools) |
-| `51d1560` | DerivationStep bug fix |
-| `ff383f3` | Ruff + ty lint pass |
-| `b6afe81` | derivation_show() 工具 |
-| `7299bbc` | 所有 Skill 文檔更新 |
+## ✅ 上次完成 (2026-01-05)
 
-## 📁 本次變更檔案
+### derivation_show() 工具
 
-```
-# 核心功能
-src/nsforge_mcp/tools/derivation.py          # +derivation_show() (~100 行)
-
-# Skill 文檔 (7 檔案)
-.claude/skills/nsforge-*/SKILL.md            # 全部更新
-.github/copilot-instructions.md              # 工作流圖更新
-
-# README
-README.md                                    # 工具數量 108
-```
-
-## ✅ 上次完成 (2026-01-04)
-
-### Phase 1+2 工具實作
-- 10 個進階代數簡化工具（expand, factor, apart 等）
-- 4 個積分變換工具（Laplace, Fourier）
-- 外部公式搜尋功能（Wikidata, BioModels, SciPy）
-- USolver 協作功能
+- 新增推導狀態顯示工具
+- 更新所有 NSForge Skill 文檔
+- 工具數量：76 NSForge + 32 SymPy = 108 總計
 
 ## 🔜 下一步
 
-1. 測試 derivation_show() 在實際推導中的效果
-2. 觀察 Agent 是否正確遵循新的顯示指引
+1. 使用 physiological_vd_model.py 進行臨床場景模擬
+2. 擴展模型支援其他組織（腎、肝、腦）
 
 ---
-*Last updated: 2026-01-05*
+*Last updated: 2026-01-16*

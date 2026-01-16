@@ -1,6 +1,15 @@
-# Progress (Updated: 2026-01-05)
+# Progress (Updated: 2026-01-16)
 
 ## Done
+
+### 生理學 Vd 體組成調整模型 (2026-01-16)
+- ✅ **PBPK 方法論推導**：Poulin-Theil 組織分布模型
+- ✅ **公式驗證**：9 種藥物測試（1/9 符合文獻值）
+- ✅ **公式重新定位**：從「通用 Vd 預測」→「體組成調整公式」
+- ✅ **完整文檔**：`formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md`
+- ✅ **Python 實作**：`examples/physiological_vd_model.py` (PhysiologicalVdModel 類別)
+- ✅ **NSForge 會話**：881df03b (physiological_vd_corrected, 5 步驟)
+- ✅ **適用範圍**：logP > 2、中性分子、被動擴散
 
 ### derivation_show() + Skill 更新 (2026-01-05)
 - ✅ **derivation_show() 工具**：顯示當前推導狀態（LaTeX/SymPy/摘要）

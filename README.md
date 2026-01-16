@@ -246,6 +246,7 @@ formulas/
 | [NPO Antibiotic Effect](formulas/derivations/pharmacokinetics/npo_antibiotic_effect.md) | PK/PD | Henderson-Hasselbalch + Emax model for pH-dependent absorption |
 | [Temperature-Corrected Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | PK | Non-linear saturable kinetics with temperature effects |
 | [Cisatracurium Multiple Dosing](formulas/derived/ce30161d.yaml) | PK | Hydrolytic drug accumulation with temperature correction |
+| [Physiological Vd Body Composition](formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md) | PK/PBPK | PBPK-based Vd adjustment for body composition (logP > 2) |
 
 **Example: NPO (Fasting) Impact on Antibiotic Efficacy**
 
@@ -584,7 +585,8 @@ nsforge-mcp/
 ├── docs/                      # 📖 Documentation
 │   └── nsforge-skills-guide.md #   - Skills usage guide (588 lines)
 ├── examples/                  # 🐍 Python examples
-│   └── npo_antibiotic_analysis.py  # Clinical application
+│   ├── npo_antibiotic_analysis.py  # Clinical application
+│   └── physiological_vd_model.py   # PBPK body composition model
 ├── tests/                     # Tests
 └── pyproject.toml             # Project config (uv/hatch)
 ```
