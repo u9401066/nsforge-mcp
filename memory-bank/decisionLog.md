@@ -15,6 +15,8 @@
 | 2026-01-02 | 新增橋接工具 | `derivation_record_step` + `derivation_add_note` 讓人類知識可以在推導過程中隨時注入 |
 | 2026-01-02 | **強化 NSForge 推導工具** | 5 個推導工具（substitute, simplify, solve_for, differentiate, integrate）直接支援 notes/assumptions/limitations 參數，每步計算都帶知識記錄 |
 | 2026-01-02 | **Handoff 機制** | 新增 `derivation_export_for_sympy` + `derivation_import_from_sympy` + `derivation_handoff_status`，實現 NSForge ↔ SymPy-MCP 無縫轉換。當 NSForge 無法處理（ODE, 矩陣, 極限等）時自動轉給 SymPy-MCP，完成後再導入回來繼續步進式推導。 |
+| 2026-01-21 | **v0.2.4 Production-Level 品質標準** | 完成全面品質驗證：類型安全（MyPy 0 errors）、程式碼品質（Ruff）、安全掃描（Bandit）、測試覆蓋（31/31）。確立提交 ToolUniverse PR 的準備標準：文檔完整、類型安全、測試通過。 |
+| 2026-01-21 | **ToolUniverse PR 策略** | 經分析確認 NSForge 高度適合 PR 至 ToolUniverse：(1) 互補性高：現有 700+ 工具缺符號推導能力；(2) 不重複：PK/PD 工具僅查詢資料，不推導公式；(3) 不會太重：作為 local MCP tool 獨立運作。定位為「Computational Science Tools」，強調與現有藥學工具的協同作用。 |
 | 2026-01-04 | **USolver 協作橋接** | 新增 `derivation_prepare_for_optimization()` 支援與 USolver MCP 協作。NSForge 負責推導領域修正公式，USolver 負責找最佳參數值。採用橋接工具模式：自動分類變數類型、提取參數值、生成領域約束、輸出 USolver 範本。協作帶來價值：領域智慧（藥物交互作用、體脂、年齡）+ 數學精確（Z3/OR-Tools/CVXPY/HiGHS 優化）= 可操作的最佳值。 |
 
 ---

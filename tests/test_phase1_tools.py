@@ -10,20 +10,12 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
 
 # Add src to path
 src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
 # Direct import to avoid nsforge dependencies
-import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
 
 # Direct import of simplify module (avoid __init__.py chain)
 sys.path.insert(0, str(src_path / "nsforge_mcp" / "tools"))
@@ -68,7 +60,7 @@ def test_all_tools():
     # Test 1: expand_expression
     print("\n1️⃣  expand_expression")
     result = mcp.tools["expand_expression"]("(x + 1)**2")
-    print(f"   Input:  (x + 1)**2")
+    print("   Input:  (x + 1)**2")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -78,7 +70,7 @@ def test_all_tools():
     # Test 2: factor_expression
     print("\n2️⃣  factor_expression")
     result = mcp.tools["factor_expression"]("x**2 - 1")
-    print(f"   Input:  x**2 - 1")
+    print("   Input:  x**2 - 1")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -88,7 +80,7 @@ def test_all_tools():
     # Test 3: collect_expression
     print("\n3️⃣  collect_expression")
     result = mcp.tools["collect_expression"]("x*y + x - 3 + 2*x**2", "x")
-    print(f"   Input:  x*y + x - 3 + 2*x**2")
+    print("   Input:  x*y + x - 3 + 2*x**2")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -97,7 +89,7 @@ def test_all_tools():
     # Test 4: trigsimp_expression
     print("\n4️⃣  trigsimp_expression")
     result = mcp.tools["trigsimp_expression"]("sin(x)**2 + cos(x)**2")
-    print(f"   Input:  sin(x)**2 + cos(x)**2")
+    print("   Input:  sin(x)**2 + cos(x)**2")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -107,7 +99,7 @@ def test_all_tools():
     # Test 5: powsimp_expression
     print("\n5️⃣  powsimp_expression")
     result = mcp.tools["powsimp_expression"]("x**2 * x**3")
-    print(f"   Input:  x**2 * x**3")
+    print("   Input:  x**2 * x**3")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -117,7 +109,7 @@ def test_all_tools():
     # Test 6: radsimp_expression
     print("\n6️⃣  radsimp_expression")
     result = mcp.tools["radsimp_expression"]("1/(sqrt(3) + sqrt(2))")
-    print(f"   Input:  1/(sqrt(3) + sqrt(2))")
+    print("   Input:  1/(sqrt(3) + sqrt(2))")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -126,7 +118,7 @@ def test_all_tools():
     # Test 7: combsimp_expression
     print("\n7️⃣  combsimp_expression")
     result = mcp.tools["combsimp_expression"]("factorial(n)/factorial(n - 2)")
-    print(f"   Input:  factorial(n)/factorial(n - 2)")
+    print("   Input:  factorial(n)/factorial(n - 2)")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -142,7 +134,7 @@ def test_all_tools():
     # Test 8: apart_expression
     print("\n8️⃣  apart_expression")
     result = mcp.tools["apart_expression"]("(x**2 + 3*x + 2)/(x**2 + 5*x + 6)", "x")
-    print(f"   Input:  (x**2 + 3*x + 2)/(x**2 + 5*x + 6)")
+    print("   Input:  (x**2 + 3*x + 2)/(x**2 + 5*x + 6)")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -151,7 +143,7 @@ def test_all_tools():
     # Test 9: cancel_expression
     print("\n9️⃣  cancel_expression")
     result = mcp.tools["cancel_expression"]("(x**2 - 1)/(x - 1)")
-    print(f"   Input:  (x**2 - 1)/(x - 1)")
+    print("   Input:  (x**2 - 1)/(x - 1)")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]
@@ -161,7 +153,7 @@ def test_all_tools():
     # Test 10: together_expression
     print("\n🔟 together_expression")
     result = mcp.tools["together_expression"]("1/x + 1/y")
-    print(f"   Input:  1/x + 1/y")
+    print("   Input:  1/x + 1/y")
     print(f"   Output: {result['result']}")
     print(f"   LaTeX:  {result['latex']}")
     assert result["success"]

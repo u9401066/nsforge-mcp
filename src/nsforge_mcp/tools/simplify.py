@@ -168,7 +168,7 @@ def register_simplify_tools(mcp: Any) -> None:
 
         try:
             # Build expand() kwargs
-            kwargs = {
+            expand_kwargs: dict[str, Any] = {
                 "deep": deep,
                 "power_base": power_base,
                 "power_exp": power_exp,
@@ -178,9 +178,9 @@ def register_simplify_tools(mcp: Any) -> None:
                 "basic": basic,
             }
             if modulus is not None:
-                kwargs["modulus"] = modulus
+                expand_kwargs["modulus"] = modulus
 
-            result = sp.expand(expr, **kwargs)
+            result = sp.expand(expr, **expand_kwargs)
 
             return {
                 "success": True,
@@ -189,7 +189,7 @@ def register_simplify_tools(mcp: Any) -> None:
                 "original": expression,
                 "original_latex": sp.latex(expr),
                 "operation": "expand",
-                "options_used": {k: v for k, v in kwargs.items() if v is not None},
+                "options_used": {k: v for k, v in expand_kwargs.items() if v is not None},
             }
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -249,11 +249,11 @@ def register_simplify_tools(mcp: Any) -> None:
             return {"success": False, "error": error or "Failed to parse expression"}
 
         try:
-            kwargs = {"deep": deep}
+            factor_kwargs: dict[str, Any] = {"deep": deep}
             if modulus is not None:
-                kwargs["modulus"] = modulus
+                factor_kwargs["modulus"] = modulus
 
-            result = sp.factor(expr, **kwargs)
+            result = sp.factor(expr, **factor_kwargs)
 
             return {
                 "success": True,
@@ -262,7 +262,7 @@ def register_simplify_tools(mcp: Any) -> None:
                 "original": expression,
                 "original_latex": sp.latex(expr),
                 "operation": "factor",
-                "options_used": kwargs,
+                "options_used": factor_kwargs,
             }
         except Exception as e:
             return {"success": False, "error": str(e)}

@@ -20,26 +20,26 @@ class FormulaInfo:
     """
 
     # 識別
-    id: str                          # 唯一識別碼（如 Wikidata Q 號）
-    name: str                        # 公式名稱
+    id: str  # 唯一識別碼（如 Wikidata Q 號）
+    name: str  # 公式名稱
 
     # 數學表示
-    expression: Expr | str           # SymPy 表達式或字串
-    latex: str = ""                  # LaTeX 表示
-    sympy_str: str = ""              # SymPy 字串表示
+    expression: Expr | str  # SymPy 表達式或字串
+    latex: str = ""  # LaTeX 表示
+    sympy_str: str = ""  # SymPy 字串表示
 
     # 變數定義
     variables: dict[str, dict[str, Any]] = field(default_factory=dict)
     # 格式: {"rho": {"description": "密度", "unit": "kg/m³", "type": "variable"}}
 
     # 元資料
-    source: str = ""                 # 來源（"wikidata", "biomodels", "scipy"）
-    category: str = ""               # 分類
-    description: str = ""            # 描述
+    source: str = ""  # 來源（"wikidata", "biomodels", "scipy"）
+    category: str = ""  # 分類
+    description: str = ""  # 描述
     tags: list[str] = field(default_factory=list)
 
     # 連結
-    url: str = ""                    # 原始來源 URL
+    url: str = ""  # 原始來源 URL
     references: list[str] = field(default_factory=list)
 
     # 額外資料（來源特定）

@@ -5,4 +5,4 @@ This package provides the MCP server interface for NSForge.
 It is separated from the core library to maintain clean architecture.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.4"

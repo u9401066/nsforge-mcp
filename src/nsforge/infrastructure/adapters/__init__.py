@@ -12,8 +12,16 @@ Formula Adapters - 外部公式來源適配器
 - 延遲導入網路適配器
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .base import BaseAdapter, FormulaInfo
 from .scipy_constants import ScipyConstantsAdapter
+
+if TYPE_CHECKING:
+    from .biomodels import BioModelsAdapter
+    from .wikidata_formulas import WikidataFormulaAdapter
 
 __all__ = [
     "BaseAdapter",
@@ -24,13 +32,15 @@ __all__ = [
 ]
 
 
-def get_wikidata_adapter():
+def get_wikidata_adapter() -> WikidataFormulaAdapter:
     """獲取 Wikidata 適配器（延遲導入，需要網路）"""
     from .wikidata_formulas import WikidataFormulaAdapter
+
     return WikidataFormulaAdapter()
 
 
-def get_biomodels_adapter():
+def get_biomodels_adapter() -> BioModelsAdapter:
     """獲取 BioModels 適配器（延遲導入，需要網路）"""
     from .biomodels import BioModelsAdapter
+
     return BioModelsAdapter()

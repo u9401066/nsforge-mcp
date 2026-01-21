@@ -2,6 +2,22 @@
 
 ## Done
 
+### v0.2.4 Production-Level 品質驗證 (2026-01-21)
+- ✅ **版本同步**：3 個檔案更新至 0.2.4（pyproject.toml, __init__.py x2）
+- ✅ **ARCHITECTURE.md 完整重寫**：~150 行 DDD 文檔（76 工具分類、資料流圖）
+- ✅ **類型安全 100%**：修正 41 個 MyPy 錯誤（標準模式 0 錯誤）
+  - simplify.py: int/bool 類型混淆
+  - sympy_engine.py: Any 返回類型
+  - derivation.py: Union type
+  - wikidata_formulas.py: 完整類型標註
+  - biomodels.py: 上下文管理器類型
+  - adapters/__init__.py: TYPE_CHECKING 模式
+  - formula.py: 變數命名衝突
+- ✅ **程式碼品質**：Ruff 自動修正 17 issues（f-strings, 未使用 imports）
+- ✅ **安全掃描**：Bandit 0 critical/high issues（3 Low 可接受）
+- ✅ **測試覆蓋**：31/31 通過，Domain layer 100%
+- ✅ **ToolUniverse 評估**：確認適合 PR（互補性高、不重複）
+
 ### 生理學 Vd 體組成調整模型 (2026-01-16)
 - ✅ **PBPK 方法論推導**：Poulin-Theil 組織分布模型
 - ✅ **公式驗證**：9 種藥物測試（1/9 符合文獻值）

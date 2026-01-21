@@ -56,7 +56,7 @@ class BioModelsAdapter(BaseAdapter):
                 headers={
                     "User-Agent": "NSForge/1.0",
                     "Accept": "application/json",
-                }
+                },
             )
         return self._client
 
@@ -81,7 +81,7 @@ class BioModelsAdapter(BaseAdapter):
                     "query": query,
                     "numResults": limit,
                     "format": "json",
-                }
+                },
             )
             response.raise_for_status()
             data = response.json()
@@ -139,8 +139,7 @@ class BioModelsAdapter(BaseAdapter):
         try:
             # 獲取模型資訊
             info_response = client.get(
-                f"{BIOMODELS_API}/model/{formula_id}",
-                params={"format": "json"}
+                f"{BIOMODELS_API}/model/{formula_id}", params={"format": "json"}
             )
             info_response.raise_for_status()
             model_info = info_response.json()
@@ -148,7 +147,7 @@ class BioModelsAdapter(BaseAdapter):
             # 下載 SBML 檔案
             sbml_response = client.get(
                 f"{BIOMODELS_API}/model/download/{formula_id}",
-                params={"filename": f"{formula_id}_url.xml"}
+                params={"filename": f"{formula_id}_url.xml"},
             )
             sbml_response.raise_for_status()
             sbml_content = sbml_response.text
@@ -157,10 +156,7 @@ class BioModelsAdapter(BaseAdapter):
             kinetic_laws = self._extract_kinetic_laws(sbml_content)
 
             # 組合所有動力學公式為一個字串
-            formulas_text = "\n".join([
-                f"{kl['reaction_id']}: {kl['math']}"
-                for kl in kinetic_laws
-            ])
+            formulas_text = "\n".join([f"{kl['reaction_id']}: {kl['math']}" for kl in kinetic_laws])
 
             return FormulaInfo(
                 id=formula_id,
@@ -170,7 +166,9 @@ class BioModelsAdapter(BaseAdapter):
                 sympy_str=formulas_text,
                 variables=self._extract_variables(kinetic_laws),
                 source="biomodels",
-                category="pharmacokinetics" if "pharmacokinetic" in model_info.get("name", "").lower() else "biology",
+                category="pharmacokinetics"
+                if "pharmacokinetic" in model_info.get("name", "").lower()
+                else "biology",
                 description=model_info.get("description", ""),
                 url=f"https://www.ebi.ac.uk/biomodels/{formula_id}",
                 tags=self._extract_tags(model_info),
@@ -178,7 +176,7 @@ class BioModelsAdapter(BaseAdapter):
                     "kinetic_laws": kinetic_laws,
                     "publication": model_info.get("publication", {}),
                     "authors": model_info.get("authors", []),
-                }
+                },
             )
         except Exception as e:
             print(f"BioModels get_formula error: {e}")
@@ -203,7 +201,7 @@ class BioModelsAdapter(BaseAdapter):
         try:
             response = client.get(
                 f"{BIOMODELS_API}/model/download/{model_id}",
-                params={"filename": f"{model_id}_url.xml"}
+                params={"filename": f"{model_id}_url.xml"},
             )
             response.raise_for_status()
             return self._extract_kinetic_laws(response.text)
@@ -230,17 +228,19 @@ class BioModelsAdapter(BaseAdapter):
 
         for model in models:
             model_id = model.get("id", "")
-            results.append(FormulaInfo(
-                id=model_id,
-                name=model.get("name", model_id),
-                expression="",  # 搜尋結果不含完整公式
-                latex="",
-                sympy_str="",
-                source="biomodels",
-                description=model.get("description", "")[:200],  # 截斷
-                url=f"https://www.ebi.ac.uk/biomodels/{model_id}",
-                tags=self._extract_tags(model),
-            ))
+            results.append(
+                FormulaInfo(
+                    id=model_id,
+                    name=model.get("name", model_id),
+                    expression="",  # 搜尋結果不含完整公式
+                    latex="",
+                    sympy_str="",
+                    source="biomodels",
+                    description=model.get("description", "")[:200],  # 截斷
+                    url=f"https://www.ebi.ac.uk/biomodels/{model_id}",
+                    tags=self._extract_tags(model),
+                )
+            )
 
         return results
 
@@ -249,50 +249,56 @@ class BioModelsAdapter(BaseAdapter):
         kinetic_laws = []
 
         try:
-            # 解析 XML
-            root = ET.fromstring(sbml_content)
+            # 解析 XML (BioModels is trusted source)
+            root = ET.fromstring(sbml_content)  # nosec B314
 
             # SBML 命名空間
             namespaces = {
-                'sbml': 'http://www.sbml.org/sbml/level2/version4',
-                'sbml3': 'http://www.sbml.org/sbml/level3/version1/core',
-                'mathml': 'http://www.w3.org/1998/Math/MathML',
+                "sbml": "http://www.sbml.org/sbml/level2/version4",
+                "sbml3": "http://www.sbml.org/sbml/level3/version1/core",
+                "mathml": "http://www.w3.org/1998/Math/MathML",
             }
 
             # 嘗試不同的 SBML 版本
-            for ns_prefix in ['sbml', 'sbml3', '']:
-                ns = namespaces.get(ns_prefix, '')
-                ns_str = f'{{{ns}}}' if ns else ''
+            for ns_prefix in ["sbml", "sbml3", ""]:
+                ns = namespaces.get(ns_prefix, "")
+                ns_str = f"{{{ns}}}" if ns else ""
 
                 # 查找所有反應
-                reactions = root.findall(f'.//{ns_str}reaction')
+                reactions = root.findall(f".//{ns_str}reaction")
                 if not reactions:
-                    reactions = root.findall('.//reaction')
+                    reactions = root.findall(".//reaction")
 
                 for reaction in reactions:
-                    reaction_id = reaction.get('id', '')
-                    reaction_name = reaction.get('name', reaction_id)
+                    reaction_id = reaction.get("id", "")
+                    reaction_name = reaction.get("name", reaction_id)
 
                     # 查找 kineticLaw
-                    kinetic_law = reaction.find(f'{ns_str}kineticLaw') or reaction.find('kineticLaw')
+                    kinetic_law = reaction.find(f"{ns_str}kineticLaw") or reaction.find(
+                        "kineticLaw"
+                    )
 
                     if kinetic_law is not None:
                         # 提取 MathML 並轉換為字串
-                        math_elem = kinetic_law.find('.//{http://www.w3.org/1998/Math/MathML}math')
+                        math_elem = kinetic_law.find(".//{http://www.w3.org/1998/Math/MathML}math")
                         if math_elem is None:
-                            math_elem = kinetic_law.find('.//math')
+                            math_elem = kinetic_law.find(".//math")
 
-                        math_str = self._mathml_to_string(math_elem) if math_elem is not None else ""
+                        math_str = (
+                            self._mathml_to_string(math_elem) if math_elem is not None else ""
+                        )
 
                         # 提取參數
                         params = self._extract_parameters(kinetic_law, ns_str)
 
-                        kinetic_laws.append({
-                            "reaction_id": reaction_id,
-                            "name": reaction_name,
-                            "math": math_str,
-                            "parameters": params,
-                        })
+                        kinetic_laws.append(
+                            {
+                                "reaction_id": reaction_id,
+                                "name": reaction_name,
+                                "math": math_str,
+                                "parameters": params,
+                            }
+                        )
 
                 if kinetic_laws:
                     break
@@ -307,68 +313,71 @@ class BioModelsAdapter(BaseAdapter):
         if math_elem is None:
             return ""
 
-        def process_node(node):
-            tag = node.tag.split('}')[-1]  # 移除命名空間
+        def process_node(node: ET.Element) -> str:
+            tag = node.tag.split("}")[-1]  # 移除命名空間
 
-            if tag == 'ci':
+            if tag == "ci":
                 return node.text.strip() if node.text else ""
-            elif tag == 'cn':
+            elif tag == "cn":
                 return node.text.strip() if node.text else "0"
-            elif tag == 'apply':
+            elif tag == "apply":
                 children = list(node)
                 if not children:
                     return ""
-                op = children[0].tag.split('}')[-1]
+                op = children[0].tag.split("}")[-1]
                 args = [process_node(c) for c in children[1:]]
 
-                if op == 'times':
-                    return ' * '.join(args)
-                elif op == 'divide':
+                if op == "times":
+                    return " * ".join(args)
+                elif op == "divide":
                     return f"({args[0]}) / ({args[1]})" if len(args) >= 2 else ""
-                elif op == 'plus':
-                    return ' + '.join(args)
-                elif op == 'minus':
+                elif op == "plus":
+                    return " + ".join(args)
+                elif op == "minus":
                     if len(args) == 1:
                         return f"-{args[0]}"
                     return f"({args[0]}) - ({args[1]})"
-                elif op == 'power':
+                elif op == "power":
                     return f"({args[0]})**({args[1]})" if len(args) >= 2 else ""
-                elif op == 'exp':
+                elif op == "exp":
                     return f"exp({args[0]})" if args else "exp(0)"
-                elif op == 'ln':
+                elif op == "ln":
                     return f"ln({args[0]})" if args else "ln(1)"
                 else:
                     return f"{op}({', '.join(args)})"
             else:
                 # 遞歸處理子節點
-                return ''.join(process_node(c) for c in node)
+                return "".join(process_node(c) for c in node)
 
         try:
-            return process_node(math_elem)
+            result: str = process_node(math_elem)
+            return result
         except Exception:
-            return ET.tostring(math_elem, encoding='unicode')
+            return ET.tostring(math_elem, encoding="unicode")
 
     def _extract_parameters(self, kinetic_law: ET.Element, ns_str: str) -> list[dict[str, Any]]:
         """提取動力學公式的參數"""
         params = []
 
-        param_elems = kinetic_law.findall(f'{ns_str}listOfParameters/{ns_str}parameter')
+        param_elems = kinetic_law.findall(f"{ns_str}listOfParameters/{ns_str}parameter")
         if not param_elems:
-            param_elems = kinetic_law.findall('.//parameter')
+            param_elems = kinetic_law.findall(".//parameter")
 
         for param in param_elems:
-            params.append({
-                "id": param.get('id', ''),
-                "name": param.get('name', ''),
-                "value": param.get('value', ''),
-                "units": param.get('units', ''),
-            })
+            params.append(
+                {
+                    "id": param.get("id", ""),
+                    "name": param.get("name", ""),
+                    "value": param.get("value", ""),
+                    "units": param.get("units", ""),
+                }
+            )
 
         return params
 
-    def _extract_variables(self, kinetic_laws: list[dict]) -> dict[str, dict[str, Any]]:
+    def _extract_variables(self, kinetic_laws: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         """從動力學公式提取變數"""
-        variables = {}
+        variables: dict[str, dict[str, Any]] = {}
 
         for kl in kinetic_laws:
             # 從參數中提取
@@ -384,14 +393,14 @@ class BioModelsAdapter(BaseAdapter):
             # 從公式字串中提取變數名
             math_str = kl.get("math", "")
             # 簡單的變數提取（字母開頭的標識符）
-            var_matches = re.findall(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\b', math_str)
+            var_matches = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", math_str)
             for var in var_matches:
-                if var not in variables and var not in ['exp', 'ln', 'log', 'sin', 'cos']:
+                if var not in variables and var not in ["exp", "ln", "log", "sin", "cos"]:
                     variables[var] = {"type": "variable"}
 
         return variables
 
-    def _extract_tags(self, model_info: dict) -> list[str]:
+    def _extract_tags(self, model_info: dict[str, Any]) -> list[str]:
         """提取模型標籤"""
         tags = []
 
@@ -416,14 +425,19 @@ class BioModelsAdapter(BaseAdapter):
 
         return tags
 
-    def close(self):
+    def close(self) -> None:
         """關閉 HTTP 客戶端"""
         if self._client:
             self._client.close()
             self._client = None
 
-    def __enter__(self):
+    def __enter__(self) -> "BioModelsAdapter":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
         self.close()

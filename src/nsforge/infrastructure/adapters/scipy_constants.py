@@ -388,7 +388,8 @@ class ScipyConstantsAdapter(BaseAdapter):
             if (
                 query_lower in const.name.lower()
                 or query_lower in const.symbol.lower()
-                or const.description and query_lower in const.description.lower()
+                or const.description
+                and query_lower in const.description.lower()
                 or query_lower in const.category.lower()
             ):
                 formula_info = self.get_formula(cid)

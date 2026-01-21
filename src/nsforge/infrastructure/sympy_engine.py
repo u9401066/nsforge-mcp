@@ -211,7 +211,7 @@ class SymPyEngine(SymbolicEngine):
 
         # Try expanding and simplifying
         diff_expanded = sp.simplify(sp.expand(expr1.sympy_expr - expr2.sympy_expr))
-        return diff_expanded == 0
+        return bool(diff_expanded == 0)
 
     def _get_local_dict(self, context: MathContext | None) -> dict[str, Any]:
         """Get local dictionary for parsing with symbol assumptions."""

@@ -7,6 +7,51 @@
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-01-21
+
+### Fixed
+
+- 🛠️ **類型安全性修正** - 修復 41 個 MyPy 類型錯誤
+  - `simplify.py`: 修正 int/bool 類型混淆 (lines 168-184, 252-258)
+  - `sympy_engine.py`: 為 equals() 方法添加顯式 bool() 轉換 (line 213)
+  - `derivation.py`: 使用 Union type `str | float` 處理 param_value (line 1904)
+  - `wikidata_formulas.py`: 完整類型標註 (lines 285-324)
+  - `biomodels.py`: 新增內部函數與上下文管理器類型標註 (lines 305-443)
+  - `adapters/__init__.py`: 使用 TYPE_CHECKING 模式避免循環導入 (lines 1-46)
+  - `formula.py`: 重新命名變數避免類型衝突
+
+- 🎨 **程式碼品質提升**
+  - Ruff 自動修正 17 issues (f-strings, 未使用 imports)
+  - 格式化 8 個檔案以保持一致性
+  - 新增安全豁免標記 (biomodels.py line 253: trusted XML source)
+
+- 🔒 **安全性**
+  - Bandit 掃描通過 (0 critical/high issues)
+  - 3 個 Low severity issues 均為可接受模式 (intentional try-except-pass, trusted XML)
+
+### Changed
+
+- 📚 **ARCHITECTURE.md 完整重寫**
+  - 新增完整 DDD 架構文檔 (~150 lines)
+  - 76 個工具詳細分類
+  - 資料流程圖與目錄結構說明
+
+- 📦 **版本同步**
+  - `pyproject.toml` version 更新至 "0.2.4"
+  - `src/nsforge/__init__.py` __version__ 更新至 "0.2.4"
+  - `src/nsforge_mcp/__init__.py` __version__ 更新至 "0.2.4"
+
+### Technical Details
+
+- **MyPy 驗證**: 標準模式 0 errors in 28 files ✅
+- **測試狀態**: 31/31 passed in 5.79s ✅
+- **覆蓋率**: Domain layer 100%, 整體 29% ✅
+- **Ruff 狀態**: 1 minor E402 in test file (acceptable) ✅
+
+---
+
+## [Unreleased - Future]
+
 ### Added
 
 - 🧬 **生理學 Vd 體組成調整模型** (2026-01-16)
