@@ -89,6 +89,10 @@ NSForge works WITH other MCP servers, not against them:
 
 ## 🚀 NSForge Unique Capabilities
 
+<p align="center">
+  <img src="docs/images/nsforge-vs-sympy.jpg" alt="NSForge vs SymPy-MCP Unique Capabilities" width="700">
+</p>
+
 NSForge provides features **not available in SymPy-MCP** by directly leveraging SymPy modules:
 
 | Feature | SymPy Module | Application | Status |
@@ -107,6 +111,10 @@ NSForge provides features **not available in SymPy-MCP** by directly leveraging 
 ---
 
 ## 🎬 Workflow
+
+<p align="center">
+  <img src="docs/images/derivation-workflow.jpg" alt="NSForge Derivation Workflow" width="700">
+</p>
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐
