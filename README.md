@@ -42,6 +42,10 @@
 
 ## 🌍 Ecosystem: Don't Reinvent the Wheel
 
+<p align="center">
+  <img src="docs/images/architecture-overview.jpg" alt="NSForge Architecture and Ecosystem" width="700">
+</p>
+
 NSForge works WITH other MCP servers, not against them:
 
 ```text
