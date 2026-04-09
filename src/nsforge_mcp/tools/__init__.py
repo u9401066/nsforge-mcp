@@ -10,6 +10,7 @@ Architecture:
 - calculate.py: Symbolic computation (simplify, solve, diff, integrate)
 - verify.py: Verification (equality, reverse, dimensions)
 - codegen.py: Generate Python code and reports from derivations
+- music.py: 🎵 Music function composition, visualization, and audio generation
 
 Design Principles:
 1. Forge = CREATE new formulas through derivation (core mission!)
@@ -28,6 +29,7 @@ from nsforge_mcp.tools.codegen import register_codegen_tools
 from nsforge_mcp.tools.derivation import register_derivation_tools
 from nsforge_mcp.tools.expression import register_expression_tools
 from nsforge_mcp.tools.formula import register_formula_tools
+from nsforge_mcp.tools.music import register_music_tools
 from nsforge_mcp.tools.simplify import register_simplify_tools
 from nsforge_mcp.tools.verify import register_verify_tools
 
@@ -46,3 +48,6 @@ def register_all_tools(mcp: Any) -> None:
     register_simplify_tools(mcp)  # 🆕 Phase 1: Advanced simplification
     register_verify_tools(mcp)
     register_codegen_tools(mcp)
+
+    # 🎵 Music function composition and visualization
+    register_music_tools(mcp)
