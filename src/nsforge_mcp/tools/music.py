@@ -40,6 +40,9 @@ from sympy.parsing.sympy_parser import (
     standard_transformations,
 )
 
+# WAV file header size in bytes (RIFF header + fmt chunk + data chunk header)
+_WAV_HEADER_BYTES = 44
+
 # Standard transformations for parsing
 TRANSFORMATIONS = standard_transformations + (
     implicit_multiplication_application,
@@ -702,7 +705,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
                 "sample_rate": sample_rate,
                 "channels": 1,
                 "bit_depth": 16,
-                "file_size_bytes": num_samples * 2 + 44,  # PCM data + WAV header
+                "file_size_bytes": num_samples * 2 + _WAV_HEADER_BYTES,
                 "description": (
                     f"WAV file: {duration}s, {sample_rate} Hz, "
                     f"16-bit mono → {output_path}"
