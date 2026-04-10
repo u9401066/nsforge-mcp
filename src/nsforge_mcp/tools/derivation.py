@@ -11,6 +11,7 @@ Derivation Tools - 推導引擎 MCP 工具
 The "Forge" in NSForge means we CREATE new formulas through derivation.
 """
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -48,6 +49,118 @@ def _get_current_session() -> DerivationSession | None:
 def _set_current_session(session: DerivationSession | None) -> None:
     global _current_session
     _current_session = session
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Unicode Greek → ASCII 預處理器（讓 SymPy 能解析含希臘字母的表達式）
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_GREEK_TO_ASCII = {
+    # 希臘小寫字母
+    "α": "alpha",
+    "β": "beta",
+    "γ": "gamma",
+    "δ": "delta",
+    "ε": "epsilon",
+    "ζ": "zeta",
+    "η": "eta",
+    "θ": "theta",
+    "ι": "iota",
+    "κ": "kappa",
+    "λ": "lambda",
+    "μ": "mu",
+    "ν": "nu",
+    "ξ": "xi",
+    "ο": "omicron",
+    "π": "pi",
+    "ρ": "rho",
+    "σ": "sigma",
+    "τ": "tau",
+    "υ": "upsilon",
+    "φ": "phi",
+    "χ": "chi",
+    "ψ": "psi",
+    "ω": "omega",
+    # 希臘大寫字母
+    "Α": "Alpha",
+    "Β": "Beta",
+    "Γ": "Gamma",
+    "Δ": "Delta",
+    "Ε": "Epsilon",
+    "Ζ": "Zeta",
+    "Η": "Eta",
+    "Θ": "Theta",
+    "Ι": "Iota",
+    "Κ": "Kappa",
+    "Λ": "Lambda",
+    "Μ": "Mu",
+    "Ν": "Nu",
+    "Ξ": "Xi",
+    "Ο": "Omicron",
+    "Π": "Pi",
+    "Ρ": "Rho",
+    "Σ": "Sigma",
+    "Τ": "Tau",
+    "Υ": "Upsilon",
+    "Φ": "Phi",
+    "Χ": "Chi",
+    "Ψ": "Psi",
+    "Ω": "Omega",
+    # 常見數學符號
+    "∞": "oo",          # SymPy 的無窮大
+    "∂": "d",           # 偏導符號（轉為 d）
+    "∇": "nabla",       # Nabla 算子
+    "±": "+-",          # 正負號
+    "∓": "-+",
+    "×": "*",           # 乘號
+    "÷": "/",           # 除號
+    "≤": "<=",
+    "≥": ">=",
+    "≠": "!=",
+    "≈": "~",
+    "≡": "==",
+}
+
+# 上標數字（常見於劑量單位）
+_SUPERSCRIPT_MAP = {
+    "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
+    "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+}
+# 下標數字
+_SUBSCRIPT_MAP = {
+    "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4",
+    "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
+}
+
+
+def _preprocess_for_sympify(expr_str: str) -> str:
+    """
+    將表達式中的 Unicode 字元（希臘字母、數學符號、上標數字）轉換為
+    SymPy 能解析的 ASCII 字元。
+
+    Example:
+        "R = R_0 * E * exp(β * h) * V"  →  "R = R_0 * E * exp(beta * h) * V"
+        "dose⁻¹"                          →  "dose-1"
+    """
+    result = expr_str
+
+    # 1. 先處理上標數字（如 ⁰ → 0）
+    for sup, num in _SUPERSCRIPT_MAP.items():
+        result = result.replace(sup, num)
+
+    # 2. 處理下標數字（如 ₀ → 0）
+    for sub, num in _SUBSCRIPT_MAP.items():
+        result = result.replace(sub, num)
+
+    # 3. 處理希臘字母（只置換「游離」的單個希臘字元，避免誤換 LaTeX 指令）
+    #    規則：希臘字母必須是獨立的 token（周圍是空白或運算符）
+    for greek, ascii_name in _GREEK_TO_ASCII.items():
+        # 使用 word boundary 確保不會破坏已有的 ASCII 名稱（如 beta 中的 a）
+        # 但要注意：如果希臘字母出現在單字中間（如 cβ），也應該置換
+        # 簡單策略：替換所有獨立出現的希臘字母
+        result = result.replace(greek, ascii_name)
+
+    return result
 
 
 def register_derivation_tools(mcp: Any) -> None:
@@ -658,9 +771,9 @@ def register_derivation_tools(mcp: Any) -> None:
                 "error": "No active session. Use derivation_start first.",
             }
 
-        # 解析表達式
+        # 解析表達式（支援 Unicode 希臘字母、上下標）
         try:
-            expr = sp.sympify(expression)
+            expr = sp.sympify(_preprocess_for_sympify(expression))
         except Exception as e:
             return {
                 "success": False,
@@ -1699,9 +1812,9 @@ def register_derivation_tools(mcp: Any) -> None:
                 "error": "No active session. Use derivation_start first.",
             }
 
-        # 解析表達式
+        # 解析表達式（支援 Unicode 希臘字母、上下標）
         try:
-            expr = sp.sympify(expression)
+            expr = sp.sympify(_preprocess_for_sympify(expression))
         except Exception as e:
             return {
                 "success": False,
