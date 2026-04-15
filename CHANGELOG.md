@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+### Added
+
+- ❤️ **主動脈瓣面積（AVA）動脈導管波形推導與範例**
+  - 新增推導文檔：`formulas/derivations/hemodynamics/aortic_valve_area_from_aline.md`
+  - 新增 Python 範例：`examples/aortic_valve_area_aline.py`
+  - 新增測試：`tests/test_aortic_valve_area.py`（44 個測試）
+  - 收錄 Gorlin 公式、Hakki 簡化式、pulse contour 分析與波形回歸模型
+
+### Changed
+
+- 📚 **文件索引更新**
+  - README、公式庫索引與推導說明新增血流動力學/心臟 AVA 範例連結
+
 ## [0.2.4] - 2026-01-21
 
 ### Fixed

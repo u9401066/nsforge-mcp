@@ -259,6 +259,7 @@ formulas/
 | [Temperature-Corrected Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | PK | Non-linear saturable kinetics with temperature effects |
 | [Cisatracurium Multiple Dosing](formulas/derived/ce30161d.yaml) | PK | Hydrolytic drug accumulation with temperature correction |
 | [Physiological Vd Body Composition](formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md) | PK/PBPK | PBPK-based Vd adjustment for body composition (logP > 2) |
+| [Aortic Valve Area from A-line Waveform](formulas/derivations/hemodynamics/aortic_valve_area_from_aline.md) | Hemodynamics/Cardiac | Bedside AVA estimation from arterial line waveform features |
 
 **Example: NPO (Fasting) Impact on Antibiotic Efficacy**
 
@@ -590,7 +591,8 @@ nsforge-mcp/
 │
 ├── formulas/                  # 📁 Formula Repository
 │   ├── derivations/           #   - Human-readable Markdown
-│   │   └── pharmacokinetics/  #     - PK derivation examples
+│   │   ├── pharmacokinetics/  #     - PK derivation examples
+│   │   └── hemodynamics/      #     - Cardiac/hemodynamic derivation examples
 │   └── derived/               #   - YAML metadata (auto-generated)
 │
 ├── derivation_sessions/       # 💾 Session persistence (JSON)
@@ -598,7 +600,8 @@ nsforge-mcp/
 │   └── nsforge-skills-guide.md #   - Skills usage guide (588 lines)
 ├── examples/                  # 🐍 Python examples
 │   ├── npo_antibiotic_analysis.py  # Clinical application
-│   └── physiological_vd_model.py   # PBPK body composition model
+│   ├── physiological_vd_model.py   # PBPK body composition model
+│   └── aortic_valve_area_aline.py  # AVA estimation from A-line waveform
 ├── tests/                     # Tests
 └── pyproject.toml             # Project config (uv/hatch)
 ```

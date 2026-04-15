@@ -4,7 +4,16 @@
 
 ## 🎯 當前焦點
 
-**v0.2.4 Production-Level 完成，準備 ToolUniverse PR！**
+**同步主動脈瓣面積（AVA）a-line 波形推導的公開文件與索引**
+
+### 本次工作重點（2026-04-15）
+- 將 `aortic_valve_area_from_aline` 納入 README 與公式庫索引
+- 補齊 CHANGELOG 的 Unreleased 記錄
+- 確認新推導範例與既有測試/文件連結一致
+
+### 驗證狀態
+- `pytest tests/ -v`：114 passed
+- `ruff check .`：存在既有 `examples/npo_antibiotic_analysis.py` lint 問題，與本次變更無關
 
 ### 品質驗證完成
 - 類型安全：41 errors → 0（標準模式）

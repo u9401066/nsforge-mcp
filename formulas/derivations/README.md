@@ -33,6 +33,7 @@ base formulas and verifying the results through NSForge's symbolic computation t
 | Renal adjustments | `renal_dose_adjustment` | Dosing for impaired kidney function |
 | Drug interactions | `cyp_inhibition_model` | PK changes with enzyme inhibitors |
 | Custom PK/PD | `effect_site_targeting` | Target-controlled infusion models |
+| Hemodynamics | `aortic_valve_area_from_aline` | Bedside AVA estimation from arterial waveform features |
 
 ## ❌ What Does NOT Belong Here
 
@@ -54,6 +55,8 @@ formulas/
     │   ├── temp_corrected_elimination.md
     │   ├── fat_adjusted_vd.md
     │   └── renal_clearance_adjustment.md
+    ├── hemodynamics/      ← Hemodynamic derivations
+    │   └── aortic_valve_area_from_aline.md
     ├── pharmacodynamics/  ← PD model derivations
     │   └── effect_site_equilibration.md
     └── combined/          ← Complex multi-domain derivations
@@ -139,6 +142,7 @@ Agent:
 | -- | ---- | -------- | -------- |
 | `temp_corrected_elimination` | Temperature-Corrected Elimination | PK/temperature | ✅ |
 | `fat_adjusted_vd` | Fat-Adjusted Volume of Distribution | PK/obesity | ✅ |
+| `aortic_valve_area_from_aline` | Aortic Valve Area from A-line Waveform | hemodynamics/cardiac | ✅ |
 
 ## 🔗 Related Tools
 

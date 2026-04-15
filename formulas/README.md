@@ -32,9 +32,11 @@ formulas/
 ├── README.md              ← You are here
 └── derivations/           ← All derived formulas
     ├── README.md          ← Detailed documentation
-    └── pharmacokinetics/  ← PK model derivations
-        ├── temp_corrected_elimination.md
-        └── fat_adjusted_vd.md
+    ├── pharmacokinetics/  ← PK model derivations
+    │   ├── temp_corrected_elimination.md
+    │   └── fat_adjusted_vd.md
+    └── hemodynamics/      ← Hemodynamic/cardiac derivations
+        └── aortic_valve_area_from_aline.md
 ```
 
 ## 🔗 Ecosystem
@@ -64,3 +66,4 @@ formulas/
 - [derivations/README.md](derivations/README.md) - Full documentation
 - [Example: Temperature-corrected elimination](derivations/pharmacokinetics/temp_corrected_elimination.md)
 - [Example: Fat-adjusted volume of distribution](derivations/pharmacokinetics/fat_adjusted_vd.md)
+- [Example: Aortic valve area from arterial line waveform](derivations/hemodynamics/aortic_valve_area_from_aline.md)

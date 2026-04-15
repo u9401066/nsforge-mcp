@@ -31,9 +31,11 @@ formulas/
 ├── README.md              ← 你在這裡
 └── derivations/           ← 所有推導公式
     ├── README.md          ← 詳細文件
-    └── pharmacokinetics/  ← 藥動學模型推導
-        ├── temp_corrected_elimination.md
-        └── fat_adjusted_vd.md
+    ├── pharmacokinetics/  ← 藥動學模型推導
+    │   ├── temp_corrected_elimination.md
+    │   └── fat_adjusted_vd.md
+    └── hemodynamics/      ← 血流動力學/心臟推導
+        └── aortic_valve_area_from_aline.md
 ```
 
 ## 🔗 生態系
@@ -63,3 +65,4 @@ formulas/
 - [derivations/README.md](derivations/README.md) - 完整文件
 - [範例：溫度修正消除率](derivations/pharmacokinetics/temp_corrected_elimination.md)
 - [範例：體脂調整分布容積](derivations/pharmacokinetics/fat_adjusted_vd.md)
+- [範例：動脈導管波形估算主動脈瓣面積](derivations/hemodynamics/aortic_valve_area_from_aline.md)

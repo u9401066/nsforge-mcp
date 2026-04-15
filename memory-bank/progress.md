@@ -94,7 +94,10 @@
 
 ## Doing
 
-- (無進行中項目)
+- 🔄 **主動脈瓣面積（AVA）文件同步** (2026-04-15)
+  - README / 公式庫索引補上 hemodynamics 推導與 Python 範例
+  - CHANGELOG 新增 Unreleased 項目
+  - 準備執行文件變更驗證
 
 ## Next
 

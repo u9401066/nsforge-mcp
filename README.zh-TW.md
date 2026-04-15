@@ -242,6 +242,7 @@ formulas/
 | [溫度校正 Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | 藥動學 | 非線性飽和動力學含溫度效應 |
 | [Cisatracurium 多次給藥](formulas/derived/ce30161d.yaml) | 藥動學 | 水解型藥物累積含溫度校正 |
 | [生理學 Vd 體組成調整](formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md) | PK/PBPK | PBPK 方法體組成調整分布容積 (logP > 2) |
+| [動脈導管波形估算主動脈瓣面積](formulas/derivations/hemodynamics/aortic_valve_area_from_aline.md) | 血流動力學/心臟 | 以 a-line 波形特徵進行床邊 AVA 估算 |
 
 ### NPO（禁食）對抗生素效力的影響範例
 
@@ -520,7 +521,8 @@ nsforge-mcp/
 │
 ├── formulas/                  # 📁 公式儲存庫
 │   ├── derivations/           #   - 人類可讀 Markdown
-│   │   └── pharmacokinetics/  #     - 藥動學推導範例
+│   │   ├── pharmacokinetics/  #     - 藥動學推導範例
+│   │   └── hemodynamics/      #     - 心臟/血流動力學推導範例
 │   └── derived/               #   - YAML 元資料 (自動生成)
 │
 ├── derivation_sessions/       # 💾 會話持久化 (JSON)
@@ -528,7 +530,8 @@ nsforge-mcp/
 │   └── nsforge-skills-guide.md #   - Skills 使用指南 (588 行)
 ├── examples/                  # 🐍 Python 範例
 │   ├── npo_antibiotic_analysis.py  # 臨床應用
-│   └── physiological_vd_model.py   # PBPK 體組成模型
+│   ├── physiological_vd_model.py   # PBPK 體組成模型
+│   └── aortic_valve_area_aline.py  # 從 a-line 波形估算 AVA
 ├── tests/                     # 測試
 └── pyproject.toml             # 專案配置 (uv/hatch)
 ```
