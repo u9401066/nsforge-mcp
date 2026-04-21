@@ -428,7 +428,7 @@ NSForge provides **76 MCP tools** organized into 8 modules:
 | `derivation_handoff_status` | 🆕 Check handoff capabilities |
 | `derivation_prepare_for_optimization` | 🆕 Prepare for USolver |
 
-Derivation inputs now accept Unicode Greek letters and numeric subscripts such as `N_0 * exp(-λ*t) + β` and `β₀ * exp(-λ*t)`; NSForge normalizes them automatically before handing them to SymPy.
+Derivation inputs now accept Unicode Greek letters, numeric subscripts, and superscript exponents such as `N_0 * exp(-λ*t) + β`, `β₀ * exp(-λ*t)`, and `dose⁻¹`; NSForge normalizes them automatically before handing them to SymPy.
 
 ### ✅ Verification (6 tools)
 

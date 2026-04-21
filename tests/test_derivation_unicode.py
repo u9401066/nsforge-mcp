@@ -92,4 +92,4 @@ def test_sympify_expression_normalizes_superscript_minus() -> None:
     """Superscript minus should be normalized before SymPy parsing."""
     result = derivation_tools._sympify_expression("dose⁻¹")
 
-    assert str(result) == "dose - 1"
+    assert str(result) == "1/dose"

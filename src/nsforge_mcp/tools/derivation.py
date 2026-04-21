@@ -135,12 +135,18 @@ _SUBSCRIPT_MAP = {
     "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
 }
 
+_GREEK_CHARS = "".join(_GREEK_TO_ASCII)
+_SUPERSCRIPT_CHARS = "".join(_SUPERSCRIPT_MAP)
 _GREEK_IDENTIFIER_RE = re.compile(
     rf"(?<![A-Za-z0-9_])"
-    rf"([A-Za-z0-9_{''.join(_GREEK_TO_ASCII)}]*"
-    rf"[{''.join(_GREEK_TO_ASCII)}]"
-    rf"[A-Za-z0-9_{''.join(_GREEK_TO_ASCII)}]*)"
+    rf"([A-Za-z0-9_{_GREEK_CHARS}]*"
+    rf"[{_GREEK_CHARS}]"
+    rf"[A-Za-z0-9_{_GREEK_CHARS}]*)"
     rf"(?![A-Za-z0-9_])"
+)
+_UNICODE_POWER_RE = re.compile(
+    rf"(?P<base>(?:[A-Za-z0-9_{_GREEK_CHARS}_]+|\)))"
+    rf"(?P<exponent>[{_SUPERSCRIPT_CHARS}]+)"
 )
 
 
@@ -162,10 +168,20 @@ def _transliterate_greek_identifier(identifier: str) -> str:
 
         parts.append(ascii_name)
 
-        if next_char and next_char.isalpha() and next_char != "_":
+        if next_char and next_char.isalpha():
             parts.append("_")
 
     return "".join(parts)
+
+
+def _normalize_unicode_powers(expr_str: str) -> str:
+    """Convert superscript exponents like x² or dose⁻¹ into SymPy power syntax."""
+
+    def replace_power(match: re.Match[str]) -> str:
+        exponent = "".join(_SUPERSCRIPT_MAP[char] for char in match.group("exponent"))
+        return f"{match.group('base')}**({exponent})"
+
+    return _UNICODE_POWER_RE.sub(replace_power, expr_str)
 
 
 def _preprocess_for_sympify(expr_str: str) -> tuple[str, dict[str, Any]]:
@@ -175,11 +191,11 @@ def _preprocess_for_sympify(expr_str: str) -> tuple[str, dict[str, Any]]:
 
     Example:
         "N_0 * exp(-λ*t) + β"  →  "__nsf_symbol_0__ * exp(-__nsf_symbol_1__*t) + __nsf_symbol_2__"
-        "dose⁻¹"               →  "dose-1"
+        "dose⁻¹"               →  "dose**(-1)"
     """
     import sympy as sp
 
-    result = expr_str
+    result = _normalize_unicode_powers(expr_str)
     local_dict: dict[str, Any] = {}
 
     # 1. 先處理上標數字（如 ⁰ → 0）
