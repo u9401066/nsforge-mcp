@@ -1,4 +1,4 @@
-# Progress (Updated: 2026-01-16)
+# Progress (Updated: 2026-04-21)
 
 ## Done
 
@@ -100,7 +100,7 @@
 
 ## Doing
 
-- 修正推導工具的 Unicode 希臘字母輸入相容性，補上回歸測試與文件同步
+- (無進行中項目)
 
 ## Next
 

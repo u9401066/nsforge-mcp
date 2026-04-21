@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from nsforge.domain.derivation_session import SessionManager
 from nsforge_mcp.tools import derivation as derivation_tools
@@ -12,11 +14,11 @@ class MockMCP:
     """Minimal MCP stub for registering tool functions in tests."""
 
     def __init__(self) -> None:
-        self.tools: dict[str, object] = {}
+        self.tools: dict[str, Callable[..., Any]] = {}
 
-    def tool(self):  # type: ignore[no-untyped-def]
-        def decorator(func: object) -> object:
-            self.tools[getattr(func, "__name__")] = func
+    def tool(self) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+            self.tools[func.__name__] = func
             return func
 
         return decorator
@@ -84,3 +86,10 @@ def test_derivation_import_from_sympy_accepts_unicode_subscripts(tmp_path: Path)
     assert result["expression"] == "beta0*exp(-lambda*t)"
     assert r"\beta_{0}" in result["latex"]
     assert r"\lambda" in result["latex"]
+
+
+def test_sympify_expression_normalizes_superscript_minus() -> None:
+    """Superscript minus should be normalized before SymPy parsing."""
+    result = derivation_tools._sympify_expression("dose⁻¹")
+
+    assert str(result) == "dose - 1"

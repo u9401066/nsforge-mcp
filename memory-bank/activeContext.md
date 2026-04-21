@@ -76,4 +76,4 @@ $$V_{d,ss} = V_{plasma} + K_{p,lean} \times V_{lean} + K_{p,fat} \times V_{fat}$
 2. 擴展模型支援其他組織（腎、肝、腦）
 
 ---
-*Last updated: 2026-01-16*
+*Last updated: 2026-04-21*
