@@ -40,7 +40,9 @@ def test_preprocess_for_sympify_uses_safe_placeholders() -> None:
     assert "λ" not in prepared
     assert "β" not in prepared
     assert "__nsf_symbol_0__" in prepared
-    assert {symbol.name for symbol in local_dict.values()} == {"beta", "lambda"}
+    assert prepared == "N_0 * exp(-__nsf_symbol_0__*t) + __nsf_symbol_1__"
+    assert local_dict["__nsf_symbol_0__"].name == "lambda"
+    assert local_dict["__nsf_symbol_1__"].name == "beta"
 
 
 def test_derivation_record_step_accepts_unicode_greek_input(tmp_path: Path) -> None:

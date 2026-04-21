@@ -135,23 +135,28 @@ _SUBSCRIPT_MAP = {
     "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
 }
 
-_GREEK_CHARS = "".join(_GREEK_TO_ASCII)
-_SUPERSCRIPT_CHARS = "".join(_SUPERSCRIPT_MAP)
+_GREEK_CHAR_SET = "".join(_GREEK_TO_ASCII)
+_SUPERSCRIPT_CHAR_SET = "".join(_SUPERSCRIPT_MAP)
 _GREEK_IDENTIFIER_RE = re.compile(
     rf"(?<![A-Za-z0-9_])"
-    rf"([A-Za-z0-9_{_GREEK_CHARS}]*"
-    rf"[{_GREEK_CHARS}]"
-    rf"[A-Za-z0-9_{_GREEK_CHARS}]*)"
+    rf"([A-Za-z0-9_{_GREEK_CHAR_SET}]*"
+    rf"[{_GREEK_CHAR_SET}]"
+    rf"[A-Za-z0-9_{_GREEK_CHAR_SET}]*)"
     rf"(?![A-Za-z0-9_])"
 )
 _UNICODE_POWER_RE = re.compile(
-    rf"(?P<base>(?:[A-Za-z0-9_{_GREEK_CHARS}_]+|\)))"
-    rf"(?P<exponent>[{_SUPERSCRIPT_CHARS}]+)"
+    rf"(?P<base>(?:[A-Za-z0-9_{_GREEK_CHAR_SET}]+|\)))"
+    rf"(?P<exponent>[{_SUPERSCRIPT_CHAR_SET}]+)"
 )
 
 
 def _transliterate_greek_identifier(identifier: str) -> str:
-    """將含希臘字母的識別字轉為 SymPy 友善名稱。"""
+    """
+    將含希臘字母的識別字轉為 SymPy 友善名稱。
+
+    會把希臘字母轉成 ASCII 名稱，並在需要時插入底線避免和相鄰字元黏在一起。
+    例如：`Nβ` → `N_beta`，`β0` → `beta0`。
+    """
     parts: list[str] = []
 
     for index, char in enumerate(identifier):
