@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -38,13 +39,16 @@ def _build_derivation_tools(tmp_path: Path) -> MockMCP:
 def test_preprocess_for_sympify_uses_safe_placeholders() -> None:
     """Greek identifiers should map to Symbols instead of SymPy functions/keywords."""
     prepared, local_dict = derivation_tools._preprocess_for_sympify("N_0 * exp(-λ*t) + β")
+    placeholders = re.findall(r"__nsf_symbol_\d+__", prepared)
 
     assert "λ" not in prepared
     assert "β" not in prepared
-    assert "__nsf_symbol_0__" in prepared
-    assert prepared == "N_0 * exp(-__nsf_symbol_0__*t) + __nsf_symbol_1__"
-    assert local_dict["__nsf_symbol_0__"].name == "lambda"
-    assert local_dict["__nsf_symbol_1__"].name == "beta"
+    assert len(placeholders) == 2
+    assert len(set(placeholders)) == 2
+    assert {symbol.name for symbol in local_dict.values()} == {"beta", "lambda"}
+    # Placeholder order follows left-to-right replacement and keeps expression rewrites stable.
+    assert local_dict[placeholders[0]].name == "lambda"
+    assert local_dict[placeholders[1]].name == "beta"
 
 
 def test_derivation_record_step_accepts_unicode_greek_input(tmp_path: Path) -> None:

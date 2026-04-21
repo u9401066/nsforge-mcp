@@ -160,6 +160,9 @@ def _transliterate_greek_identifier(identifier: str) -> str:
 
     會把希臘字母轉成 ASCII 名稱，並在需要時插入底線避免和相鄰字元黏在一起。
     例如：`Nβ` → `N_beta`，`β0` → `beta0`。
+
+    Convert identifiers containing Greek letters into SymPy-friendly ASCII names.
+    Underscores are inserted when needed so adjacent alphanumeric characters stay readable.
     """
     parts: list[str] = []
 
@@ -184,7 +187,11 @@ def _transliterate_greek_identifier(identifier: str) -> str:
 
 
 def _normalize_unicode_powers(expr_str: str) -> str:
-    """Convert superscript exponents like x² or dose⁻¹ into SymPy power syntax."""
+    """
+    Convert superscript exponents like x² or dose⁻¹ into SymPy power syntax.
+
+    將上標指數（如 x²、dose⁻¹）轉成 SymPy 可解析的冪次語法。
+    """
 
     def replace_power(match: re.Match[str]) -> str:
         exponent = "".join(_SUPERSCRIPT_MAP[char] for char in match.group("exponent"))
@@ -197,6 +204,9 @@ def _preprocess_for_sympify(expr_str: str) -> tuple[str, dict[str, Any]]:
     """
     將表達式中的 Unicode 字元（希臘字母、數學符號、上標數字）轉換為
     SymPy 能解析的安全輸入格式。
+
+    Normalize Unicode Greek letters, math symbols, and superscript/subscript digits
+    into a SymPy-safe expression string plus placeholder Symbol bindings.
 
     Example:
         "N_0 * exp(-λ*t) + β"  →  "__nsf_symbol_0__ * exp(-__nsf_symbol_1__*t) + __nsf_symbol_2__"
