@@ -137,6 +137,7 @@ _SUBSCRIPT_MAP = {
 
 _GREEK_CHAR_SET = "".join(_GREEK_TO_ASCII)
 _SUPERSCRIPT_CHAR_SET = "".join(_SUPERSCRIPT_MAP)
+# 含希臘字母的識別字：可有 ASCII 前後綴，但中間必須至少出現一個希臘字元
 _GREEK_IDENTIFIER_RE = re.compile(
     rf"(?<![A-Za-z0-9_])"
     rf"([A-Za-z0-9_{_GREEK_CHAR_SET}]*"
@@ -225,6 +226,7 @@ def _preprocess_for_sympify(expr_str: str) -> tuple[str, dict[str, Any]]:
         transliterated = _transliterate_greek_identifier(identifier)
         placeholder = f"__nsf_symbol_{placeholder_index}__"
         placeholder_index += 1
+        # 這裡保留 SymPy 預設假設，避免在未明確指定條件時加入錯誤的領域限制
         local_dict[placeholder] = sp.Symbol(transliterated)
         return placeholder
 

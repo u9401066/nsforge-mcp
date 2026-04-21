@@ -6,6 +6,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import sympy as sp
+
 from nsforge.domain.derivation_session import SessionManager
 from nsforge_mcp.tools import derivation as derivation_tools
 
@@ -65,6 +67,11 @@ def test_derivation_record_step_accepts_unicode_greek_input(tmp_path: Path) -> N
     assert result["expression"] == "N_0*exp(-lambda*t) + beta"
     assert r"\lambda" in result["latex"]
     assert r"\beta" in result["latex"]
+    session = derivation_tools._get_current_session()
+    assert session is not None
+    expected = sp.Symbol("N_0") * sp.exp(-sp.Symbol("lambda") * sp.Symbol("t")) + sp.Symbol("beta")
+    assert session.current_expression is not None
+    assert sp.simplify(session.current_expression - expected) == 0
 
 
 def test_derivation_import_from_sympy_accepts_unicode_subscripts(tmp_path: Path) -> None:
