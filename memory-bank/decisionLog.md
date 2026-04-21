@@ -18,6 +18,7 @@
 | 2026-01-21 | **v0.2.4 Production-Level 品質標準** | 完成全面品質驗證：類型安全（MyPy 0 errors）、程式碼品質（Ruff）、安全掃描（Bandit）、測試覆蓋（31/31）。確立提交 ToolUniverse PR 的準備標準：文檔完整、類型安全、測試通過。 |
 | 2026-01-21 | **ToolUniverse PR 策略** | 經分析確認 NSForge 高度適合 PR 至 ToolUniverse：(1) 互補性高：現有 700+ 工具缺符號推導能力；(2) 不重複：PK/PD 工具僅查詢資料，不推導公式；(3) 不會太重：作為 local MCP tool 獨立運作。定位為「Computational Science Tools」，強調與現有藥學工具的協同作用。 |
 | 2026-01-04 | **USolver 協作橋接** | 新增 `derivation_prepare_for_optimization()` 支援與 USolver MCP 協作。NSForge 負責推導領域修正公式，USolver 負責找最佳參數值。採用橋接工具模式：自動分類變數類型、提取參數值、生成領域約束、輸出 USolver 範本。協作帶來價值：領域智慧（藥物交互作用、體脂、年齡）+ 數學精確（Z3/OR-Tools/CVXPY/HiGHS 優化）= 可操作的最佳值。 |
+| 2026-04-21 | **Unicode 希臘字母採用 placeholder + Symbol 綁定** | 直接把 `β`/`γ` 轉成 `beta`/`gamma` 會被 SymPy 解讀為特殊函數，`λ` 轉成 `lambda` 也會撞上 Python 關鍵字。改用安全 placeholder 再綁定成 `Symbol`，可保留 LaTeX 顯示又避免解析失敗。 |
 
 ---
 

@@ -4,20 +4,27 @@
 
 ## 🎯 當前焦點
 
-**v0.2.4 Production-Level 完成，準備 ToolUniverse PR！**
+**修正推導工具的 Unicode 希臘字母輸入相容性，並同步補齊文件 / 測試。**
 
-### 品質驗證完成
-- 類型安全：41 errors → 0（標準模式）
-- 程式碼品質：Ruff + Bandit 通過
-- 測試覆蓋：31/31，Domain 100%
-- 文檔完整：ARCHITECTURE.md 完整 DDD
+### 當前工作內容
+- 修正 `derivation_record_step` / `derivation_import_from_sympy` 對 `β`, `λ`, `β₀` 等 Unicode 輸入的解析
+- 避免 SymPy 將 `beta` / `gamma` 視為特殊函數，並避開 `lambda` Python 關鍵字
+- 補上回歸測試與 README / API 文檔說明
 
 ### ToolUniverse 評估
 - ✅ **高度互補**：現有 700+ 工具主要是資料檢索，缺符號推導
 - ✅ **不會太重**：作為 local MCP tool，獨立運作
 - ✅ **適合定位**：Computational Science Tools（計算科學）
 
-## ✅ 本次完成 (2026-01-16)
+## ✅ 本次完成 (2026-04-21)
+
+### Unicode 推導輸入相容性
+
+- 新增安全 placeholder 預處理流程，把含希臘字母的識別字綁定為 `Symbol`
+- `N_0 * exp(-λ*t) + β`、`β₀ * exp(-λ*t)` 等輸入可正常進入推導記錄工具
+- 同步更新 README / FORMULA_APIS / CHANGELOG 說明
+
+## ✅ 先前完成 (2026-01-16)
 
 ### 🧪 生理學 Vd 模型推導
 

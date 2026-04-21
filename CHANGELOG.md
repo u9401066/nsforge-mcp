@@ -7,6 +7,13 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- 🧮 **Unicode 推導輸入相容性**
+  - `derivation_record_step` 與 `derivation_import_from_sympy` 現可安全解析 Unicode 希臘字母輸入（如 `β`, `λ`, `β₀`）
+  - 使用安全 placeholder + `Symbol` 綁定，避免 `beta`/`gamma` 函數與 `lambda` 關鍵字造成 `sympify` 失敗
+  - 新增 Unicode 下標與上標負號正規化回歸測試
+
 ## [0.2.4] - 2026-01-21
 
 ### Fixed

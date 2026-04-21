@@ -18,6 +18,12 @@
 - ✅ **測試覆蓋**：31/31 通過，Domain layer 100%
 - ✅ **ToolUniverse 評估**：確認適合 PR（互補性高、不重複）
 
+### Unicode 推導輸入相容性修正 (2026-04-21)
+- ✅ `derivation_record_step` / `derivation_import_from_sympy` 改用安全 placeholder + `Symbol` 綁定解析希臘字母
+- ✅ 修正 `beta`/`gamma` 函數名稱衝突與 `lambda` 關鍵字導致的 `sympify` 失敗
+- ✅ 新增回歸測試覆蓋 `β`, `λ`, `β₀`, `dose⁻¹` 類型輸入
+- ✅ README / FORMULA_APIS / CHANGELOG 同步補上 Unicode 輸入說明
+
 ### 生理學 Vd 體組成調整模型 (2026-01-16)
 - ✅ **PBPK 方法論推導**：Poulin-Theil 組織分布模型
 - ✅ **公式驗證**：9 種藥物測試（1/9 符合文獻值）
@@ -94,7 +100,7 @@
 
 ## Doing
 
-- (無進行中項目)
+- 修正推導工具的 Unicode 希臘字母輸入相容性，補上回歸測試與文件同步
 
 ## Next
 

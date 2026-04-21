@@ -768,6 +768,7 @@ derivation_record_step(expression, description, notes)
 │
 ├─ 手動記錄推導步驟
 ├─ 包含表達式、描述、備註
+├─ 支援 Unicode 希臘字母 / 數字上下標（如 β、λ、β₀、dose⁻¹）
 ├─ 用於非自動推導
 └─ 支援知識註解
 
@@ -861,6 +862,7 @@ derivation_import_from_sympy(expression, operation, sympy_tool, notes, assumptio
 │
 ├─ 從 SymPy-MCP 導入計算結果
 ├─ 記錄操作類型和工具
+├─ 自動正規化 Unicode 希臘字母 / 數字上下標輸入
 ├─ 包含假設和限制
 └─ 繼續推導
 

@@ -106,7 +106,9 @@ _GREEK_TO_ASCII = {
     "Χ": "Chi",
     "Ψ": "Psi",
     "Ω": "Omega",
-    # 常見數學符號
+}
+
+_UNICODE_MATH_SYMBOLS = {
     "∞": "oo",          # SymPy 的無窮大
     "∂": "d",           # 偏導符號（轉為 d）
     "∇": "nabla",       # Nabla 算子
@@ -125,6 +127,7 @@ _GREEK_TO_ASCII = {
 _SUPERSCRIPT_MAP = {
     "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
     "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+    "⁺": "+", "⁻": "-",
 }
 # 下標數字
 _SUBSCRIPT_MAP = {
@@ -132,17 +135,52 @@ _SUBSCRIPT_MAP = {
     "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
 }
 
+_GREEK_IDENTIFIER_RE = re.compile(
+    rf"(?<![A-Za-z0-9_])"
+    rf"([A-Za-z0-9_{''.join(_GREEK_TO_ASCII)}]*"
+    rf"[{''.join(_GREEK_TO_ASCII)}]"
+    rf"[A-Za-z0-9_{''.join(_GREEK_TO_ASCII)}]*)"
+    rf"(?![A-Za-z0-9_])"
+)
 
-def _preprocess_for_sympify(expr_str: str) -> str:
+
+def _transliterate_greek_identifier(identifier: str) -> str:
+    """將含希臘字母的識別字轉為 SymPy 友善名稱。"""
+    parts: list[str] = []
+
+    for index, char in enumerate(identifier):
+        ascii_name = _GREEK_TO_ASCII.get(char)
+        if ascii_name is None:
+            parts.append(char)
+            continue
+
+        prev_char = identifier[index - 1] if index > 0 else ""
+        next_char = identifier[index + 1] if index + 1 < len(identifier) else ""
+
+        if prev_char and prev_char.isalnum() and prev_char != "_":
+            parts.append("_")
+
+        parts.append(ascii_name)
+
+        if next_char and next_char.isalpha() and next_char != "_":
+            parts.append("_")
+
+    return "".join(parts)
+
+
+def _preprocess_for_sympify(expr_str: str) -> tuple[str, dict[str, Any]]:
     """
     將表達式中的 Unicode 字元（希臘字母、數學符號、上標數字）轉換為
-    SymPy 能解析的 ASCII 字元。
+    SymPy 能解析的安全輸入格式。
 
     Example:
-        "R = R_0 * E * exp(β * h) * V"  →  "R = R_0 * E * exp(beta * h) * V"
-        "dose⁻¹"                          →  "dose-1"
+        "N_0 * exp(-λ*t) + β"  →  "__nsf_symbol_0__ * exp(-__nsf_symbol_1__*t) + __nsf_symbol_2__"
+        "dose⁻¹"               →  "dose-1"
     """
+    import sympy as sp
+
     result = expr_str
+    local_dict: dict[str, Any] = {}
 
     # 1. 先處理上標數字（如 ⁰ → 0）
     for sup, num in _SUPERSCRIPT_MAP.items():
@@ -152,15 +190,34 @@ def _preprocess_for_sympify(expr_str: str) -> str:
     for sub, num in _SUBSCRIPT_MAP.items():
         result = result.replace(sub, num)
 
-    # 3. 處理希臘字母（只置換「游離」的單個希臘字元，避免誤換 LaTeX 指令）
-    #    規則：希臘字母必須是獨立的 token（周圍是空白或運算符）
-    for greek, ascii_name in _GREEK_TO_ASCII.items():
-        # 使用 word boundary 確保不會破坏已有的 ASCII 名稱（如 beta 中的 a）
-        # 但要注意：如果希臘字母出現在單字中間（如 cβ），也應該置換
-        # 簡單策略：替換所有獨立出現的希臘字母
-        result = result.replace(greek, ascii_name)
+    # 3. 處理常見數學符號
+    for symbol, replacement in _UNICODE_MATH_SYMBOLS.items():
+        result = result.replace(symbol, replacement)
 
-    return result
+    # 4. 將含希臘字母的識別字改寫成安全 placeholder，並在 locals 中綁定成 Symbol
+    placeholder_index = 0
+
+    def replace_identifier(match: re.Match[str]) -> str:
+        nonlocal placeholder_index
+
+        identifier = match.group(1)
+        transliterated = _transliterate_greek_identifier(identifier)
+        placeholder = f"__nsf_symbol_{placeholder_index}__"
+        placeholder_index += 1
+        local_dict[placeholder] = sp.Symbol(transliterated)
+        return placeholder
+
+    result = _GREEK_IDENTIFIER_RE.sub(replace_identifier, result)
+
+    return result, local_dict
+
+
+def _sympify_expression(expr_str: str) -> Any:
+    """將使用者輸入表達式轉為 SymPy expression。"""
+    import sympy as sp
+
+    prepared_expression, local_dict = _preprocess_for_sympify(expr_str)
+    return sp.sympify(prepared_expression, locals=local_dict)
 
 
 def register_derivation_tools(mcp: Any) -> None:
@@ -773,7 +830,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
         # 解析表達式（支援 Unicode 希臘字母、上下標）
         try:
-            expr = sp.sympify(_preprocess_for_sympify(expression))
+            expr = _sympify_expression(expression)
         except Exception as e:
             return {
                 "success": False,
@@ -1814,7 +1871,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
         # 解析表達式（支援 Unicode 希臘字母、上下標）
         try:
-            expr = sp.sympify(_preprocess_for_sympify(expression))
+            expr = _sympify_expression(expression)
         except Exception as e:
             return {
                 "success": False,

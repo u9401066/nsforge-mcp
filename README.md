@@ -390,7 +390,7 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
-NSForge provides **75 MCP tools** organized into 7 modules:
+NSForge provides **76 MCP tools** organized into 8 modules:
 
 ### 🔥 Derivation Engine (31 tools)
 
@@ -427,6 +427,8 @@ NSForge provides **75 MCP tools** organized into 7 modules:
 | `derivation_import_from_sympy` | 🆕 Import result from SymPy-MCP |
 | `derivation_handoff_status` | 🆕 Check handoff capabilities |
 | `derivation_prepare_for_optimization` | 🆕 Prepare for USolver |
+
+Derivation inputs now accept Unicode Greek letters and numeric subscripts such as `N_0 * exp(-λ*t) + β` and `β₀ * exp(-λ*t)`; NSForge normalizes them automatically before handing them to SymPy.
 
 ### ✅ Verification (6 tools)
 

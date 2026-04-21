@@ -406,6 +406,8 @@ NSForge 提供 **76 個 MCP 工具**，分為多個模組：
 | `derivation_rollback` | 🆕 ⚡ 回滾到任一步驟 |
 | `derivation_insert_note` | 🆕 在指定位置插入註記 |
 
+推導輸入現在可直接接受 Unicode 希臘字母與數字下標，例如 `N_0 * exp(-λ*t) + β` 與 `β₀ * exp(-λ*t)`；NSForge 會在交給 SymPy 前自動正規化。
+
 ### ✅ 驗證 (6 個工具)
 
 | 工具 | 用途 |
