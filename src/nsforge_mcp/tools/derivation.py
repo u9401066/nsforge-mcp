@@ -137,7 +137,10 @@ _SUBSCRIPT_MAP = {
 
 _GREEK_CHAR_SET = "".join(_GREEK_TO_ASCII)
 _SUPERSCRIPT_CHAR_SET = "".join(_SUPERSCRIPT_MAP)
-# 含希臘字母的識別字：可有 ASCII 前後綴，但中間必須至少出現一個希臘字元
+# 含希臘字母的識別字：
+# 1. 左右都不能黏著其他 ASCII 識別字字元
+# 2. 可有 ASCII 前後綴
+# 3. 中間必須至少出現一個希臘字元
 _GREEK_IDENTIFIER_RE = re.compile(
     rf"(?<![A-Za-z0-9_])"
     rf"([A-Za-z0-9_{_GREEK_CHAR_SET}]*"
@@ -169,7 +172,7 @@ def _transliterate_greek_identifier(identifier: str) -> str:
         prev_char = identifier[index - 1] if index > 0 else ""
         next_char = identifier[index + 1] if index + 1 < len(identifier) else ""
 
-        if prev_char and prev_char.isalnum() and prev_char != "_":
+        if prev_char and prev_char.isalnum():
             parts.append("_")
 
         parts.append(ascii_name)

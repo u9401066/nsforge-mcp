@@ -390,7 +390,7 @@ Agent calls NSForge:
 
 ## 🛠️ MCP Tools
 
-NSForge provides **76 MCP tools** organized as follows:
+NSForge organizes its MCP tools as follows:
 
 ### 🔥 Derivation Engine (31 tools)
 
