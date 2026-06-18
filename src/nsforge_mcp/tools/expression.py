@@ -51,17 +51,61 @@ def register_expression_tools(mcp: Any) -> None:
         )
 
         # Symbol replacements for common notations
+        # NOTE: Must keep in sync with derivation.py's _preprocess_for_sympify
+        # TODO: Centralize into domain layer (cf. SYMBOL_REPLACEMENTS in formula.py)
         replacements = {
+            # Greek letters (commonly used in pharmacokinetics & physics)
+            "α": "alpha",
+            "β": "beta",
+            "γ": "gamma",
+            "δ": "delta",
+            "ε": "epsilon",
+            "ζ": "zeta",
+            "η": "eta",
             "θ": "theta",
-            "Δ": "Delta_",
+            "ι": "iota",
+            "κ": "kappa",
+            "λ": "lambda",
+            "μ": "mu",
+            "ν": "nu",
+            "ξ": "xi",
             "π": "pi",
+            "ρ": "rho",
+            "σ": "sigma",
+            "τ": "tau",
+            "υ": "upsilon",
+            "φ": "phi",
+            "ψ": "psi",
+            "ω": "omega",
+            "Γ": "Gamma",
+            "Δ": "Delta_",
+            "Θ": "Theta",
+            "Λ": "Lambda",
+            "Ξ": "Xi",
+            "Π": "Pi",
+            "Σ": "Sigma",
+            "Φ": "Phi",
+            "Ψ": "Psi",
+            "Ω": "Omega",
+            # Math symbols
             "∞": "oo",
             "√": "sqrt",
+            # Prime / superscript notation
             "'": "_prime",
             "²": "**2",
             "³": "**3",
+            "⁴": "**4",
+            # Subscript numbers
+            "₀": "_0",
             "₁": "_1",
             "₂": "_2",
+            "₃": "_3",
+            "₄": "_4",
+            "₅": "_5",
+            "₆": "_6",
+            "₇": "_7",
+            "₈": "_8",
+            "₉": "_9",
         }
 
         # Apply replacements
