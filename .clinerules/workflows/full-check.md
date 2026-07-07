@@ -1,0 +1,22 @@
+# Full Check (NSForge)
+
+Run the verification harness — the single ground-truth gate for this repo.
+
+<execute_command>
+<command>uv run python scripts/check.py</command>
+</execute_command>
+
+This runs all gates: lint, format, type, import, manifest, test, diff.
+Exit code 0 means green; nonzero means at least one gate failed.
+
+For a machine-readable summary (agents):
+<execute_command>
+<command>uv run python scripts/check.py --json</command>
+</execute_command>
+
+To run a subset of gates:
+<execute_command>
+<command>uv run python scripts/check.py --gates lint,type,test</command>
+</execute_command>
+
+If any gate fails, stop and report the failures before proceeding.
