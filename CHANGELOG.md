@@ -54,7 +54,8 @@
 
 ### Added
 
-- 🔗 **L3 編排器接通運算核心（泛公式探討階段 1）**：`task_run` 的 derivation 階段從 `PLANNED` → 實際透過 `SymbolicEngine` 組合 base_formulas（代入鏈），回傳 `derived_expression`；`Modification` 新增 `target` 欄位支援自動代入。範例：溫度校正得 `C = C0*exp(-A*t*exp(-Ea/(R*T)))`
+- � **推導評測 gate（泛公式探討階段 2）**：`benchmarks/*.json`（4 個已知推導）+ `scripts/bench.py` 用符號相等比對推導結果與期望，已納入 `scripts/check.py` 成為 `bench` gate（harness 7→8 gate，把「程式碼綠」升級成「推導正確率」）
+- �🔗 **L3 編排器接通運算核心（泛公式探討階段 1）**：`task_run` 的 derivation 階段從 `PLANNED` → 實際透過 `SymbolicEngine` 組合 base_formulas（代入鏈），回傳 `derived_expression`；`Modification` 新增 `target` 欄位支援自動代入。範例：溫度校正得 `C = C0*exp(-A*t*exp(-Ea/(R*T)))`
 - 🤖 **Agent 自駕基座（self-driving substrate）**
   - `scripts/check.py`：單一 ground-truth 驗證 harness（lint/format/type/import/manifest/test/diff），支援 `--json` 供 agent 解析
   - `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：從 `@mcp.tool` AST 自動產生的工具能力清單

@@ -1,0 +1,15 @@
+{
+  "name": "velocity_constant_force",
+  "goal": "Velocity under a constant force (kinematics + Newton's second law).",
+  "given": {
+    "v0": "m/s - initial velocity",
+    "t": "s - time",
+    "F": "N - constant force",
+    "m": "kg - mass"
+  },
+  "unknowns": ["v"],
+  "assumptions": ["m>0", "t>=0"],
+  "base_formulas": ["v = v0 + a*t", "a = F / m"],
+  "modifications": [],
+  "expected": "v0 + F*t/m"
+}

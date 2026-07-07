@@ -1,0 +1,16 @@
+{
+  "name": "ohms_law_temperature_corrected",
+  "goal": "Voltage across a resistor whose resistance varies with temperature.",
+  "given": {
+    "I": "A - current",
+    "R0": "ohm - reference resistance",
+    "alpha": "1/K - temperature coefficient",
+    "T": "K - temperature",
+    "T0": "K - reference temperature"
+  },
+  "unknowns": ["V"],
+  "assumptions": ["I>0"],
+  "base_formulas": ["V = I*R", "R = R0*(1 + alpha*(T - T0))"],
+  "modifications": [],
+  "expected": "I*R0*(1 + alpha*(T - T0))"
+}

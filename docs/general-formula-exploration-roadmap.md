@@ -65,11 +65,11 @@ flowchart LR
 
 ## 4. 各階段細節
 
-### 階段 1 — 接通 L3 引擎
-`application/task_orchestrator.py` 的 `run()` 目前把 DERIVATION/ALGORITHM 標為 `PLANNED`。本階段讓 DERIVATION 實際透過 domain `SymbolicEngine` 執行可處理的操作（parse base_formulas → substitute 修正 → solve unknowns → simplify），每步記 provenance；無法處理者（ODE、複雜矩陣）保留 `PLANNED` 擴充點（走 handoff）。
+### 階段 1 — 接通 L3 引擎 ✅ 已實作（commit 2b5368f）
+`application/task_orchestrator.py` 的 `run()` DERIVATION 階段實際透過 domain `SymbolicEngine` 組合 base_formulas（代入鏈）→ `derived_expression`，每步記 provenance；無法處理者（ODE、複雜矩陣）保留 `PLANNED` 擴充點（走 handoff）。`Modification` 加 `target` 支援自動代入。
 
-### 階段 2 — 推導評測 gate
-`benchmarks/*.json`：一組已知推導（DTS + 期望最終算式）。`scripts/bench.py` 跑 NSForge 推導、用 `symbolic_equal` 比對期望，輸出正確率。可選擇性納入 `scripts/check.py` 成為 `bench` gate（或獨立 CI job）。題庫可借 llm-srbench。
+### 階段 2 — 推導評測 gate ✅ 已實作
+`benchmarks/*.json`（4 個已知推導：PK/力學/電路，DTS + 期望算式）+ `scripts/bench.py` 用引擎 `equals` 符號比對（順序無關）、輸出正確率。已納入 `scripts/check.py` 成為 `bench` gate → harness 從 7 gate 升級為 **8 gate**（含推導正確率）。題庫未來可借 llm-srbench。
 
 ### 階段 3 — 檢索增強（推薦器）
 索引 `formulas/`（基礎+修正庫）。`derivation_suggest_next(goal, current_expr)` 依相似度/型別/維度排序候選「下一步工具、可套修正、可引用公式」。直接解 `docs/cognitive-load-solution.md` 的「AI 不知該套哪個修正」。對應 ROADMAP.md 已規劃的「推導建議器」。
@@ -90,9 +90,9 @@ L3 每步後跑 verify gate（維度/邊界/極限/等價）；失敗 → `deriv
 
 ## 5. 建議施工順序
 
-1. **階段 1（接通 L3 引擎）** — 把骨架變成「真的會跑」，是探索迴圈的地基。
-2. **階段 2（評測 gate）** — 有東西跑之後立刻建立「推導正確率」度量，讓後續自主探索有信任基礎。
-3. **階段 3–4（檢索 + 自我修正）** — 輔助 agent 自主化，讓迴圈閉環。
+1. ✅ **階段 1（接通 L3 引擎）** — 骨架變成「真的會跑」，探索迴圈的地基。
+2. ✅ **階段 2（評測 gate）** — 「推導正確率」度量已成 `bench` gate，後續自主探索有信任基礎。
+3. **階段 3–4（檢索 + 自我修正）** ← 下一步 — 輔助 agent 自主化，讓迴圈閉環。
 4. **階段 5（provenance 強制）** — 北極星落地。
 5. **階段 6（explore mode）** — 泛探索完全體。
 6. **階段 7（Lean4）** — 長期選項。

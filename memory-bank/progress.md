@@ -1,7 +1,10 @@
 # Progress (Updated: 2026-07-07)
 
 ## Done
-
+### 📊 階段 2：推導評測 gate (2026-07-07)
+- ✅ `benchmarks/*.json`（4 個已知推導：PK/力學/電路）+ `scripts/bench.py`：用引擎 `equals` 符號比對推導結果與期望（順序無關）
+- ✅ 納入 `scripts/check.py` 成為 `bench` gate → harness 7→8 gate，「程式碼綠」升級成「推導正確率」；4/4 推導正確
+- ✅ AGENTS.md/.clinerules 的 gate 清單同步加 bench
 ### � 階段 1：接通 L3 引擎 (2026-07-07)
 - ✅ `task_run` 的 derivation 階段實際執行：`SymbolicEngine` 組合 base_formulas（代入鏈）→ `derived_expression`
 - ✅ `Modification` 加 `target` 欄位（自動代入）；端到端驗證溫度校正得 `C = C0*exp(-A*t*exp(-Ea/(R*T)))`

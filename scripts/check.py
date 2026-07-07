@@ -49,11 +49,12 @@ GATES: dict[str, list[str]] = {
     "import": ["python", "-c", "import nsforge_mcp.server; print('server import ok')"],
     "manifest": ["python", "scripts/gen_capabilities.py", "--check"],
     "test": ["pytest", "-q"],
+    "bench": ["python", "scripts/bench.py"],
     "diff": ["git", "diff", "--check"],
 }
 
 # Order chosen so cheap/fast gates fail first.
-DEFAULT_ORDER = ["lint", "format", "type", "import", "manifest", "test", "diff"]
+DEFAULT_ORDER = ["lint", "format", "type", "import", "manifest", "test", "bench", "diff"]
 
 
 def run_gate(name: str) -> dict:

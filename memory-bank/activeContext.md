@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**泛公式探討路線圖 — 階段 1（接通 L3 引擎）完成。** L3 編排器的 derivation 階段從 `PLANNED` 變成實際透過 `SymbolicEngine` 組合 base_formulas 並產出 `derived_expression`（端到端驗證溫度校正公式）。順帶修 C0→C*0 解析 bug、釘 mcp `<2`。harness 維持 7/7、87 工具。藍圖見 `docs/general-formula-exploration-roadmap.md`。
+**泛公式探討路線圖 — 階段 2（推導評測 gate）完成。** `benchmarks/*.json`（4 個已知推導）+ `scripts/bench.py` 用符號相等比對推導結果，已納入 `scripts/check.py` 成為 `bench` gate——harness 從 7 升級為 **8 gate**，把「程式碼綠」升級成「推導正確率」。這正好防止階段 1 揪出的那種「期望值也塔成 0 的假通過」。下一步：階段 3（檢索增強推薦器）。藍圖見 `docs/general-formula-exploration-roadmap.md`。
 
 ## ✅ 本次完成 (2026-07-07)
 

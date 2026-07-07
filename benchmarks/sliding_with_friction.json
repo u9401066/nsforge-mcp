@@ -1,0 +1,22 @@
+{
+  "name": "sliding_with_friction",
+  "goal": "Acceleration of a sliding block, with kinetic friction as a modification.",
+  "given": {
+    "F": "N - applied force",
+    "m": "kg - mass",
+    "mu": "dimensionless - kinetic friction coefficient",
+    "Fn": "N - normal force"
+  },
+  "unknowns": ["a"],
+  "assumptions": ["m>0"],
+  "base_formulas": ["a = F / m"],
+  "modifications": [
+    {
+      "id": "kinetic_friction",
+      "description": "subtract the friction force from the applied force",
+      "expression": "F - mu*Fn",
+      "target": "F"
+    }
+  ],
+  "expected": "(F - mu*Fn)/m"
+}
