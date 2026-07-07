@@ -1,0 +1,8 @@
+{
+  "name": "distance_solve_for_time",
+  "goal": "solve d = v*t for elapsed time",
+  "given": {"d": "distance (m)", "v": "speed (m/s)"},
+  "unknowns": ["t"],
+  "base_formulas": ["d = v*t"],
+  "expected": "d/v"
+}

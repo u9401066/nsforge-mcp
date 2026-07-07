@@ -60,15 +60,16 @@ def register_task_tools(mcp: Any) -> None:
         Run the DTS through the reification ladder.
 
         Concept (validation), symbol (registry), and derivation (composing base
-        formulas via substitution on the SymPy engine) rungs execute
-        deterministically; the algorithm rung is returned as a provenance-tagged
-        plan. The composed formula is returned in "derived_expression".
+        formulas via substitution + solving on the SymPy engine) rungs execute
+        deterministically; when a derivation is produced, the algorithm rung
+        reifies it into a Python function. The composed formula is returned in
+        "derived_expression" and the code in "generated_code".
 
         Args:
             spec: A DTS dict (see task_plan).
 
         Returns:
-            {"success": bool, "spec": str, "derived_expression": str, "phases": [...]}.
+            {"success", "spec", "derived_expression", "generated_code", "phases"}.
         """
         try:
             dts = DerivationTaskSpec.from_dict(spec)
@@ -80,6 +81,7 @@ def register_task_tools(mcp: Any) -> None:
             "success": result.ok,
             "spec": result.spec_name,
             "derived_expression": result.derived_expression,
+            "generated_code": result.generated_code,
             "phases": [
                 {
                     "phase": phase.phase.value,

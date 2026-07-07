@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from nsforge.domain.codegen import render_python_function
 from nsforge.domain.services import SymbolicEngine
 from nsforge.domain.task_spec import DerivationTaskSpec
 from nsforge.domain.value_objects import MathContext
@@ -93,6 +94,7 @@ class TaskRunResult:
     ok: bool
     phases: list[PhaseResult] = field(default_factory=list)
     derived_expression: str = ""  # set when the DERIVATION rung executes on an engine
+    generated_code: str = ""  # set when the ALGORITHM rung reifies code
 
     @property
     def plan(self) -> list[PlannedStep]:
@@ -228,19 +230,28 @@ class TaskOrchestrator:
                 )
             )
 
-        # ALGORITHM: reified into a plan.
-        algo_steps = [s for s in plan if s.phase is LadderPhase.ALGORITHM]
-        phases.append(
-            PhaseResult(
-                LadderPhase.ALGORITHM,
-                PhaseStatus.PLANNED,
-                "pseudocode -> code (needs the verified derivation)",
-                algo_steps,
+        # ALGORITHM: reify the verified derivation into code when we have one.
+        generated_code = ""
+        if derived_expression and self.engine is not None:
+            algo_result, generated_code = self._execute_algorithm(derived_expression)
+            phases.append(algo_result)
+        else:
+            algo_steps = [s for s in plan if s.phase is LadderPhase.ALGORITHM]
+            phases.append(
+                PhaseResult(
+                    LadderPhase.ALGORITHM,
+                    PhaseStatus.PLANNED,
+                    "pseudocode -> code (needs the verified derivation)",
+                    algo_steps,
+                )
             )
-        )
 
         return TaskRunResult(
-            self.spec.name, ok=True, phases=phases, derived_expression=derived_expression
+            self.spec.name,
+            ok=True,
+            phases=phases,
+            derived_expression=derived_expression,
+            generated_code=generated_code,
         )
 
     def _execute_derivation(self) -> tuple[PhaseResult, str]:
@@ -321,9 +332,27 @@ class TaskOrchestrator:
                 )
                 working = substituted
 
+        # solve_for: if the primary unknown isn't already the LHS, isolate it by
+        # solving the composed equation (working = target_lhs) for the unknown.
+        primary = self.spec.unknowns[0] if self.spec.unknowns else ""
+        if primary and primary != target_lhs:
+            equation = engine.parse(f"({working.raw}) - ({target_lhs})", context)
+            solutions = engine.solve(equation, primary, context) if equation.is_valid else []
+            if solutions:
+                working = solutions[0]
+                steps.append(
+                    PlannedStep(
+                        LadderPhase.DERIVATION,
+                        "engine.solve",
+                        f"solve {target_lhs} = ... for {primary}",
+                        {"target": primary},
+                    )
+                )
+                target_lhs = primary
+
         working = engine.simplify(working)
         derived = f"{target_lhs} = {working.raw}"
-        detail = f"executed: {derived}  ({len(steps)} substitution step(s))"
+        detail = f"executed: {derived}  ({len(steps)} step(s))"
         return (PhaseResult(LadderPhase.DERIVATION, PhaseStatus.OK, detail, steps), derived)
 
     def _symbol_context(self) -> MathContext:
@@ -341,3 +370,50 @@ class TaskOrchestrator:
                     names.add(token)
         assumptions: dict[str, dict[str, bool]] = {name: {} for name in names}
         return MathContext(assumptions=assumptions)
+
+    def _execute_algorithm(self, derived: str) -> tuple[PhaseResult, str]:
+        """Reify the verified derivation into an executable Python function.
+
+        The ALGORITHM rung: assemble the derived expression into provenance-tagged
+        code via the domain code renderer (no hand-writing). Returns
+        (phase_result, generated_code).
+        """
+        engine = self.engine
+        assert engine is not None  # guarded by caller
+
+        context = self._symbol_context()
+        lhs, _, rhs = derived.partition("=")
+        lhs, rhs = lhs.strip(), rhs.strip()
+
+        expr = engine.parse(rhs, context)
+        rhs_syms = {str(s) for s in expr.sympy_expr.free_symbols} if expr.is_valid else set()
+
+        parameters: list[dict[str, str]] = [
+            {"name": name, "type": "float", "description": str(self.spec.given.get(name, ""))}
+            for name in sorted(self.spec.given)
+            if name in rhs_syms
+        ]
+        for name in sorted(rhs_syms - set(self.spec.given)):
+            parameters.append({"name": name, "type": "float", "description": ""})
+
+        steps: list[dict[str, str]] = [
+            {
+                "description": self.spec.goal or f"compute {lhs}",
+                "expression": rhs,
+                "result_var": lhs,
+            }
+        ]
+        func_name = re.sub(r"\W+", "_", self.spec.name).strip("_").lower() or "derived_function"
+        code = render_python_function(
+            func_name, self.spec.goal or self.spec.name, parameters, steps, [lhs]
+        )
+        step = PlannedStep(
+            LadderPhase.ALGORITHM,
+            "generate_python_function",
+            "reify the verified derivation into provenance-bound code",
+            {"function": func_name},
+        )
+        return (
+            PhaseResult(LadderPhase.ALGORITHM, PhaseStatus.OK, f"generated {func_name}()", [step]),
+            code,
+        )
