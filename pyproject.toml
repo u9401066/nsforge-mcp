@@ -30,9 +30,11 @@ classifiers = [
 
 dependencies = [
     # Core symbolic computation
-    "sympy>=1.13",
-    # MCP SDK with FastMCP
-    "mcp>=1.0.0",
+    "sympy>=1.14",
+    # MCP SDK with FastMCP. Pin <2: v2.0 (target 2026-07-28) is a breaking
+    # rewrite that renames FastMCP -> MCPServer. Stay on the 1.x line until
+    # we migrate the server (see docs / decisionLog).
+    "mcp>=1.25,<2",
     # Data validation
     "pydantic>=2.0",
     # YAML parsing for DSL

@@ -21,6 +21,7 @@
 | 2026-07-07 | **實體化階梯方向收斂（提案）** | 把用戶命題「概念→實體」收斂為一座階梯（概念→算式→推導→pseudocode→code）＋一句北極星判準（每個結果都要有工具產生的 provenance）。四項決策：(A) NSForge 吸收 sympy-mcp 為純計算後端、單一真相來源；(B) Concept 成為一等公民物件；(C) pseudocode 補成明確一階；(D) provenance ledger 結構化信任邊界。去風險路線圖 P0–P5，大改（引擎收斂）留最後漸進做。詳見 `docs/reification-ladder-direction.md`。**注意**：用戶暫離線、授權自主拍板，屬提案版本，待人類 ratify。 |
 | 2026-07-07 | **Agent 自駕基座 L0+L1** | 發現 agent harness 繼承自 asset-aware-mcp（`full-check` 指向不存在路徑）、`.github/workflows` 無 CI → agent 無法取得可信 pass/fail。建立 `scripts/check.py`（單一 ground-truth harness）、`scripts/gen_capabilities.py`＋`docs/agent/capabilities.json`（76 工具自描述）、`.github/workflows/ci.yml`。6/7 gate 轉綠，揪出 41 個 mypy strict 型別債。原則：YOLO 安全度 = f(正確性可判定, 失敗可逆, 影響半徑有界)，先架安全網再揮棒。 |
 | 2026-07-07 | **YOLO 三任務執行** | 安全網就位後 YOLO 三項並每步對 harness 驗證：(1) 修完 41 個 mypy strict 型別債（含 formula.py 過濾 None 的真 bug）→ 7/7 全綠；(2) 清除 agent harness 的 asset-aware-mcp 污染（刪 7 純污染檔、重寫 5 核心 AGENTS.md/.clinerules 為 NSForge 專屬）；(3) 建 L2 DTS（domain/task_spec.py 宣告式推導任務規格）+ L3 編排器骨架（application/task_orchestrator.py：把 DTS 實體化為帶 provenance 的工具調用計畫）+ MCP task_plan/task_run + 測試 + 範例 JSON。工具 76→78。 |
+| 2026-07-07 | **釘 MCP SDK `<2`、延後 v2 遷移** | MCP Python SDK v2.0（目標 2026-07-28）是破壞性重寫（`FastMCP`→`MCPServer`、核心改 dispatcher、snake_case、嚴格驗證），官方明確建議依賴方加 `<2` 上限。NSForge 僅用 `FastMCP` + `mcp.run()`（無 WebSocket/tasks 等已棄用 API），故 v2 遷移實際只需改 2 行；但當務之急是釘 `mcp>=1.25,<2` 避免 v2 一發布即自動升級爆掉。sympy 已是最新穩定 1.14.0，底線提到 `>=1.14`。v2 遷移（含 structured output / elicitation 多輪工具調用）列為未來設計升級。 |
 
 ---
 

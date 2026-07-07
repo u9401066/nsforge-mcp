@@ -73,6 +73,7 @@
 
 - 🧹 agent harness 去除 asset-aware-mcp 污染：`AGENTS.md`、`.clinerules/*` 改為 NSForge 專屬，驗證統一走 `scripts/check.py`
 - 📈 工具總數 76 → 87（含 9 個 music 工具；生態系 108 → 119）
+- 📌 依賴上限：`mcp>=1.0.0` → `mcp>=1.25,<2`（MCP SDK v2.0 即將發布且為破壞性重寫：`FastMCP`→`MCPServer`，先釘 `<2` 避免 `uv sync` 自動拉到 v2 而爆掉）；`sympy>=1.13` → `sympy>=1.14`（對齊已測試、最新穩定版）
 
 ### Added
 
