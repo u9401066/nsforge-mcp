@@ -98,9 +98,12 @@ class Verifier(ABC):
 
     @abstractmethod
     def check_dimensions(
-        self, expr: Expression, expected_dimension: str | None = None
+        self,
+        expr: Expression,
+        units: dict[str, str],
+        expected_units: str | None = None,
     ) -> VerificationResult:
-        """Check dimensional consistency."""
+        """Check dimensional consistency given each symbol's unit."""
         ...
 
 

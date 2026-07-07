@@ -9,6 +9,7 @@ import sympy as sp
 from nsforge.domain.entities import Derivation, Expression
 from nsforge.domain.services import Verifier
 from nsforge.domain.value_objects import MathContext, VerificationResult, VerificationStatus
+from nsforge.infrastructure.dimensional import dimension_of, dimensions_match
 
 
 class BasicVerifier(Verifier):
@@ -80,20 +81,34 @@ class BasicVerifier(Verifier):
 
     def check_dimensions(
         self,
-        expr: Expression,  # noqa: ARG002 - not yet implemented
-        expected_dimension: str | None = None,  # noqa: ARG002 - not yet implemented
+        expr: Expression,
+        units: dict[str, str],
+        expected_units: str | None = None,
     ) -> VerificationResult:
-        """
-        Check dimensional consistency.
+        """Check dimensional consistency via ``sympy.physics.units``."""
+        if expected_units is not None:
+            match, detail = dimensions_match(expr.raw, units, expected_units)
+            if match is None:
+                return VerificationResult(status=VerificationStatus.ERROR, message=detail)
+            status = VerificationStatus.VERIFIED if match else VerificationStatus.FAILED
+            return VerificationResult(
+                status=status,
+                message=f"dimension {'matches' if match else 'mismatch'}: {detail}",
+                dimension_check=match,
+            )
 
-        Note: Full dimensional analysis requires unit tracking,
-        which is not yet implemented.
-        """
-        # Placeholder - would need unit system integration
+        dim, error = dimension_of(expr.raw, units)
+        if error or dim is None:
+            return VerificationResult(
+                status=VerificationStatus.ERROR,
+                message=f"dimensional analysis failed: {error}",
+                dimension_check=None,
+            )
         return VerificationResult(
-            status=VerificationStatus.INCONCLUSIVE,
-            message="Dimensional analysis not yet implemented",
-            dimension_check=None,
+            status=VerificationStatus.VERIFIED,
+            message=f"dimension: {dim}",
+            dimension_check=True,
+            details={"dimension": dim},
         )
 
     def _verify_simplification(

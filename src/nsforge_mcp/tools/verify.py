@@ -240,60 +240,17 @@ def register_verify_tools(mcp: Any) -> None:
             check_dimensions("m*a", {"m": "kg", "a": "m/s**2"})
             → dimension: [mass]*[length]/[time]**2 (Force)
         """
-        from sympy.physics import units as u
-        from sympy.physics.units.systems import SI
+        from nsforge.infrastructure.dimensional import dimension_of
 
-        expr, error = _parse_safe(expression)
+        dim_str, error = dimension_of(expression, units_map)
         if error:
             return {"success": False, "error": error}
-
-        try:
-            # Map unit strings to sympy units
-            unit_mapping = {
-                "m": u.meter,
-                "kg": u.kilogram,
-                "s": u.second,
-                "N": u.newton,
-                "J": u.joule,
-                "W": u.watt,
-                "Pa": u.pascal,
-                "K": u.kelvin,
-                "A": u.ampere,
-                "V": u.volt,
-                "Hz": u.hertz,
-                "rad": u.radian,
-            }
-
-            # Build substitution with units
-            subs = {}
-            for sym_name, unit_str in units_map.items():
-                sym = sp.Symbol(sym_name)
-                # Parse unit expression
-                unit_expr = parse_expr(
-                    unit_str,
-                    local_dict=unit_mapping,
-                    transformations=TRANSFORMATIONS,
-                )
-                subs[sym] = unit_expr
-
-            # Substitute units
-            expr_with_units = expr.subs(subs)
-
-            # Get dimension
-            try:
-                dim = SI.get_dimensional_expr(expr_with_units)
-                dim_str = str(dim)
-            except Exception:
-                dim_str = str(expr_with_units)
-
-            return {
-                "success": True,
-                "expression": expression,
-                "dimension": dim_str,
-                "units_applied": units_map,
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return {
+            "success": True,
+            "expression": expression,
+            "dimension": dim_str,
+            "units_applied": units_map,
+        }
 
     @mcp.tool()
     def reverse_verify(
