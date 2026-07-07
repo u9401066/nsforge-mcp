@@ -47,14 +47,14 @@ NSForge works WITH other MCP servers, not against them:
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    MCP Scientific Computing Ecosystem                       │
-│                         🔢 108 Tools Total 🔢                               │
+│                         🔢 110 Tools Total 🔢                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  sympy-mcp (32 tools)                                                       │
 │  └── Base formulas: F=ma, PV=nRT, Arrhenius...                             │
 │  └── Physical constants: c, G, h, R... (SciPy CODATA)                      │
 │  └── Symbolic computation engine (ODE, PDE, matrices)                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  nsforge-mcp (76 tools) ← YOU ARE HERE                                      │
+│  nsforge-mcp (78 tools) ← YOU ARE HERE                                      │
 │  └── 🔨 Derivation framework: compose, verify, generate code               │
 │  └── 📁 Derivation repository: store CREATED formulas with provenance      │
 │  └── ✅ Verification layer: dimensional analysis, reverse verification     │
@@ -97,6 +97,8 @@ NSForge provides features **not available in SymPy-MCP** by directly leveraging 
 | **Integral Transforms** | `sympy.laplace_transform/fourier_transform` | ODE solving, frequency analysis | ✅ v0.2.4 |
 | **Derivation Workflow** | NSForge exclusive | Step tracking, provenance | ✅ Available |
 | **Verification Suite** | NSForge exclusive | Dimension analysis | ✅ Available |
+| **Task Spec + Orchestrator** | NSForge exclusive | Declarative large-derivation tasks (L2/L3) | ✅ New |
+| **Agent Substrate** | NSForge exclusive | Verification harness, CI, capability manifest | ✅ New |
 
 > 📖 **Details**: See [NSForge vs SymPy-MCP Comparison](docs/nsforge-vs-sympy-mcp.md) for complete analysis.
 
@@ -566,7 +568,7 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions (76 tools)
+│       └── tools/             #   - MCP tool definitions (78 tools)
 │           ├── derivation.py  #     - 🔥 Derivation engine (31 tools)
 │           ├── calculate.py   #     - 🔢 Calculation (12 tools)
 │           ├── simplify.py    #     - 🆕 Advanced algebra (10+4 tools)

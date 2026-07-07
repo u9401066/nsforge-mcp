@@ -9,6 +9,28 @@
 
 ### Added
 
+- 🤖 **Agent 自駕基座（self-driving substrate）**
+  - `scripts/check.py`：單一 ground-truth 驗證 harness（lint/format/type/import/manifest/test/diff），支援 `--json` 供 agent 解析
+  - `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：從 `@mcp.tool` AST 自動產生的 78 工具能力清單
+  - `.github/workflows/ci.yml`：CI 驗證流程
+  - `docs/reification-ladder-direction.md`：實體化階梯方向文件
+- 🆕 **L2 宣告式推導任務規格 + L3 編排器**（2 個新 MCP 工具 `task_plan` / `task_run`）
+  - `src/nsforge/domain/task_spec.py`（`DerivationTaskSpec`）、`src/nsforge/application/task_orchestrator.py`
+  - 把大型推導任務實體化為帶 provenance 的工具調用計畫（symbol → derivation → algorithm）
+  - 範例：`tasks/examples/temperature_corrected_elimination.json`
+
+### Fixed
+
+- 🔧 修復 41 個 mypy strict 型別錯誤（adapters、formula/simplify/derivation tools、sympy_engine）
+  - 含 `formula.py` 過濾 `FormulaInfo | None` 的真實 bug
+
+### Changed
+
+- 🧹 agent harness 去除 asset-aware-mcp 污染：`AGENTS.md`、`.clinerules/*` 改為 NSForge 專屬，驗證統一走 `scripts/check.py`
+- 📈 工具總數 76 → 78（生態系 108 → 110）
+
+### Added
+
 - 🆕 **Phase 2 - 積分變換工具** (4 個新 MCP 工具)
   - **P2 Laplace 變換** (2 個，🔥🔥 高優先度)：
     - `laplace_transform_expression` - Laplace 變換 exp(-k*t) → 1/(s+k)

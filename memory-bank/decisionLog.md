@@ -14,8 +14,46 @@
 | 2026-01-02 | **步進式推導哲學** | 人類推導是一步一步的，每步都可加入新元素變成新公式。不應該一步求解！這是我們與純符號系統最大的不同。 |
 | 2026-01-02 | 新增橋接工具 | `derivation_record_step` + `derivation_add_note` 讓人類知識可以在推導過程中隨時注入 |
 | 2026-01-02 | **強化 NSForge 推導工具** | 5 個推導工具（substitute, simplify, solve_for, differentiate, integrate）直接支援 notes/assumptions/limitations 參數，每步計算都帶知識記錄 |
-| 2026-01-02 | **Handoff 機制** | 新增 `derivation_export_for_sympy` + `derivation_import_from_sympy` + `derivation_handoff_status`，實現 NSForge ↔ SymPy-MCP 無縫轉換。當 NSForge 無法處理（ODE, 矩陣, 極限等）時自動轉給 SymPy-MCP，完成後再導入回來繼續步進式推導。 |
+| 2026-01-02 | **Handoff 機制** | 新增 `derivation_export_for_sympy` + `derivation_import_from_sympy` + `derivation_handoff_status`，實現 NSForge ↔ SymPy-MCP 無縫轉換。當 NSForge 無法處理（ODE, 矩陣等）時可轉給 SymPy-MCP，完成後再導入回來繼續步進式推導。**注意**：SymPy-MCP 是獨立的 MCP 伺服器，需用戶在客戶端配置，非 NSForge 依賴。 |
 | 2026-01-04 | **USolver 協作橋接** | 新增 `derivation_prepare_for_optimization()` 支援與 USolver MCP 協作。NSForge 負責推導領域修正公式，USolver 負責找最佳參數值。採用橋接工具模式：自動分類變數類型、提取參數值、生成領域約束、輸出 USolver 範本。協作帶來價值：領域智慧（藥物交互作用、體脂、年齡）+ 數學精確（Z3/OR-Tools/CVXPY/HiGHS 優化）= 可操作的最佳值。 |
+| 2026-07-07 | **實體化階梯方向收斂（提案）** | 把用戶命題「概念→實體」收斂為一座階梯（概念→算式→推導→pseudocode→code）＋一句北極星判準（每個結果都要有工具產生的 provenance）。四項決策：(A) NSForge 吸收 sympy-mcp 為純計算後端、單一真相來源；(B) Concept 成為一等公民物件；(C) pseudocode 補成明確一階；(D) provenance ledger 結構化信任邊界。去風險路線圖 P0–P5，大改（引擎收斂）留最後漸進做。詳見 `docs/reification-ladder-direction.md`。**注意**：用戶暫離線、授權自主拍板，屬提案版本，待人類 ratify。 |
+| 2026-07-07 | **Agent 自駕基座 L0+L1** | 發現 agent harness 繼承自 asset-aware-mcp（`full-check` 指向不存在路徑）、`.github/workflows` 無 CI → agent 無法取得可信 pass/fail。建立 `scripts/check.py`（單一 ground-truth harness）、`scripts/gen_capabilities.py`＋`docs/agent/capabilities.json`（76 工具自描述）、`.github/workflows/ci.yml`。6/7 gate 轉綠，揪出 41 個 mypy strict 型別債。原則：YOLO 安全度 = f(正確性可判定, 失敗可逆, 影響半徑有界)，先架安全網再揮棒。 |
+| 2026-07-07 | **YOLO 三任務執行** | 安全網就位後 YOLO 三項並每步對 harness 驗證：(1) 修完 41 個 mypy strict 型別債（含 formula.py 過濾 None 的真 bug）→ 7/7 全綠；(2) 清除 agent harness 的 asset-aware-mcp 污染（刪 7 純污染檔、重寫 5 核心 AGENTS.md/.clinerules 為 NSForge 專屬）；(3) 建 L2 DTS（domain/task_spec.py 宣告式推導任務規格）+ L3 編排器骨架（application/task_orchestrator.py：把 DTS 實體化為帶 provenance 的工具調用計畫）+ MCP task_plan/task_run + 測試 + 範例 JSON。工具 76→78。 |
+
+---
+
+## [2026-07-07] 實體化階梯：方向收斂（提案，待 ratify）
+
+### 核心命題
+> **「人與 AI 只在概念層對話；所有機械性、決定性的步驟都下放給工具『實體化』。」**
+
+用戶要讓**公式推導、算式實體化、pseudocode** 都能從概念變成具體呈現，藉此**減少 AI 徒手推導**（會幻覺、不可重現），把機械步驟工具化。
+
+### 北極星判準
+> 凡是出現在最終結果裡的符號 / 等式 / 數值 / 程式碼，都必須有一次工具調用作為它的「出生證明」(provenance)。AI 不得徒手生出任何一個。
+
+→ 成功 = AI 徒手算的東西趨近於零。
+
+### 四個決策（ADR）
+
+| 決策 | 內容 | 取捨 |
+|------|------|------|
+| **A 唯一真相來源** | NSForge session 吸收 sympy-mcp 為純計算後端 | 不做 big-bang；先蓋唯讀檢視器，再漸進內部化 handoff（P5 最後做） |
+| **B 概念一等公民** | 新增結構化 `Concept` 物件，可向下漸進 reify | 只結構化到「能列出＋能承接修正建議器」為止，避免走回被否決的完整模板老路 |
+| **C Pseudocode 階梯** | `generate_python_function` 前插入 `generate_pseudocode` 檢查點 | 給人一個「邏輯層」把關點 |
+| **D 信任邊界結構化** | Provenance ledger；codegen/complete 拒絕無出生證明的實體 | 先警告＋覆蓋率報告過渡，再切硬性拒絕 |
+
+### 診斷的四個斷點
+1. 概念層隱形（只是 session 字串標籤）
+2. 實體被 NSForge session 與 sympy-mcp state 瓜分，handoff 有損
+3. pseudocode 階被跳過（直接 concept→Python）
+4. 信任邊界只是軟約定（instruction 勸導，非結構強制）
+
+### 順帶修正
+`projectBrief.md` / `productContext.md` 到 2026-07 仍是通用模板內容（描述「AI 輔助開發專案模板」而非 NSForge）→ 本次一併校正為 NSForge 正典。
+
+### 路線圖
+P0 正典對齊（本次）→ P1 實體檢視器（唯讀，先兌現「列出實體」）→ P2 provenance ledger → P3 Concept 層 → P4 pseudocode 階梯 → P5 引擎收斂（最高風險，最後漸進做）。
 
 ---
 

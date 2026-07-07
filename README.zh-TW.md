@@ -92,8 +92,8 @@ NSForge 直接調用 SymPy 模組，提供 **SymPy-MCP 沒有的功能**：
 | **不等式求解** | `sympy.solvers.inequalities` | 治療窗口計算 | ✅ v0.2.1 |
 | **假設查詢** | `sympy.assumptions` | 自動驗證約束 | ✅ v0.2.1 |
 | **推導工作流** | NSForge 獨有 | 步驟追蹤、溯源 | ✅ 可用 |
-| **驗證套件** | NSForge 獨有 | 維度分析 | ✅ 可用 |
-
+| **驗證套件** | NSForge 獨有 | 維度分析 | ✅ 可用 || **宣告式任務規格 + 編排器** | NSForge 獨有 | 大型推導任務（L2/L3） | ✅ 新增 |
+| **Agent 自駕基座** | NSForge 獨有 | 驗證 harness、CI、能力清單 | ✅ 新增 |
 > 📖 **詳細說明**：參見 [NSForge vs SymPy-MCP 功能比較](docs/nsforge-vs-sympy-mcp.md)。
 
 ---

@@ -4,9 +4,35 @@
 
 ## 🎯 當前焦點
 
-**v0.2.4 derivation_show() 工具 + Skill 文檔大更新！** 確保 Agent 每次操作後都向用戶展示公式。
+**安全網就位後的 YOLO 三任務完成。** 基座（L0 harness+CI／L1 manifest）讓每步都能對綠色基線驗證，於是安全 YOLO：修型別債、清 harness 污染、建 L2/L3。harness 維持 7/7 全綠、7→**78 工具**。詳見 `docs/reification-ladder-direction.md`。
 
-## ✅ 本次完成 (2026-01-05)
+## ✅ 本次完成 (2026-07-07)
+
+### 🚀 YOLO 三任務（安全網保護下）
+
+- **Task 1**：修完 41 個 mypy strict 型別債（含 formula.py 過濾 None 的真 bug）→ type gate 由紅轉綠，harness 7/7
+- **Task 2**：清除 agent harness 的 asset-aware-mcp 污染 — 刪 7 純污染檔、重寫 5 核心（AGENTS.md、.clinerules/{00-project,10-python,40-release}、workflows/full-check）為 NSForge 專屬
+- **Task 3**：L2 `domain/task_spec.py`（DTS 宣告式規格）+ L3 `application/task_orchestrator.py`（把 DTS 實體化為帶 provenance 的工具調用計畫）+ `tools/task.py`（task_plan/task_run）+ 5 測試 + 範例 JSON；端到端跑出 15 步計畫；工具 76→78
+
+### 🛠️ Agent 自駕基座 L0+L1
+
+- **診斷**：agent harness（`AGENTS.md`/`.clinerules`/`full-check.md`）繼承自 asset-aware-mcp，指向不存在路徑（`scripts/`、`vscode-extension/`、`src/presentation/`）；`.github/workflows` 無 CI → agent 無法取得可信 pass/fail
+- `scripts/check.py`：單一 ground-truth 驗證 harness（lint/format/type/import/manifest/test/diff，支援 `--json` 供 agent 解析）
+- `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：從 `@mcp.tool` AST 自動產生 76 工具自描述清單
+- `.github/workflows/ci.yml`：補上缺失的 CI
+- 基線：6/7 gate 轉綠；`type`（41 個 mypy strict 錯誤）列為基座揪出的第一個可驗證翻新任務
+- 待辦：修 `AGENTS.md`/`.clinerules` 的專案污染、L2 DTS + L3 編排器
+
+### 🧭 方向文件 + 正典對齊
+
+- 新增 `docs/reification-ladder-direction.md`：實體化階梯、北極星判準、四斷點診斷、四決策（ADR）、去風險路線圖 P0–P5
+- `decisionLog.md`：記錄 2026-07-07 方向決策（提案，待人類 ratify）
+- `projectBrief.md` / `productContext.md`：從通用模板校正為 NSForge 正典
+- 四決策：(A) 單一真相來源、(B) Concept 一等公民、(C) pseudocode 補階、(D) provenance ledger
+
+> ⚠️ 用戶暫離線授權自主拍板 → 屬提案版本，待 ratify。下一步建議從 P1「實體檢視器」（唯讀、低風險）著手。
+
+## ✅ 上次完成 (2026-01-05)
 
 ### 🆕 derivation_show() 工具
 
