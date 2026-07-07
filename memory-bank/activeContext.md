@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**泛公式探討路線圖 — 階段 2（推導評測 gate）完成。** `benchmarks/*.json`（4 個已知推導）+ `scripts/bench.py` 用符號相等比對推導結果，已納入 `scripts/check.py` 成為 `bench` gate——harness 從 7 升級為 **8 gate**，把「程式碼綠」升級成「推導正確率」。這正好防止階段 1 揪出的那種「期望值也塔成 0 的假通過」。下一步：階段 3（檢索增強推薦器）。藍圖見 `docs/general-formula-exploration-roadmap.md`。
+**泛公式探討路線圖 — 階段 2（推導評測 gate）+ 通用性 gate 完成。** `scripts/bench.py`（`bench` gate，4 個已知推導的正確率）與 `scripts/genericity.py`（`generic` gate：40 個隨機、從未手寫的公式組合過 L3 後與獨立 SymPy `.subs()` 交叉比對，40/40）——harness 從 7 升級為 **9 gate**。`generic` gate 是對「怎樣不流於自建整個公式庫」的結構性回答：NSForge 是推導演算法（動詞）、公式是輸入、運算子才是我們的、`formulas/` 是帶溯源的輸出。下一步：階段 3（檢索增強推薦器，且檢索須指向開放來源而非手建目錄）。藍圖見 `docs/general-formula-exploration-roadmap.md`。
 
 ## ✅ 本次完成 (2026-07-07)
 

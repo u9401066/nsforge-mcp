@@ -36,8 +36,10 @@ python scripts/check.py --json     # machine-readable summary (for agents)
 python scripts/check.py --gates lint,type,test   # subset
 ```
 
-Gates: lint, format, type, import, manifest, test, bench, diff. Exit code 0 = green.
-(bench = derivation-correctness of `benchmarks/*.json` through the L3 orchestrator.)
+Gates: lint, format, type, import, manifest, test, bench, generic, diff. Exit code 0 = green.
+(bench = derivation-correctness of `benchmarks/*.json` through the L3 orchestrator;
+generic = arbitrary unseen compositions derive correctly, proving NSForge is a
+derivation *calculus*, not a hand-built formula library.)
 
 ## Repo Layout (DDD)
 

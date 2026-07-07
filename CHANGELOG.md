@@ -7,6 +7,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- 🧪 **通用性 gate（`generic`）** — `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案交叉比對（40/40）。結構性證明 NSForge 是通用推導演算法、非手建公式庫。harness 8 → 9 gate。（roadmap 階段 2 延伸）
+- 🧪 **推導評測 gate（`bench`）** — `benchmarks/*.json`（4 個已知推導：PK/力學/電路）+ `scripts/bench.py`：用引擎 `equals` 符號比對推導結果與期望（順序無關）。harness 7 → 8 gate，把「程式碼綠」升級成「推導正確」。（roadmap 階段 2）
+
 ## [0.2.4] - 2026-01-21
 
 ### Fixed

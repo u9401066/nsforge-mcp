@@ -41,7 +41,7 @@ flowchart LR
 | 支柱 | 負責迴圈段落 | 現況 | 學自哪個 repo |
 |------|-------------|------|--------------|
 | **運算核心**（SymPy / 推導引擎 / 驗證） | 實體化、驗證 | ✅ 87 工具 | 自己 |
-| **harness**（自駕基座） | 評測、讓自主建構安全 | ✅ L0/L1；⏳ 評測 | [llm-srbench](https://github.com/deep-symbolic-mathematics/llm-srbench)(113★) |
+| **harness**（自駕基座） | 評測、讓自主建構安全 | ✅ L0/L1；✅ 評測+通用性 | [llm-srbench](https://github.com/deep-symbolic-mathematics/llm-srbench)(113★) |
 | **輔助 agent**（AI 編排） | 檢索、提出、自我修正 | 🟡 L3 骨架 | [ReProver](https://github.com/lean-dojo/ReProver)(327★)、[group-theoretic-agentic-pipeline](https://github.com/anantshri1/group-theoretic-agentic-pipeline)、[LLM-SR](https://github.com/deep-symbolic-mathematics/LLM-SR)(259★)/[TPSR](https://github.com/deep-symbolic-mathematics/TPSR)(82★) |
 
 ---
@@ -51,8 +51,8 @@ flowchart LR
 | 階段 | 目標 | 支柱 | 學自 | 風險 | 依賴 |
 |------|------|------|------|------|------|
 | **0** ✅ | 運算核心(87)+harness(L0/L1)+DTS(L2)+編排器骨架(L3) | 全 | — | — | — |
-| **1** | **接通 L3 引擎**：DTS 的 derivation 階段從 `PLANNED` → 實際驅動推導引擎 | 核心+agent | 自己 | 中 | 0 |
-| **2** | **推導評測 gate**：`benchmarks/`（已知推導+期望結果）+ `scripts/bench.py`，把「7/7 程式碼綠」升級成「推導正確率」 | harness | llm-srbench | 低 | 0 |
+| **1** ✅ | **接通 L3 引擎**：DTS 的 derivation 階段從 `PLANNED` → 實際驅動推導引擎 | 核心+agent | 自己 | 中 | 0 |
+| **2** ✅ | **推導評測 + 通用性 gate**：`scripts/bench.py`（推導正確率）＋ `scripts/genericity.py`（任意未見組合正確＝不退化成庫），把「程式碼綠」升級成「推導正確＋通用」 | harness | llm-srbench | 低 | 0 |
 | **3** | **檢索增強**：`derivation_suggest_next(goal, 現況)` → 排序候選步驟/公式/修正 | agent | ReProver | 低中 | 2 |
 | **4** | **自我修正環**：L3 每步跑 verify，失敗自動回滾+換路徑重試 | agent+核心 | group-theoretic pipeline | 中 | 1,3 |
 | **5** | **provenance ledger 強制**：每符號/步驟帶出生證明，codegen 拒無溯源產物 | 核心 | provenance-neurosymbolic | 中 | 1 |
@@ -68,8 +68,10 @@ flowchart LR
 ### 階段 1 — 接通 L3 引擎 ✅ 已實作（commit 2b5368f）
 `application/task_orchestrator.py` 的 `run()` DERIVATION 階段實際透過 domain `SymbolicEngine` 組合 base_formulas（代入鏈）→ `derived_expression`，每步記 provenance；無法處理者（ODE、複雜矩陣）保留 `PLANNED` 擴充點（走 handoff）。`Modification` 加 `target` 支援自動代入。
 
-### 階段 2 — 推導評測 gate ✅ 已實作
-`benchmarks/*.json`（4 個已知推導：PK/力學/電路，DTS + 期望算式）+ `scripts/bench.py` 用引擎 `equals` 符號比對（順序無關）、輸出正確率。已納入 `scripts/check.py` 成為 `bench` gate → harness 從 7 gate 升級為 **8 gate**（含推導正確率）。題庫未來可借 llm-srbench。
+### 階段 2 — 推導評測 + 通用性 gate ✅ 已實作
+`benchmarks/*.json`（4 個已知推導：PK/力學/電路，DTS + 期望算式）+ `scripts/bench.py` 用引擎 `equals` 符號比對（順序無關）、輸出正確率。已納入 `scripts/check.py` 成為 `bench` gate。題庫未來可借 llm-srbench。
+
+**通用性證明（不退化成公式庫）✅**：`scripts/genericity.py` 程序化隨機生成「從沒手寫過」的公式組合（目標式＋各變數的獨立定義），過 L3 編排器後，與**獨立**用 SymPy `.subs()` 算出的參考答案（走完全不同的程式路徑，繞過 NSForge parse/substitute/compose）交叉比對。40/40 通過＝引擎對**任意未見公式**都能通用組合，證明「公式是輸入、運算子才是我們的」。納入為 `generic` gate → harness 從 7 升級為 **9 gate**。這是「怎樣不流於自建整個公式庫」的結構性答案，也要求階段 3 的檢索指向開放來源、而非手建目錄。
 
 ### 階段 3 — 檢索增強（推薦器）
 索引 `formulas/`（基礎+修正庫）。`derivation_suggest_next(goal, current_expr)` 依相似度/型別/維度排序候選「下一步工具、可套修正、可引用公式」。直接解 `docs/cognitive-load-solution.md` 的「AI 不知該套哪個修正」。對應 ROADMAP.md 已規劃的「推導建議器」。
@@ -91,7 +93,7 @@ L3 每步後跑 verify gate（維度/邊界/極限/等價）；失敗 → `deriv
 ## 5. 建議施工順序
 
 1. ✅ **階段 1（接通 L3 引擎）** — 骨架變成「真的會跑」，探索迴圈的地基。
-2. ✅ **階段 2（評測 gate）** — 「推導正確率」度量已成 `bench` gate，後續自主探索有信任基礎。
+2. ✅ **階段 2（評測 + 通用性 gate）** — 「推導正確率」成 `bench` gate、「任意未見組合正確」成 `generic` gate（杜絕退化成公式庫），後續自主探索有信任基礎。
 3. **階段 3–4（檢索 + 自我修正）** ← 下一步 — 輔助 agent 自主化，讓迴圈閉環。
 4. **階段 5（provenance 強制）** — 北極星落地。
 5. **階段 6（explore mode）** — 泛探索完全體。

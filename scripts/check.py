@@ -50,11 +50,22 @@ GATES: dict[str, list[str]] = {
     "manifest": ["python", "scripts/gen_capabilities.py", "--check"],
     "test": ["pytest", "-q"],
     "bench": ["python", "scripts/bench.py"],
+    "generic": ["python", "scripts/genericity.py"],
     "diff": ["git", "diff", "--check"],
 }
 
 # Order chosen so cheap/fast gates fail first.
-DEFAULT_ORDER = ["lint", "format", "type", "import", "manifest", "test", "bench", "diff"]
+DEFAULT_ORDER = [
+    "lint",
+    "format",
+    "type",
+    "import",
+    "manifest",
+    "test",
+    "bench",
+    "generic",
+    "diff",
+]
 
 
 def run_gate(name: str) -> dict:

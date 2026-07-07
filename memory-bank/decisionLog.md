@@ -24,6 +24,7 @@
 | 2026-07-07 | **釘 MCP SDK `<2`、延後 v2 遷移** | MCP Python SDK v2.0（目標 2026-07-28）是破壞性重寫（`FastMCP`→`MCPServer`、核心改 dispatcher、snake_case、嚴格驗證），官方明確建議依賴方加 `<2` 上限。NSForge 僅用 `FastMCP` + `mcp.run()`（無 WebSocket/tasks 等已棄用 API），故 v2 遷移實際只需改 2 行；但當務之急是釘 `mcp>=1.25,<2` 避免 v2 一發布即自動升級爆掉。sympy 已是最新穩定 1.14.0，底線提到 `>=1.14`。v2 遷移（含 structured output / elicitation 多輪工具調用）列為未來設計升級。 |
 | 2026-07-07 | **泛公式探討路線圖 + 階段 1（接通 L3 引擎）** | 依 GitHub 盤點（NSForge 無直接競品）建 `docs/general-formula-exploration-roadmap.md`：把「探索→提出→實體化→驗證→自我修正→存檔→評測」串成 7 階段迴圈，各階學自 llm-srbench/ReProver/group-theoretic/LLM-SR/lean-dojo。階段 1 落地：L3 編排器 derivation 階段實際驅動 `SymbolicEngine` 組合 base_formulas（代入鏈）→ `derived_expression`；`Modification` 加 `target`。順帶揪出 `C0`→`C*0` 的 implicit-mult 解析 bug（測試因期望值也被拆成 0 而假通過），改用 `MathContext` 宣告符號修正。 |
 | 2026-07-07 | **泛公式探討階段 2（推導評測 gate）** | 建 `benchmarks/*.json`（4 個已知推導：PK/力學/電路，DTS+期望）+ `scripts/bench.py`：跑 L3 編排器、用引擎 `equals` 符號比對（順序無關）、輸出推導正確率。納入 `scripts/check.py` 成為 `bench` gate → harness 7→8 gate，把「程式碼綠」升級成「推導正確率」。這是防止「假通過」（如階段 1 期望值也塔成 0）的信任基礎，對應 llm-srbench 的評測理念。 |
+| 2026-07-07 | **通用性 gate（不退化成公式庫）** | 針對用戶提問「怎樣不流於自建整個公式庫、而是通用推導」的結構性回答：定調 NSForge 是「推導演算法（動詞）」非「公式庫（名詞）」——公式是輸入（LLM/開放 API/使用者/RAG）、運算子（parse/substitute/compose/solve/verify/provenance）才是我們的、`formulas/` 是帶溯源的輸出。`scripts/genericity.py` 程序化隨機生成「從未手寫」的公式組合（目標式＋各變數獨立定義），過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案（繞過 NSForge parse/substitute/compose）交叉比對，40/40 通過＝引擎對任意未見公式通用。納入 `generic` gate → harness 8→9。連帶原則：階段 3 檢索須指向開放來源（既有 Wikidata/BioModels/SciPy adapter）+ 會話，而非手建目錄。 |
 
 ---
 
