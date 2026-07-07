@@ -8,17 +8,49 @@ into a plan whose steps each name the tool that would produce them — the
 "birth certificate" (provenance) required by the north star. Wiring those steps
 to the real derivation engine / sympy-mcp is the extension point.
 
-Application layer: coordinates the domain spec; performs no I/O.
-See docs/reification-ladder-direction.md.
+Application layer: coordinates the domain spec via the ``SymbolicEngine`` domain
+service (injected); performs no I/O. When an engine is wired, the DERIVATION rung
+executes deterministically (compose base formulas via substitution); otherwise it
+is reified into a plan. See docs/reification-ladder-direction.md.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from nsforge.domain.services import SymbolicEngine
 from nsforge.domain.task_spec import DerivationTaskSpec
+from nsforge.domain.value_objects import MathContext
+
+# Names that must NOT be declared as symbols (SymPy functions / constants).
+_FUNCTION_NAMES = frozenset(
+    {
+        "exp",
+        "log",
+        "ln",
+        "sqrt",
+        "Abs",
+        "sin",
+        "cos",
+        "tan",
+        "cot",
+        "sec",
+        "csc",
+        "asin",
+        "acos",
+        "atan",
+        "sinh",
+        "cosh",
+        "tanh",
+        "pi",
+        "E",
+        "I",
+        "oo",
+    }
+)
 
 
 class LadderPhase(str, Enum):
@@ -60,6 +92,7 @@ class TaskRunResult:
     spec_name: str
     ok: bool
     phases: list[PhaseResult] = field(default_factory=list)
+    derived_expression: str = ""  # set when the DERIVATION rung executes on an engine
 
     @property
     def plan(self) -> list[PlannedStep]:
@@ -74,6 +107,7 @@ class TaskOrchestrator:
     """Drives a ``DerivationTaskSpec`` through the reification ladder."""
 
     spec: DerivationTaskSpec
+    engine: SymbolicEngine | None = None  # inject an engine to execute the DERIVATION rung
 
     def plan(self) -> list[PlannedStep]:
         """Reify the spec into an ordered list of intended tool calls."""
@@ -177,17 +211,22 @@ class TaskOrchestrator:
             )
         )
 
-        # DERIVATION: reified into a plan; execution is the engine extension point.
-        derivation_steps = [s for s in plan if s.phase is LadderPhase.DERIVATION]
-        phases.append(
-            PhaseResult(
-                LadderPhase.DERIVATION,
-                PhaseStatus.PLANNED,
-                f"{len(derivation_steps)} planned tool calls "
-                "(wire to derivation engine / sympy-mcp)",
-                derivation_steps,
+        # DERIVATION: execute deterministically if an engine is wired; else plan.
+        derived_expression = ""
+        if self.engine is not None:
+            derivation_result, derived_expression = self._execute_derivation()
+            phases.append(derivation_result)
+        else:
+            derivation_steps = [s for s in plan if s.phase is LadderPhase.DERIVATION]
+            phases.append(
+                PhaseResult(
+                    LadderPhase.DERIVATION,
+                    PhaseStatus.PLANNED,
+                    f"{len(derivation_steps)} planned tool calls "
+                    "(wire to derivation engine / sympy-mcp)",
+                    derivation_steps,
+                )
             )
-        )
 
         # ALGORITHM: reified into a plan.
         algo_steps = [s for s in plan if s.phase is LadderPhase.ALGORITHM]
@@ -200,4 +239,105 @@ class TaskOrchestrator:
             )
         )
 
-        return TaskRunResult(self.spec.name, ok=True, phases=phases)
+        return TaskRunResult(
+            self.spec.name, ok=True, phases=phases, derived_expression=derived_expression
+        )
+
+    def _execute_derivation(self) -> tuple[PhaseResult, str]:
+        """Compose the base formulas via substitution using the injected engine.
+
+        Deterministically resolves "lhs = rhs" base formulas into a single derived
+        expression for the primary unknown, recording each substitution with
+        provenance. Falls back to PLANNED (an extension point for the derivation
+        engine / sympy-mcp handoff) for anything it cannot handle.
+
+        Returns (phase_result, derived_expression).
+        """
+        engine = self.engine
+        assert engine is not None  # guarded by caller
+
+        # Declare every identifier as a symbol so digit-suffixed names (C0, V1,
+        # k10) parse as single symbols instead of implicit products (C*0).
+        context = self._symbol_context()
+
+        # Split "lhs = rhs" base formulas into (lhs_symbol, rhs_str).
+        defs: list[tuple[str, str]] = []
+        for formula in self.spec.base_formulas:
+            if "=" not in formula:
+                return (
+                    PhaseResult(
+                        LadderPhase.DERIVATION,
+                        PhaseStatus.PLANNED,
+                        f"base formula is not an equation: {formula!r} (needs handoff)",
+                    ),
+                    "",
+                )
+            lhs, rhs = formula.split("=", 1)
+            defs.append((lhs.strip(), rhs.strip()))
+
+        # Target = the definition whose LHS is an unknown (else the first).
+        unknowns = set(self.spec.unknowns)
+        target_idx = next((i for i, (lhs, _) in enumerate(defs) if lhs in unknowns), 0)
+        target_lhs, target_rhs = defs[target_idx]
+
+        working = engine.parse(target_rhs, context)
+        if not working.is_valid:
+            return (
+                PhaseResult(
+                    LadderPhase.DERIVATION,
+                    PhaseStatus.PLANNED,
+                    f"could not parse target formula: {target_rhs!r} (needs handoff)",
+                ),
+                "",
+            )
+
+        # Substitution rules: other base formulas + modifications with a target.
+        rules: list[tuple[str, str, str]] = []  # (symbol, replacement, source)
+        for i, (lhs, rhs) in enumerate(defs):
+            if i != target_idx and lhs:
+                rules.append((lhs, rhs, "base_formula"))
+        for mod in self.spec.modifications:
+            if mod.target and mod.expression:
+                rules.append((mod.target, mod.expression, f"modification:{mod.id}"))
+
+        # Apply each substitution rule once, in order (give base formulas
+        # target-first so a single pass resolves the chain). A single pass also
+        # keeps self-referential modifications (e.g. F -> F - mu*N) from runaway
+        # re-application.
+        steps: list[PlannedStep] = []
+        for symbol, replacement, source in rules:
+            repl = engine.parse(replacement, context)
+            if not repl.is_valid:
+                continue
+            substituted = engine.substitute(working, {symbol: repl.sympy_expr}, context)
+            if substituted.raw != working.raw:
+                steps.append(
+                    PlannedStep(
+                        LadderPhase.DERIVATION,
+                        "engine.substitute",
+                        f"substitute {symbol} -> {replacement} (from {source})",
+                        {"symbol": symbol, "replacement": replacement, "source": source},
+                    )
+                )
+                working = substituted
+
+        working = engine.simplify(working)
+        derived = f"{target_lhs} = {working.raw}"
+        detail = f"executed: {derived}  ({len(steps)} substitution step(s))"
+        return (PhaseResult(LadderPhase.DERIVATION, PhaseStatus.OK, detail, steps), derived)
+
+    def _symbol_context(self) -> MathContext:
+        """Declare every identifier in the spec as a symbol.
+
+        Prevents SymPy's implicit-multiplication parser from splitting
+        digit-suffixed names (e.g. ``C0`` -> ``C*0``), essential for
+        pharmacokinetic notation (C0, V1, k10, ...).
+        """
+        names = set(self.spec.given) | set(self.spec.unknowns)
+        texts = [*self.spec.base_formulas, *(m.expression for m in self.spec.modifications)]
+        for text in texts:
+            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
+                if token not in _FUNCTION_NAMES:
+                    names.add(token)
+        assumptions: dict[str, dict[str, bool]] = {name: {} for name in names}
+        return MathContext(assumptions=assumptions)

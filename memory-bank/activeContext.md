@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**安全網就位後的 YOLO 三任務完成。** 基座（L0 harness+CI／L1 manifest）讓每步都能對綠色基線驗證，於是安全 YOLO：修型別債、清 harness 污染、建 L2/L3。harness 維持 7/7 全綠、76→**87 工具**（含合併後的 music 工具）。詳見 `docs/reification-ladder-direction.md`。
+**泛公式探討路線圖 — 階段 1（接通 L3 引擎）完成。** L3 編排器的 derivation 階段從 `PLANNED` 變成實際透過 `SymbolicEngine` 組合 base_formulas 並產出 `derived_expression`（端到端驗證溫度校正公式）。順帶修 C0→C*0 解析 bug、釘 mcp `<2`。harness 維持 7/7、87 工具。藍圖見 `docs/general-formula-exploration-roadmap.md`。
 
 ## ✅ 本次完成 (2026-07-07)
 

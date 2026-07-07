@@ -12,6 +12,7 @@ from typing import Any
 
 from nsforge.application.task_orchestrator import TaskOrchestrator
 from nsforge.domain.task_spec import DerivationTaskSpec
+from nsforge.infrastructure.sympy_engine import SymPyEngine
 
 
 def register_task_tools(mcp: Any) -> None:
@@ -56,27 +57,29 @@ def register_task_tools(mcp: Any) -> None:
     @mcp.tool()
     def task_run(spec: dict[str, Any]) -> dict[str, Any]:
         """
-        Run the deterministic phases of a DTS and reify the rest into a plan.
+        Run the DTS through the reification ladder.
 
-        Concept (validation) and symbol (registry) rungs execute deterministically;
-        derivation and algorithm rungs are returned as a provenance-tagged plan for
-        the derivation engine / sympy-mcp to execute.
+        Concept (validation), symbol (registry), and derivation (composing base
+        formulas via substitution on the SymPy engine) rungs execute
+        deterministically; the algorithm rung is returned as a provenance-tagged
+        plan. The composed formula is returned in "derived_expression".
 
         Args:
             spec: A DTS dict (see task_plan).
 
         Returns:
-            {"success": bool, "spec": str, "phases": [...]}.
+            {"success": bool, "spec": str, "derived_expression": str, "phases": [...]}.
         """
         try:
             dts = DerivationTaskSpec.from_dict(spec)
         except (KeyError, ValueError) as exc:
             return {"success": False, "error": f"invalid spec: {exc}"}
 
-        result = TaskOrchestrator(dts).run()
+        result = TaskOrchestrator(dts, engine=SymPyEngine()).run()
         return {
             "success": result.ok,
             "spec": result.spec_name,
+            "derived_expression": result.derived_expression,
             "phases": [
                 {
                     "phase": phase.phase.value,

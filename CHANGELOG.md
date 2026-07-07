@@ -54,6 +54,7 @@
 
 ### Added
 
+- 🔗 **L3 編排器接通運算核心（泛公式探討階段 1）**：`task_run` 的 derivation 階段從 `PLANNED` → 實際透過 `SymbolicEngine` 組合 base_formulas（代入鏈），回傳 `derived_expression`；`Modification` 新增 `target` 欄位支援自動代入。範例：溫度校正得 `C = C0*exp(-A*t*exp(-Ea/(R*T)))`
 - 🤖 **Agent 自駕基座（self-driving substrate）**
   - `scripts/check.py`：單一 ground-truth 驗證 harness（lint/format/type/import/manifest/test/diff），支援 `--json` 供 agent 解析
   - `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：從 `@mcp.tool` AST 自動產生的工具能力清單
@@ -68,6 +69,7 @@
 
 - 🔧 修復 41 個 mypy strict 型別錯誤（adapters、formula/simplify/derivation tools、sympy_engine）
   - 含 `formula.py` 過濾 `FormulaInfo | None` 的真實 bug
+- 🔧 修復符號解析：`C0`/`V1`/`k10` 等數字後綴符號會被 implicit-multiplication 拆成乘積（`C0`→`C*0`）；L3 編排器改為先用 `MathContext` 宣告所有符號再解析
 
 ### Changed
 

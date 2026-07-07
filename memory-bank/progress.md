@@ -2,7 +2,13 @@
 
 ## Done
 
-### 🚀 自駕基座 + L2/L3 + 型別債清零 (2026-07-07)
+### � 階段 1：接通 L3 引擎 (2026-07-07)
+- ✅ `task_run` 的 derivation 階段實際執行：`SymbolicEngine` 組合 base_formulas（代入鏈）→ `derived_expression`
+- ✅ `Modification` 加 `target` 欄位（自動代入）；端到端驗證溫度校正得 `C = C0*exp(-A*t*exp(-Ea/(R*T)))`
+- ✅ 修 C0→C*0 解析 bug（MathContext 宣告符號）；harness 7/7；屬「泛公式探討」路線圖階段 1
+- ✅ mcp 釘 `<2`（避 v2 破壞性發布）、sympy 底線 1.14
+
+### �🚀 自駕基座 + L2/L3 + 型別債清零 (2026-07-07)
 - ✅ **Agent 自駕基座 L0+L1**：`scripts/check.py`（單一 ground-truth harness：lint/format/type/import/manifest/test/diff）、`scripts/gen_capabilities.py` + `docs/agent/capabilities.json`（78 工具自描述）、`.github/workflows/ci.yml`（補上缺失的 CI）
 - ✅ **型別債清零**：修完 41 個 mypy strict 錯誤（含 formula.py 過濾 None 真 bug）→ harness 7/7 全綠
 - ✅ **agent harness 去污染**：`AGENTS.md`、`.clinerules/*` 改為 NSForge 專屬

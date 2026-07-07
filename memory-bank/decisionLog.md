@@ -22,6 +22,7 @@
 | 2026-07-07 | **Agent 自駕基座 L0+L1** | 發現 agent harness 繼承自 asset-aware-mcp（`full-check` 指向不存在路徑）、`.github/workflows` 無 CI → agent 無法取得可信 pass/fail。建立 `scripts/check.py`（單一 ground-truth harness）、`scripts/gen_capabilities.py`＋`docs/agent/capabilities.json`（76 工具自描述）、`.github/workflows/ci.yml`。6/7 gate 轉綠，揪出 41 個 mypy strict 型別債。原則：YOLO 安全度 = f(正確性可判定, 失敗可逆, 影響半徑有界)，先架安全網再揮棒。 |
 | 2026-07-07 | **YOLO 三任務執行** | 安全網就位後 YOLO 三項並每步對 harness 驗證：(1) 修完 41 個 mypy strict 型別債（含 formula.py 過濾 None 的真 bug）→ 7/7 全綠；(2) 清除 agent harness 的 asset-aware-mcp 污染（刪 7 純污染檔、重寫 5 核心 AGENTS.md/.clinerules 為 NSForge 專屬）；(3) 建 L2 DTS（domain/task_spec.py 宣告式推導任務規格）+ L3 編排器骨架（application/task_orchestrator.py：把 DTS 實體化為帶 provenance 的工具調用計畫）+ MCP task_plan/task_run + 測試 + 範例 JSON。工具 76→78。 |
 | 2026-07-07 | **釘 MCP SDK `<2`、延後 v2 遷移** | MCP Python SDK v2.0（目標 2026-07-28）是破壞性重寫（`FastMCP`→`MCPServer`、核心改 dispatcher、snake_case、嚴格驗證），官方明確建議依賴方加 `<2` 上限。NSForge 僅用 `FastMCP` + `mcp.run()`（無 WebSocket/tasks 等已棄用 API），故 v2 遷移實際只需改 2 行；但當務之急是釘 `mcp>=1.25,<2` 避免 v2 一發布即自動升級爆掉。sympy 已是最新穩定 1.14.0，底線提到 `>=1.14`。v2 遷移（含 structured output / elicitation 多輪工具調用）列為未來設計升級。 |
+| 2026-07-07 | **泛公式探討路線圖 + 階段 1（接通 L3 引擎）** | 依 GitHub 盤點（NSForge 無直接競品）建 `docs/general-formula-exploration-roadmap.md`：把「探索→提出→實體化→驗證→自我修正→存檔→評測」串成 7 階段迴圈，各階學自 llm-srbench/ReProver/group-theoretic/LLM-SR/lean-dojo。階段 1 落地：L3 編排器 derivation 階段實際驅動 `SymbolicEngine` 組合 base_formulas（代入鏈）→ `derived_expression`；`Modification` 加 `target`。順帶揪出 `C0`→`C*0` 的 implicit-mult 解析 bug（測試因期望值也被拆成 0 而假通過），改用 `MathContext` 宣告符號修正。 |
 
 ---
 

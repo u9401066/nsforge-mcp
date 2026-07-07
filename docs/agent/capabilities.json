@@ -1652,7 +1652,7 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Run the deterministic phases of a DTS and reify the rest into a plan."
+      "summary": "Run the DTS through the reification ladder."
     },
     {
       "name": "check_dimensions",

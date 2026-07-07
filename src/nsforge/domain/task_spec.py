@@ -40,6 +40,7 @@ class Modification:
     id: str
     description: str = ""
     expression: str = ""  # optional symbolic term, e.g. "-mu*N"
+    target: str = ""  # optional: the symbol this modification replaces (enables auto-substitution)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Modification:
@@ -47,6 +48,7 @@ class Modification:
             id=str(data["id"]),
             description=str(data.get("description", "")),
             expression=str(data.get("expression", "")),
+            target=str(data.get("target", "")),
         )
 
 

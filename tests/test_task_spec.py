@@ -6,6 +6,8 @@ from nsforge.application.task_orchestrator import (
     TaskOrchestrator,
 )
 from nsforge.domain.task_spec import DerivationTaskSpec
+from nsforge.domain.value_objects import MathContext
+from nsforge.infrastructure.sympy_engine import SymPyEngine
 
 _GOOD_SPEC = {
     "name": "temp_corrected",
@@ -69,3 +71,38 @@ def test_orchestrator_run_fails_on_bad_spec() -> None:
     assert result.ok is False
     assert result.phases[0].phase is LadderPhase.CONCEPT
     assert result.phases[0].status is PhaseStatus.FAILED
+
+
+def test_orchestrator_executes_derivation_with_engine() -> None:
+    spec = DerivationTaskSpec.from_dict(_GOOD_SPEC)
+    result = TaskOrchestrator(spec, engine=SymPyEngine()).run()
+    assert result.ok is True
+    statuses = {p.phase: p.status for p in result.phases}
+    # With an engine wired, the derivation rung executes (no longer PLANNED).
+    assert statuses[LadderPhase.DERIVATION] is PhaseStatus.OK
+    assert result.derived_expression.startswith("C =")
+
+    # The composed result must be the temperature-corrected form. Declare the
+    # symbols so digit-suffixed C0 is not split into C*0 by the parser.
+    engine = SymPyEngine()
+    ctx = MathContext(assumptions={n: {} for n in ["C0", "A", "t", "Ea", "R", "T", "C", "k"]})
+    derived_rhs = result.derived_expression.split("=", 1)[1]
+    expected = engine.parse("C0*exp(-A*t*exp(-Ea/(R*T)))", ctx)
+    assert engine.equals(engine.parse(derived_rhs, ctx), expected)
+
+
+def test_modification_target_drives_substitution() -> None:
+    spec = DerivationTaskSpec.from_dict(
+        {
+            "name": "mod_target",
+            "goal": "apply a modification via its target symbol",
+            "unknowns": ["a"],
+            "base_formulas": ["a = F / m"],
+            "modifications": [{"id": "friction", "expression": "F - mu*Fn", "target": "F"}],
+        }
+    )
+    result = TaskOrchestrator(spec, engine=SymPyEngine()).run()
+    assert result.ok is True
+    engine = SymPyEngine()
+    derived_rhs = result.derived_expression.split("=", 1)[1]
+    assert engine.equals(engine.parse(derived_rhs), engine.parse("(F - mu*Fn)/m"))
