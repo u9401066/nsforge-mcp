@@ -70,6 +70,13 @@ class SymbolicEngine(ABC):
         """Check if two expressions are mathematically equal."""
         ...
 
+    @abstractmethod
+    def limit(
+        self, expr: Expression, variable: str, to: str, context: MathContext | None = None
+    ) -> Expression:
+        """Compute the limit of an expression as ``variable`` approaches ``to``."""
+        ...
+
 
 class Verifier(ABC):
     """

@@ -213,6 +213,28 @@ class SymPyEngine(SymbolicEngine):
         diff_expanded = sp.simplify(sp.expand(expr1.sympy_expr - expr2.sympy_expr))
         return bool(diff_expanded == 0)
 
+    def limit(
+        self,
+        expr: Expression,
+        variable: str,
+        to: str,
+        context: MathContext | None = None,
+    ) -> Expression:
+        """Compute the limit of an expression as ``variable`` approaches ``to``."""
+        if not expr.is_valid:
+            return expr
+
+        var = sp.Symbol(variable, **self._get_assumptions(variable, context))
+        point = self._to_sympy(to)
+        result = sp.limit(expr.sympy_expr, var, point)
+
+        return Expression(
+            raw=str(result),
+            latex=sp.latex(result),
+            sympy_expr=result,
+            expr_type=expr.expr_type,
+        )
+
     def _get_local_dict(self, context: MathContext | None) -> dict[str, Any]:
         """Get local dictionary for parsing with symbol assumptions."""
         local_dict: dict[str, Any] = {}

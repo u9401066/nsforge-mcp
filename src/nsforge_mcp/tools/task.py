@@ -13,6 +13,7 @@ from typing import Any
 from nsforge.application.task_orchestrator import TaskOrchestrator
 from nsforge.domain.task_spec import DerivationTaskSpec
 from nsforge.infrastructure.sympy_engine import SymPyEngine
+from nsforge.infrastructure.verifier import BasicVerifier
 
 
 def register_task_tools(mcp: Any) -> None:
@@ -76,12 +77,16 @@ def register_task_tools(mcp: Any) -> None:
         except (KeyError, ValueError) as exc:
             return {"success": False, "error": f"invalid spec: {exc}"}
 
-        result = TaskOrchestrator(dts, engine=SymPyEngine()).run()
+        result = TaskOrchestrator(dts, engine=SymPyEngine(), verifier=BasicVerifier()).run()
         return {
             "success": result.ok,
             "spec": result.spec_name,
             "derived_expression": result.derived_expression,
             "generated_code": result.generated_code,
+            "verified": result.verified,
+            "acceptance": [
+                {"kind": o.kind, "status": o.status, "detail": o.detail} for o in result.acceptance
+            ],
             "phases": [
                 {
                     "phase": phase.phase.value,

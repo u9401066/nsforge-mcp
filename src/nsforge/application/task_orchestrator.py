@@ -22,9 +22,10 @@ from enum import Enum
 from typing import Any
 
 from nsforge.domain.codegen import render_python_function
-from nsforge.domain.services import SymbolicEngine
-from nsforge.domain.task_spec import DerivationTaskSpec
-from nsforge.domain.value_objects import MathContext
+from nsforge.domain.entities import Expression
+from nsforge.domain.services import SymbolicEngine, Verifier
+from nsforge.domain.task_spec import AcceptanceCheck, AcceptanceKind, DerivationTaskSpec
+from nsforge.domain.value_objects import MathContext, VerificationStatus
 
 # Names that must NOT be declared as symbols (SymPy functions / constants).
 _FUNCTION_NAMES = frozenset(
@@ -52,6 +53,11 @@ _FUNCTION_NAMES = frozenset(
         "oo",
     }
 )
+
+
+def _verdict(ok: bool) -> str:
+    """Map a boolean oracle result to an acceptance status string."""
+    return "verified" if ok else "failed"
 
 
 class LadderPhase(str, Enum):
@@ -89,12 +95,23 @@ class PhaseResult:
 
 
 @dataclass(frozen=True)
+class AcceptanceOutcome:
+    """The result of executing one acceptance oracle against the derived result."""
+
+    kind: str
+    status: str  # verified | failed | inconclusive | error
+    detail: str = ""
+
+
+@dataclass(frozen=True)
 class TaskRunResult:
     spec_name: str
     ok: bool
     phases: list[PhaseResult] = field(default_factory=list)
     derived_expression: str = ""  # set when the DERIVATION rung executes on an engine
     generated_code: str = ""  # set when the ALGORITHM rung reifies code
+    acceptance: list[AcceptanceOutcome] = field(default_factory=list)
+    verified: bool = True  # False if any acceptance oracle did not pass
 
     @property
     def plan(self) -> list[PlannedStep]:
@@ -110,6 +127,7 @@ class TaskOrchestrator:
 
     spec: DerivationTaskSpec
     engine: SymbolicEngine | None = None  # inject an engine to execute the DERIVATION rung
+    verifier: Verifier | None = None  # inject to execute DIMENSIONAL acceptance oracles
 
     def plan(self) -> list[PlannedStep]:
         """Reify the spec into an ordered list of intended tool calls."""
@@ -230,6 +248,11 @@ class TaskOrchestrator:
                 )
             )
 
+        # VERIFY: run the acceptance oracles against the derived result.
+        acceptance: list[AcceptanceOutcome] = []
+        if derived_expression and self.engine is not None and self.spec.acceptance:
+            acceptance = self._execute_acceptance(derived_expression)
+
         # ALGORITHM: reify the verified derivation into code when we have one.
         generated_code = ""
         if derived_expression and self.engine is not None:
@@ -246,12 +269,15 @@ class TaskOrchestrator:
                 )
             )
 
+        verified = all(o.status == "verified" for o in acceptance) if acceptance else True
         return TaskRunResult(
             self.spec.name,
             ok=True,
             phases=phases,
             derived_expression=derived_expression,
             generated_code=generated_code,
+            acceptance=acceptance,
+            verified=verified,
         )
 
     def _execute_derivation(self) -> tuple[PhaseResult, str]:
@@ -369,7 +395,82 @@ class TaskOrchestrator:
                 if token not in _FUNCTION_NAMES:
                     names.add(token)
         assumptions: dict[str, dict[str, bool]] = {name: {} for name in names}
+        # Apply simple sign assumptions ("k>0", "T>=0") so limits/simplifications
+        # behave (e.g. lim t->oo of exp(-k*t) needs k>0).
+        for raw in self.spec.assumptions:
+            match = re.match(r"\s*([A-Za-z_]\w*)\s*(>=|>)\s*0\s*$", raw)
+            if match:
+                name, op = match.group(1), match.group(2)
+                assumptions.setdefault(name, {})
+                assumptions[name]["positive" if op == ">" else "nonnegative"] = True
         return MathContext(assumptions=assumptions)
+
+    def _execute_acceptance(self, derived: str) -> list[AcceptanceOutcome]:
+        """Run each acceptance oracle against the derived result (the VERIFY step).
+
+        A derived formula is trusted only when its oracles pass -- the provenance
+        of *correctness*, executed by tools rather than asserted by the agent.
+        """
+        engine = self.engine
+        assert engine is not None  # guarded by caller
+
+        context = self._symbol_context()
+        rhs = derived.split("=", 1)[1].strip() if "=" in derived else derived
+        working = engine.parse(rhs, context)
+        return [self._run_oracle(check, working, context) for check in self.spec.acceptance]
+
+    def _run_oracle(
+        self, check: AcceptanceCheck, working: Expression, context: MathContext
+    ) -> AcceptanceOutcome:
+        """Execute a single acceptance oracle; never raises."""
+        engine = self.engine
+        assert engine is not None  # guarded by caller
+        kind = check.kind
+        params = check.params
+
+        try:
+            if kind is AcceptanceKind.EQUIVALENCE:
+                ref = engine.parse(str(params.get("reference", "")), context)
+                ok = ref.is_valid and engine.equals(working, ref, context)
+                return AcceptanceOutcome(kind.value, _verdict(ok), f"reference={ref.raw}")
+
+            if kind is AcceptanceKind.BOUNDARY:
+                var = str(params.get("variable", ""))
+                at = engine.parse(str(params.get("at", "")), context)
+                got = (
+                    engine.substitute(working, {var: at.sympy_expr}, context)
+                    if at.is_valid
+                    else working
+                )
+                exp = engine.parse(str(params.get("expected", "")), context)
+                ok = exp.is_valid and engine.equals(got, exp, context)
+                return AcceptanceOutcome(kind.value, _verdict(ok), f"{var}@{at.raw} -> {got.raw}")
+
+            if kind is AcceptanceKind.LIMIT:
+                var = str(params.get("variable", ""))
+                to = str(params.get("to", ""))
+                got = engine.limit(working, var, to, context)
+                exp = engine.parse(str(params.get("expected", "")), context)
+                ok = got.is_valid and exp.is_valid and engine.equals(got, exp, context)
+                return AcceptanceOutcome(kind.value, _verdict(ok), f"lim {var}->{to}: {got.raw}")
+
+            if kind is AcceptanceKind.DIMENSIONAL:
+                if self.verifier is None:
+                    return AcceptanceOutcome(kind.value, "inconclusive", "no verifier injected")
+                units = {str(k): str(v) for k, v in dict(params.get("units", {})).items()}
+                expected = params.get("expected_units")
+                result = self.verifier.check_dimensions(
+                    working, units, str(expected) if expected is not None else None
+                )
+                status = (
+                    "error"
+                    if result.status is VerificationStatus.ERROR
+                    else _verdict(result.is_verified)
+                )
+                return AcceptanceOutcome(kind.value, status, result.message)
+        except Exception as exc:  # an oracle must never crash the run
+            return AcceptanceOutcome(kind.value, "error", str(exc))
+        return AcceptanceOutcome(kind.value, "inconclusive", "unhandled acceptance kind")
 
     def _execute_algorithm(self, derived: str) -> tuple[PhaseResult, str]:
         """Reify the verified derivation into an executable Python function.
