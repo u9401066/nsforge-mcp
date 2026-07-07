@@ -1,0 +1,1577 @@
+{
+  "schema": "nsforge.capabilities/v1",
+  "tool_count": 78,
+  "modules": [
+    "calculate",
+    "codegen",
+    "derivation",
+    "expression",
+    "formula",
+    "simplify",
+    "task",
+    "verify"
+  ],
+  "tools": [
+    {
+      "name": "calculate_limit",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "point",
+          "type": "str"
+        },
+        {
+          "name": "direction",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Calculate the limit of an expression."
+    },
+    {
+      "name": "calculate_series",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "point",
+          "type": "str"
+        },
+        {
+          "name": "order",
+          "type": "int"
+        },
+        {
+          "name": "series_type",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Calculate series expansion of an expression."
+    },
+    {
+      "name": "calculate_summation",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "index",
+          "type": "str"
+        },
+        {
+          "name": "lower",
+          "type": "str"
+        },
+        {
+          "name": "upper",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Calculate symbolic summation."
+    },
+    {
+      "name": "define_distribution",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "distribution_type",
+          "type": "str"
+        },
+        {
+          "name": "parameters",
+          "type": "dict[str, str]"
+        },
+        {
+          "name": "name",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Define a probability distribution."
+    },
+    {
+      "name": "distribution_probability",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "distribution_type",
+          "type": "str"
+        },
+        {
+          "name": "parameters",
+          "type": "dict[str, str]"
+        },
+        {
+          "name": "condition",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Calculate probability P(condition)."
+    },
+    {
+      "name": "distribution_stats",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "distribution_type",
+          "type": "str"
+        },
+        {
+          "name": "parameters",
+          "type": "dict[str, str]"
+        },
+        {
+          "name": "stats_to_compute",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Compute statistics of a distribution."
+    },
+    {
+      "name": "evaluate_numeric",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "values",
+          "type": "dict[str, float | int]"
+        },
+        {
+          "name": "precision",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Evaluate expression numerically."
+    },
+    {
+      "name": "query_assumptions",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "query",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "dict[str, list[str]] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Query properties of an expression based on assumptions."
+    },
+    {
+      "name": "refine_expression",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "dict[str, list[str]]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Simplify expression using assumptions."
+    },
+    {
+      "name": "solve_inequality",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "inequality",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "domain",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Solve a single inequality."
+    },
+    {
+      "name": "solve_inequality_system",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "inequalities",
+          "type": "list[str]"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Solve a system of inequalities (find the intersection)."
+    },
+    {
+      "name": "symbolic_equal",
+      "module": "calculate",
+      "params": [
+        {
+          "name": "expr1",
+          "type": "str"
+        },
+        {
+          "name": "expr2",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Check if two expressions are symbolically equivalent."
+    },
+    {
+      "name": "generate_derivation_report",
+      "module": "codegen",
+      "params": [
+        {
+          "name": "problem",
+          "type": "str"
+        },
+        {
+          "name": "given",
+          "type": "dict[str, str]"
+        },
+        {
+          "name": "steps",
+          "type": "list[dict[str, str]]"
+        },
+        {
+          "name": "results",
+          "type": "dict[str, str]"
+        },
+        {
+          "name": "verification",
+          "type": "dict[str, bool] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Generate a complete derivation report in Markdown."
+    },
+    {
+      "name": "generate_latex_derivation",
+      "module": "codegen",
+      "params": [
+        {
+          "name": "title",
+          "type": "str"
+        },
+        {
+          "name": "steps",
+          "type": "list[dict[str, str]]"
+        },
+        {
+          "name": "final_result",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Generate LaTeX documentation for a derivation."
+    },
+    {
+      "name": "generate_python_function",
+      "module": "codegen",
+      "params": [
+        {
+          "name": "name",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "parameters",
+          "type": "list[dict[str, str]]"
+        },
+        {
+          "name": "steps",
+          "type": "list[dict[str, str]]"
+        },
+        {
+          "name": "return_vars",
+          "type": "list[str]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Generate a Python function from VERIFIED derivation steps."
+    },
+    {
+      "name": "generate_sympy_script",
+      "module": "codegen",
+      "params": [
+        {
+          "name": "expressions",
+          "type": "list[dict[str, str]]"
+        },
+        {
+          "name": "operations",
+          "type": "list[dict[str, Any]]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Generate a standalone SymPy script for a computation."
+    },
+    {
+      "name": "derivation_abort",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "放棄當前推導"
+    },
+    {
+      "name": "derivation_add_note",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "note",
+          "type": "str"
+        },
+        {
+          "name": "note_type",
+          "type": "str"
+        },
+        {
+          "name": "related_variables",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "related_step",
+          "type": "int | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "在推導中加入說明（不是計算步驟）"
+    },
+    {
+      "name": "derivation_complete",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "clinical_context",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "references",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "tags",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "auto_save",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "完成推導並自動存檔"
+    },
+    {
+      "name": "derivation_delete_saved",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "result_id",
+          "type": "str"
+        },
+        {
+          "name": "confirm",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "刪除已存檔的推導結果"
+    },
+    {
+      "name": "derivation_delete_step",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "step_number",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "刪除單一步驟"
+    },
+    {
+      "name": "derivation_differentiate",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "order",
+          "type": "int"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "notes",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "對當前表達式微分（帶人類知識記錄）"
+    },
+    {
+      "name": "derivation_export_for_sympy",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "include_variables",
+          "type": "bool"
+        },
+        {
+          "name": "include_current_expression",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "導出當前推導狀態給 SymPy-MCP"
+    },
+    {
+      "name": "derivation_get_saved",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "result_id",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "取得已存檔的推導結果詳情"
+    },
+    {
+      "name": "derivation_get_step",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "step_number",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "取得單一步驟的詳細資訊"
+    },
+    {
+      "name": "derivation_get_steps",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "取得所有推導步驟"
+    },
+    {
+      "name": "derivation_handoff_status",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "顯示 Handoff 狀態和可用選項"
+    },
+    {
+      "name": "derivation_import_from_sympy",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "operation_performed",
+          "type": "str"
+        },
+        {
+          "name": "sympy_tool_used",
+          "type": "str"
+        },
+        {
+          "name": "latex",
+          "type": "str | None"
+        },
+        {
+          "name": "notes",
+          "type": "str | None"
+        },
+        {
+          "name": "assumptions_used",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "從 SymPy-MCP 導入結果回 NSForge"
+    },
+    {
+      "name": "derivation_insert_note",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "after_step",
+          "type": "int"
+        },
+        {
+          "name": "note",
+          "type": "str"
+        },
+        {
+          "name": "note_type",
+          "type": "str"
+        },
+        {
+          "name": "related_variables",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "在指定位置插入說明"
+    },
+    {
+      "name": "derivation_integrate",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "lower",
+          "type": "str | None"
+        },
+        {
+          "name": "upper",
+          "type": "str | None"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "notes",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "對當前表達式積分（帶人類知識記錄）"
+    },
+    {
+      "name": "derivation_list_saved",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "category",
+          "type": "str | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "列出所有已存檔的推導結果"
+    },
+    {
+      "name": "derivation_list_sessions",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "列出所有推導會話"
+    },
+    {
+      "name": "derivation_load_formula",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "formula",
+          "type": "str | dict[str, Any]"
+        },
+        {
+          "name": "formula_id",
+          "type": "str | None"
+        },
+        {
+          "name": "source",
+          "type": "str"
+        },
+        {
+          "name": "source_detail",
+          "type": "str"
+        },
+        {
+          "name": "name",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "載入公式到當前會話"
+    },
+    {
+      "name": "derivation_prepare_for_optimization",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "準備推導結果給優化求解器（如 USolver）"
+    },
+    {
+      "name": "derivation_record_step",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "latex",
+          "type": "str | None"
+        },
+        {
+          "name": "notes",
+          "type": "str | None"
+        },
+        {
+          "name": "source",
+          "type": "str"
+        },
+        {
+          "name": "operation_type",
+          "type": "str"
+        },
+        {
+          "name": "set_as_current",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "記錄一個推導步驟（從 SymPy-MCP 或手動）"
+    },
+    {
+      "name": "derivation_repository_stats",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "取得推導庫統計資訊"
+    },
+    {
+      "name": "derivation_resume",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "session_id",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "恢復暫停的推導會話"
+    },
+    {
+      "name": "derivation_rollback",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "to_step",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "回滾到指定步驟"
+    },
+    {
+      "name": "derivation_search_saved",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "query",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "搜尋已存檔的推導結果"
+    },
+    {
+      "name": "derivation_show",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "format",
+          "type": "str"
+        },
+        {
+          "name": "show_steps",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "顯示當前推導狀態和公式（類似 SymPy-MCP 的 print_latex_expression）"
+    },
+    {
+      "name": "derivation_simplify",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "method",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "notes",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "簡化當前表達式（帶人類知識記錄）"
+    },
+    {
+      "name": "derivation_solve_for",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "notes",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "求解變數（帶人類知識記錄）"
+    },
+    {
+      "name": "derivation_start",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "name",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "author",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "開始新的推導會話"
+    },
+    {
+      "name": "derivation_status",
+      "module": "derivation",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "取得當前會話狀態"
+    },
+    {
+      "name": "derivation_substitute",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "variable",
+          "type": "str"
+        },
+        {
+          "name": "replacement",
+          "type": "str"
+        },
+        {
+          "name": "in_formula",
+          "type": "str | None"
+        },
+        {
+          "name": "description",
+          "type": "str"
+        },
+        {
+          "name": "notes",
+          "type": "str"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "代入操作（帶人類知識記錄）"
+    },
+    {
+      "name": "derivation_update_saved",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "result_id",
+          "type": "str"
+        },
+        {
+          "name": "name",
+          "type": "str | None"
+        },
+        {
+          "name": "description",
+          "type": "str | None"
+        },
+        {
+          "name": "clinical_context",
+          "type": "str | None"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "references",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "tags",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "category",
+          "type": "str | None"
+        },
+        {
+          "name": "verified",
+          "type": "bool | None"
+        },
+        {
+          "name": "verification_method",
+          "type": "str | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "更新已存檔推導的元資料"
+    },
+    {
+      "name": "derivation_update_step",
+      "module": "derivation",
+      "params": [
+        {
+          "name": "step_number",
+          "type": "int"
+        },
+        {
+          "name": "description",
+          "type": "str | None"
+        },
+        {
+          "name": "notes",
+          "type": "str | None"
+        },
+        {
+          "name": "assumptions",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "limitations",
+          "type": "list[str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "更新步驟的元資料"
+    },
+    {
+      "name": "extract_symbols",
+      "module": "expression",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "context",
+          "type": "str | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Extract symbols from an expression with inferred metadata."
+    },
+    {
+      "name": "parse_expression",
+      "module": "expression",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "description",
+          "type": "str | None"
+        },
+        {
+          "name": "symbol_hints",
+          "type": "dict[str, str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Parse a mathematical expression into SymPy-computable form."
+    },
+    {
+      "name": "validate_expression",
+      "module": "expression",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "expected_symbols",
+          "type": "list[str] | None"
+        },
+        {
+          "name": "check_dimensions",
+          "type": "bool"
+        },
+        {
+          "name": "units_map",
+          "type": "dict[str, str] | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Validate a mathematical expression for correctness."
+    },
+    {
+      "name": "formula_categories",
+      "module": "formula",
+      "params": [
+        {
+          "name": "source",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "列出可用的公式分類"
+    },
+    {
+      "name": "formula_constants",
+      "module": "formula",
+      "params": [
+        {
+          "name": "category",
+          "type": "str | None"
+        },
+        {
+          "name": "query",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "列出物理常數"
+    },
+    {
+      "name": "formula_get",
+      "module": "formula",
+      "params": [
+        {
+          "name": "formula_id",
+          "type": "str"
+        },
+        {
+          "name": "source",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "獲取公式詳細資訊"
+    },
+    {
+      "name": "formula_kinetic_laws",
+      "module": "formula",
+      "params": [
+        {
+          "name": "model_id",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "獲取 BioModels 模型的動力學公式"
+    },
+    {
+      "name": "formula_pk_models",
+      "module": "formula",
+      "params": [
+        {
+          "name": "query",
+          "type": "str"
+        },
+        {
+          "name": "drug",
+          "type": "str"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "搜尋藥動學 (PK) 模型"
+    },
+    {
+      "name": "formula_search",
+      "module": "formula",
+      "params": [
+        {
+          "name": "query",
+          "type": "str"
+        },
+        {
+          "name": "source",
+          "type": "str"
+        },
+        {
+          "name": "domain",
+          "type": "str | None"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "搜尋公式（跨多個來源）"
+    },
+    {
+      "name": "apart_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str | None"
+        },
+        {
+          "name": "full",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Partial fraction decomposition."
+    },
+    {
+      "name": "cancel_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Cancel common factors in rational expression."
+    },
+    {
+      "name": "collect_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str | list[str]"
+        },
+        {
+          "name": "evaluate",
+          "type": "bool"
+        },
+        {
+          "name": "exact",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Collect terms by specified variable(s)."
+    },
+    {
+      "name": "combsimp_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Simplify combinatorial expressions (factorials, binomials)."
+    },
+    {
+      "name": "expand_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "deep",
+          "type": "bool"
+        },
+        {
+          "name": "modulus",
+          "type": "int | None"
+        },
+        {
+          "name": "power_base",
+          "type": "bool"
+        },
+        {
+          "name": "power_exp",
+          "type": "bool"
+        },
+        {
+          "name": "mul",
+          "type": "bool"
+        },
+        {
+          "name": "log",
+          "type": "bool"
+        },
+        {
+          "name": "multinomial",
+          "type": "bool"
+        },
+        {
+          "name": "basic",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Expand algebraic expression."
+    },
+    {
+      "name": "factor_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "deep",
+          "type": "bool"
+        },
+        {
+          "name": "modulus",
+          "type": "int | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Factorize algebraic expression."
+    },
+    {
+      "name": "fourier_transform_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "space_var",
+          "type": "str"
+        },
+        {
+          "name": "freq_var",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Fourier transform: f(x) → F(k)."
+    },
+    {
+      "name": "inverse_fourier_transform_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "freq_var",
+          "type": "str"
+        },
+        {
+          "name": "space_var",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Inverse Fourier transform: F(k) → f(x)."
+    },
+    {
+      "name": "inverse_laplace_transform_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "freq_var",
+          "type": "str"
+        },
+        {
+          "name": "time_var",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Inverse Laplace transform: F(s) → f(t)."
+    },
+    {
+      "name": "laplace_transform_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "time_var",
+          "type": "str"
+        },
+        {
+          "name": "freq_var",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Laplace transform: f(t) → F(s)."
+    },
+    {
+      "name": "powsimp_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "deep",
+          "type": "bool"
+        },
+        {
+          "name": "combine",
+          "type": "str"
+        },
+        {
+          "name": "force",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Simplify powers and exponentials."
+    },
+    {
+      "name": "radsimp_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "symbolic",
+          "type": "bool"
+        },
+        {
+          "name": "max_terms",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Simplify radicals (square roots, cube roots, etc.)."
+    },
+    {
+      "name": "together_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "deep",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Combine rational expressions over a common denominator."
+    },
+    {
+      "name": "trigsimp_expression",
+      "module": "simplify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "deep",
+          "type": "bool"
+        },
+        {
+          "name": "recursive",
+          "type": "bool"
+        },
+        {
+          "name": "method",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Simplify trigonometric expressions."
+    },
+    {
+      "name": "task_plan",
+      "module": "task",
+      "params": [
+        {
+          "name": "spec",
+          "type": "dict[str, Any]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Reify a Derivation Task Spec (DTS) into an ordered plan of tool calls."
+    },
+    {
+      "name": "task_run",
+      "module": "task",
+      "params": [
+        {
+          "name": "spec",
+          "type": "dict[str, Any]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Run the deterministic phases of a DTS and reify the rest into a plan."
+    },
+    {
+      "name": "check_dimensions",
+      "module": "verify",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "units_map",
+          "type": "dict[str, str]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Check dimensional consistency of an expression."
+    },
+    {
+      "name": "reverse_verify",
+      "module": "verify",
+      "params": [
+        {
+          "name": "result_expr",
+          "type": "str"
+        },
+        {
+          "name": "original_expr",
+          "type": "str"
+        },
+        {
+          "name": "operation",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Verify a result by applying the reverse operation."
+    },
+    {
+      "name": "verify_derivative",
+      "module": "verify",
+      "params": [
+        {
+          "name": "function",
+          "type": "str"
+        },
+        {
+          "name": "claimed_derivative",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Verify a derivative by computing and comparing."
+    },
+    {
+      "name": "verify_equality",
+      "module": "verify",
+      "params": [
+        {
+          "name": "expression1",
+          "type": "str"
+        },
+        {
+          "name": "expression2",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Verify that two expressions are symbolically equal."
+    },
+    {
+      "name": "verify_integral",
+      "module": "verify",
+      "params": [
+        {
+          "name": "integrand",
+          "type": "str"
+        },
+        {
+          "name": "claimed_integral",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Verify an integral by differentiating the result."
+    },
+    {
+      "name": "verify_solution",
+      "module": "verify",
+      "params": [
+        {
+          "name": "equation",
+          "type": "str"
+        },
+        {
+          "name": "solution",
+          "type": "str"
+        },
+        {
+          "name": "variable",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Verify that a value satisfies an equation."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "temperature_corrected_elimination",
+  "goal": "Derive drug concentration C(t) with a temperature-corrected elimination rate for a febrile patient",
+  "given": {
+    "C0": "mg/L - initial concentration",
+    "t": "h - time",
+    "T": "K - body temperature",
+    "A": "1/h - Arrhenius pre-exponential factor",
+    "Ea": "J/mol - activation energy",
+    "R": "J/(mol*K) - gas constant"
+  },
+  "unknowns": ["C"],
+  "assumptions": ["C0>0", "t>=0", "T>0", "Ea>0"],
+  "base_formulas": [
+    "C = C0*exp(-k*t)",
+    "k = A*exp(-Ea/(R*T))"
+  ],
+  "modifications": [
+    {
+      "id": "arrhenius_k",
+      "description": "temperature dependence of the elimination rate constant",
+      "expression": "A*exp(-Ea/(R*T))"
+    }
+  ],
+  "acceptance": [
+    {
+      "kind": "dimensional",
+      "description": "C must carry concentration units",
+      "params": {"target": "C", "unit": "mg/L"}
+    },
+    {
+      "kind": "limit",
+      "description": "as t -> infinity, C -> 0",
+      "params": {"var": "t", "to": "oo", "expect": "0"}
+    }
+  ],
+  "metadata": {
+    "domain": "pharmacokinetics",
+    "source": "reification-ladder-direction.md flagship example"
+  }
+}

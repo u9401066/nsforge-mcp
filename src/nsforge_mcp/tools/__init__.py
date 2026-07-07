@@ -29,6 +29,7 @@ from nsforge_mcp.tools.derivation import register_derivation_tools
 from nsforge_mcp.tools.expression import register_expression_tools
 from nsforge_mcp.tools.formula import register_formula_tools
 from nsforge_mcp.tools.simplify import register_simplify_tools
+from nsforge_mcp.tools.task import register_task_tools
 from nsforge_mcp.tools.verify import register_verify_tools
 
 
@@ -46,3 +47,6 @@ def register_all_tools(mcp: Any) -> None:
     register_simplify_tools(mcp)  # 🆕 Phase 1: Advanced simplification
     register_verify_tools(mcp)
     register_codegen_tools(mcp)
+
+    # 🧭 L2/L3: Declarative task spec + reification-ladder orchestrator
+    register_task_tools(mcp)
