@@ -1,0 +1,104 @@
+# 泛公式探討路線圖（General Formula Exploration）
+
+> **Date**: 2026-07-07
+> **Status**: 🧭 Construction Blueprint（施工藍圖）
+> **Builds on**: `docs/reification-ladder-direction.md`（實體化階梯）、自駕基座 L0–L3
+> **Informed by**: GitHub 相似專案盤點（見下方「學自哪個 repo」）
+
+---
+
+## 0. 定位：為什麼是「泛公式探討」
+
+經 GitHub 大量盤點確認，NSForge 的組合——**MCP 原生 + 多步推導 + provenance + 公式創造**——幾乎無直接競品：
+
+- 市面 MCP 數學伺服器（sympy-mcp、arithma、Wolfram MCP…）大多是**單發計算、防幻覺的包裝器**。
+- 學術端（LLM-SR、lean-dojo…）強在**方程發現 / 定理證明**，但非 MCP 原生工具、也不做步進式推導工作流。
+
+**缺口不是單一能力，而是把這些能力串成一個可驗證的「探索迴圈」。** 這份文件就是把該迴圈「慢慢建起來」的藍圖。
+
+---
+
+## 1. 「泛公式探討」= 一個可驗證的探索迴圈
+
+```mermaid
+flowchart LR
+    A["🧠 概念<br/>人+AI 提問"] --> B["🔎 檢索<br/>相關基礎公式+修正"]
+    B --> C["💡 提出<br/>候選推導路徑"]
+    C --> D["⚙️ 實體化<br/>運算核心決定性執行"]
+    D --> E["✅ 驗證<br/>維度/邊界/極限/等價"]
+    E -->|失敗| F["♻️ 自我修正<br/>回滾+換路徑"]
+    F --> C
+    E -->|通過| G["📁 存檔<br/>公式+provenance"]
+    G --> H["📊 評測<br/>對照已知正解"]
+```
+
+北極星不變（見實體化階梯）：**每個出現在結果裡的符號/等式/數值/程式碼，都要有工具產生的 provenance；AI 不徒手生。**
+
+---
+
+## 2. 三支柱 × 迴圈段落 × 學自哪個 repo
+
+| 支柱 | 負責迴圈段落 | 現況 | 學自哪個 repo |
+|------|-------------|------|--------------|
+| **運算核心**（SymPy / 推導引擎 / 驗證） | 實體化、驗證 | ✅ 87 工具 | 自己 |
+| **harness**（自駕基座） | 評測、讓自主建構安全 | ✅ L0/L1；⏳ 評測 | [llm-srbench](https://github.com/deep-symbolic-mathematics/llm-srbench)(113★) |
+| **輔助 agent**（AI 編排） | 檢索、提出、自我修正 | 🟡 L3 骨架 | [ReProver](https://github.com/lean-dojo/ReProver)(327★)、[group-theoretic-agentic-pipeline](https://github.com/anantshri1/group-theoretic-agentic-pipeline)、[LLM-SR](https://github.com/deep-symbolic-mathematics/LLM-SR)(259★)/[TPSR](https://github.com/deep-symbolic-mathematics/TPSR)(82★) |
+
+---
+
+## 3. 分階段路線圖（依相依性、先安全後大改）
+
+| 階段 | 目標 | 支柱 | 學自 | 風險 | 依賴 |
+|------|------|------|------|------|------|
+| **0** ✅ | 運算核心(87)+harness(L0/L1)+DTS(L2)+編排器骨架(L3) | 全 | — | — | — |
+| **1** | **接通 L3 引擎**：DTS 的 derivation 階段從 `PLANNED` → 實際驅動推導引擎 | 核心+agent | 自己 | 中 | 0 |
+| **2** | **推導評測 gate**：`benchmarks/`（已知推導+期望結果）+ `scripts/bench.py`，把「7/7 程式碼綠」升級成「推導正確率」 | harness | llm-srbench | 低 | 0 |
+| **3** | **檢索增強**：`derivation_suggest_next(goal, 現況)` → 排序候選步驟/公式/修正 | agent | ReProver | 低中 | 2 |
+| **4** | **自我修正環**：L3 每步跑 verify，失敗自動回滾+換路徑重試 | agent+核心 | group-theoretic pipeline | 中 | 1,3 |
+| **5** | **provenance ledger 強制**：每符號/步驟帶出生證明，codegen 拒無溯源產物 | 核心 | provenance-neurosymbolic | 中 | 1 |
+| **6** | **explore mode**：分支推導樹的泛探索迴圈（提問→自動跑完整迴圈→多條驗證過的新公式） | 全 | LLM-SR / TPSR | 高 | 1–5 |
+| **7**（可選/長期） | **Lean4 驗證後端**：最高保證等級的形式驗證 | 核心 | lean-dojo | 高 | 5 |
+
+**關鍵原則**：每一階都小、都對 `scripts/check.py` 驗證、都可逆——這正是自駕基座（安全網）的用途：讓「慢慢建」不會越建越壞。
+
+---
+
+## 4. 各階段細節
+
+### 階段 1 — 接通 L3 引擎
+`application/task_orchestrator.py` 的 `run()` 目前把 DERIVATION/ALGORITHM 標為 `PLANNED`。本階段讓 DERIVATION 實際透過 domain `SymbolicEngine` 執行可處理的操作（parse base_formulas → substitute 修正 → solve unknowns → simplify），每步記 provenance；無法處理者（ODE、複雜矩陣）保留 `PLANNED` 擴充點（走 handoff）。
+
+### 階段 2 — 推導評測 gate
+`benchmarks/*.json`：一組已知推導（DTS + 期望最終算式）。`scripts/bench.py` 跑 NSForge 推導、用 `symbolic_equal` 比對期望，輸出正確率。可選擇性納入 `scripts/check.py` 成為 `bench` gate（或獨立 CI job）。題庫可借 llm-srbench。
+
+### 階段 3 — 檢索增強（推薦器）
+索引 `formulas/`（基礎+修正庫）。`derivation_suggest_next(goal, current_expr)` 依相似度/型別/維度排序候選「下一步工具、可套修正、可引用公式」。直接解 `docs/cognitive-load-solution.md` 的「AI 不知該套哪個修正」。對應 ROADMAP.md 已規劃的「推導建議器」。
+
+### 階段 4 — 自我修正環（critic-retry）
+L3 每步後跑 verify gate（維度/邊界/極限/等價）；失敗 → `derivation_rollback` + 從階段 3 的候選換一條路徑重試（有上限）。對應 ROADMAP.md 已規劃的「自動驗證器」。
+
+### 階段 5 — provenance ledger 強制
+每個符號/算式/步驟攜帶「哪次工具調用產生」；`derivation_complete` / codegen 驗證覆蓋率，先警告後硬性拒絕無溯源產物。把北極星從約定升級成架構（實體化階梯 P2）。
+
+### 階段 6 — explore mode
+`explore(concept)`：分支推導樹，對每條路徑跑「檢索→提出→實體化→驗證→自我修正」，用評測 gate 排序，產出多條驗證過、帶 provenance 的候選新公式。這是「泛公式探討」的完全體。
+
+### 階段 7 —（可選）Lean4 驗證後端
+最高保證：把關鍵推導轉 Lean4 驗證。lean-dojo（LeanDojo→ReProver→TorchLean）是現成 on-ramp。`decisionLog` 已記「MVP 暫不含 Lean4」——此為長期選項。
+
+---
+
+## 5. 建議施工順序
+
+1. **階段 1（接通 L3 引擎）** — 把骨架變成「真的會跑」，是探索迴圈的地基。
+2. **階段 2（評測 gate）** — 有東西跑之後立刻建立「推導正確率」度量，讓後續自主探索有信任基礎。
+3. **階段 3–4（檢索 + 自我修正）** — 輔助 agent 自主化，讓迴圈閉環。
+4. **階段 5（provenance 強制）** — 北極星落地。
+5. **階段 6（explore mode）** — 泛探索完全體。
+6. **階段 7（Lean4）** — 長期選項。
+
+---
+
+## 6. 一句話
+
+> 泛公式探討 = 把「探索 → 提出 → 實體化 → 驗證 → 自我修正 → 存檔 → 評測」這個迴圈的每一段都工具化，讓運算核心負責決定性實體化與驗證、harness 負責度量、輔助 agent 負責探索與修正——每一步都可驗證、可追溯、可重現。
