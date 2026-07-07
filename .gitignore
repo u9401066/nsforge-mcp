@@ -47,3 +47,6 @@ htmlcov/
 *.pem
 *.key
 secrets/
+
+# runtime session artifacts
+derivation_sessions/

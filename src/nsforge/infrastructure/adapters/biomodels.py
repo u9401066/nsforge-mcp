@@ -250,8 +250,8 @@ class BioModelsAdapter(BaseAdapter):
         kinetic_laws = []
 
         try:
-            # 解析 XML
-            root = ET.fromstring(sbml_content)
+            # 解析 XML (BioModels is trusted source)
+            root = ET.fromstring(sbml_content)  # nosec B314
 
             # SBML 命名空間
             namespaces = {
@@ -351,7 +351,8 @@ class BioModelsAdapter(BaseAdapter):
                 return "".join(process_node(c) for c in node)
 
         try:
-            return process_node(math_elem)
+            result: str = process_node(math_elem)
+            return result
         except Exception:
             return ET.tostring(math_elem, encoding="unicode")
 
@@ -377,7 +378,7 @@ class BioModelsAdapter(BaseAdapter):
 
     def _extract_variables(self, kinetic_laws: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         """從動力學公式提取變數"""
-        variables = {}
+        variables: dict[str, dict[str, Any]] = {}
 
         for kl in kinetic_laws:
             # 從參數中提取

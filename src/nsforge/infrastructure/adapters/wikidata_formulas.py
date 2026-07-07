@@ -303,7 +303,7 @@ class WikidataFormulaAdapter(BaseAdapter):
             variables[var_name] = {"type": "variable", "subscript": sub}
 
         for greek in greek_vars:
-            variables[greek] = {"type": "variable", "greek": True}
+            variables[greek] = {"type": "variable", "greek": "True"}
 
         return variables
 

@@ -42,19 +42,23 @@
 
 ## 🌍 Ecosystem: Don't Reinvent the Wheel
 
+<p align="center">
+  <img src="docs/images/architecture-overview.jpg" alt="NSForge Architecture and Ecosystem" width="700">
+</p>
+
 NSForge works WITH other MCP servers, not against them:
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    MCP Scientific Computing Ecosystem                       │
-│                         🔢 110 Tools Total 🔢                               │
+│                         🔢 119 Tools Total 🔢                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  sympy-mcp (32 tools)                                                       │
 │  └── Base formulas: F=ma, PV=nRT, Arrhenius...                             │
 │  └── Physical constants: c, G, h, R... (SciPy CODATA)                      │
 │  └── Symbolic computation engine (ODE, PDE, matrices)                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  nsforge-mcp (78 tools) ← YOU ARE HERE                                      │
+│  nsforge-mcp (87 tools) ← YOU ARE HERE                                      │
 │  └── 🔨 Derivation framework: compose, verify, generate code               │
 │  └── 📁 Derivation repository: store CREATED formulas with provenance      │
 │  └── ✅ Verification layer: dimensional analysis, reverse verification     │
@@ -85,6 +89,10 @@ NSForge works WITH other MCP servers, not against them:
 
 ## 🚀 NSForge Unique Capabilities
 
+<p align="center">
+  <img src="docs/images/nsforge-vs-sympy.jpg" alt="NSForge vs SymPy-MCP Unique Capabilities" width="700">
+</p>
+
 NSForge provides features **not available in SymPy-MCP** by directly leveraging SymPy modules:
 
 | Feature | SymPy Module | Application | Status |
@@ -105,6 +113,10 @@ NSForge provides features **not available in SymPy-MCP** by directly leveraging 
 ---
 
 ## 🎬 Workflow
+
+<p align="center">
+  <img src="docs/images/derivation-workflow.jpg" alt="NSForge Derivation Workflow" width="700">
+</p>
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -248,6 +260,7 @@ formulas/
 | [NPO Antibiotic Effect](formulas/derivations/pharmacokinetics/npo_antibiotic_effect.md) | PK/PD | Henderson-Hasselbalch + Emax model for pH-dependent absorption |
 | [Temperature-Corrected Michaelis-Menten](formulas/derivations/pharmacokinetics/temp_corrected_michaelis_menten.md) | PK | Non-linear saturable kinetics with temperature effects |
 | [Cisatracurium Multiple Dosing](formulas/derived/ce30161d.yaml) | PK | Hydrolytic drug accumulation with temperature correction |
+| [Physiological Vd Body Composition](formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md) | PK/PBPK | PBPK-based Vd adjustment for body composition (logP > 2) |
 
 **Example: NPO (Fasting) Impact on Antibiotic Efficacy**
 
@@ -568,7 +581,7 @@ nsforge-mcp/
 │   │
 │   └── nsforge_mcp/           # 🔶 MCP Layer (Presentation)
 │       ├── server.py          #   - FastMCP Server
-│       └── tools/             #   - MCP tool definitions (78 tools)
+│       └── tools/             #   - MCP tool definitions (87 tools)
 │           ├── derivation.py  #     - 🔥 Derivation engine (31 tools)
 │           ├── calculate.py   #     - 🔢 Calculation (12 tools)
 │           ├── simplify.py    #     - 🆕 Advanced algebra (10+4 tools)
@@ -586,7 +599,8 @@ nsforge-mcp/
 ├── docs/                      # 📖 Documentation
 │   └── nsforge-skills-guide.md #   - Skills usage guide (588 lines)
 ├── examples/                  # 🐍 Python examples
-│   └── npo_antibiotic_analysis.py  # Clinical application
+│   ├── npo_antibiotic_analysis.py  # Clinical application
+│   └── physiological_vd_model.py   # PBPK body composition model
 ├── tests/                     # Tests
 └── pyproject.toml             # Project config (uv/hatch)
 ```

@@ -1,30 +1,110 @@
-# Progress (Updated: 2026-01-07)
+# Progress (Updated: 2026-07-07)
 
 ## Done
 
-- 安裝 SymPy-MCP 到 vendor 目錄（2026-01-07）
-  - 來源：https://github.com/sdiehl/sympy-mcp (48 stars)
-  - 位置：vendor/sympy-mcp/
-  - 工具數量：32 個
-- 修復 .vscode/mcp.json 配置
-- 啟用 NSForge (76 工具) + SymPy-MCP (32 工具) = 108 工具
-- 🧭 方向收斂：新增 `docs/reification-ladder-direction.md`（實體化階梯）（2026-07-07）
-- 🛠️ Agent 自駕基座 L0+L1（2026-07-07）
-  - `scripts/check.py`：單一 ground-truth 驗證 harness（lint/format/type/import/manifest/test/diff）
-  - `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：機器可讀能力清單（76 工具自描述）
-  - `.github/workflows/ci.yml`：補上原本缺失的 CI
-  - 修復繼承自 asset-aware-mcp 的假 harness（`full-check` 指向不存在路徑）
-  - lint/format 基線轉綠；harness 揪出 41 個 mypy strict 型別債（7 檔案）
-- 🚀 YOLO 三任務完成（2026-07-07）→ harness 7/7 全綠、78 工具
-  - Task 1：修完 41 個 mypy strict 型別債（含 formula.py 過濾 None 真 bug）
-  - Task 2：清除 agent harness 的 asset-aware 污染（刪 7 檔、重寫 5 核心為 NSForge）
-  - Task 3：L2 DTS（domain/task_spec.py）+ L3 編排器骨架（application/task_orchestrator.py）+ task_plan/task_run 工具 + 測試 + 範例 JSON
+### 🚀 自駕基座 + L2/L3 + 型別債清零 (2026-07-07)
+- ✅ **Agent 自駕基座 L0+L1**：`scripts/check.py`（單一 ground-truth harness：lint/format/type/import/manifest/test/diff）、`scripts/gen_capabilities.py` + `docs/agent/capabilities.json`（78 工具自描述）、`.github/workflows/ci.yml`（補上缺失的 CI）
+- ✅ **型別債清零**：修完 41 個 mypy strict 錯誤（含 formula.py 過濾 None 真 bug）→ harness 7/7 全綠
+- ✅ **agent harness 去污染**：`AGENTS.md`、`.clinerules/*` 改為 NSForge 專屬
+- ✅ **L2 DTS + L3 編排器**：`domain/task_spec.py` + `application/task_orchestrator.py` + `task_plan`/`task_run` 工具（76→78）+ 測試 + 範例 JSON
+- ✅ **方向文件**：`docs/reification-ladder-direction.md`（實體化階梯）
+
+### v0.2.4 Production-Level 品質驗證 (2026-01-21)
+- ✅ **版本同步**：3 個檔案更新至 0.2.4（pyproject.toml, __init__.py x2）
+- ✅ **ARCHITECTURE.md 完整重寫**：~150 行 DDD 文檔（76 工具分類、資料流圖）
+- ✅ **類型安全 100%**：修正 41 個 MyPy 錯誤（標準模式 0 錯誤）
+  - simplify.py: int/bool 類型混淆
+  - sympy_engine.py: Any 返回類型
+  - derivation.py: Union type
+  - wikidata_formulas.py: 完整類型標註
+  - biomodels.py: 上下文管理器類型
+  - adapters/__init__.py: TYPE_CHECKING 模式
+  - formula.py: 變數命名衝突
+- ✅ **程式碼品質**：Ruff 自動修正 17 issues（f-strings, 未使用 imports）
+- ✅ **安全掃描**：Bandit 0 critical/high issues（3 Low 可接受）
+- ✅ **測試覆蓋**：31/31 通過，Domain layer 100%
+- ✅ **ToolUniverse 評估**：確認適合 PR（互補性高、不重複）
+
+### 生理學 Vd 體組成調整模型 (2026-01-16)
+- ✅ **PBPK 方法論推導**：Poulin-Theil 組織分布模型
+- ✅ **公式驗證**：9 種藥物測試（1/9 符合文獻值）
+- ✅ **公式重新定位**：從「通用 Vd 預測」→「體組成調整公式」
+- ✅ **完整文檔**：`formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md`
+- ✅ **Python 實作**：`examples/physiological_vd_model.py` (PhysiologicalVdModel 類別)
+- ✅ **NSForge 會話**：881df03b (physiological_vd_corrected, 5 步驟)
+- ✅ **適用範圍**：logP > 2、中性分子、被動擴散
+
+### derivation_show() + Skill 更新 (2026-01-05)
+- ✅ **derivation_show() 工具**：顯示當前推導狀態（LaTeX/SymPy/摘要）
+- ✅ **Skill 文檔更新**：所有 NSForge Skill 添加「必須向用戶展示公式」提醒
+- ✅ **Bug 修復**：DerivationStep 屬性存取、類型標註
+- ✅ **Lint 通過**：Ruff + ty 全數通過
+- ✅ **工具數量**：76 NSForge + 32 SymPy = 108 總計
+
+### Phase 1+2 工具實作 (2026-01-04)
+- ✅ **Phase 1: 10 個進階代數簡化工具**
+  - expand, factor, collect, trigsimp, powsimp, radsimp, combsimp
+  - apart (部分分式 - 反 Laplace 必備), cancel, together
+- ✅ **Phase 2: 4 個積分變換工具**
+  - laplace_transform, inverse_laplace_transform
+  - fourier_transform, inverse_fourier_transform
+- ✅ **測試**: test_phase1_tools.py (10 tests), test_phase2_tools.py (10 tests)
+- ✅ **文檔**: phase1/2 報告, 快速參考, 涵蓋率分析更新
+- ✅ **SymPy 涵蓋率**: 85% → 92% (+7%)
+- ✅ **工具總數**: 36 → 50 (+14)
+
+### 外部公式資料來源調研 (2026-01-04)
+- ✅ Wikidata SPARQL (P2534 定義公式) - **已實作**
+- ✅ BioModels (SBML 藥動學模型) - **已實作**
+- ✅ SciPy constants - **已實作**
+- ✅ MCP 工具實作: formula_search, formula_get, formula_categories, formula_pk_models, formula_kinetic_laws, formula_constants
+- ✅ 對應 Skill: `nsforge-formula-search`
+- ✅ **工具總數**: 50 → 56 (+6)
+
+### SymPy 功能涵蓋分析 (2026-01-04)
+- ✅ 完整分析 SymPy-MCP 工具（37 個）
+- ✅ 完整分析 NSForge 工具（55 個）
+- ✅ 比對遺漏功能（發現 6 類，4 類低優先度）
+- ✅ 比對重複功能（12 個無衝突）
+- ✅ 檢查錯誤描述（0 錯誤）
+- ✅ 生成完整報告 `docs/sympy-coverage-analysis.md`
+- ✅ 更新 `docs/nsforge-vs-sympy-mcp.md`
+
+**核心發現**：
+- 整體涵蓋率：**85%**（高頻功能 100%）
+- 遺漏功能主要為低頻專業模組（geometry, logic）
+- 建議新增：expand, factor, trigsimp（中高優先度）
+
+### v0.2.3 USolver 協作橋接 (2026-01-04)
+- ✅ Git pull 合併遠端更新（72 檔案，+12,728/-810 行）
+- ✅ SymPy-MCP 安裝到 vendor/ 目錄
+- ✅ USolver 能力研究（4 種求解器分析）
+- ✅ 實作 `derivation_prepare_for_optimization` 工具（~150 行）
+  - 自動分類優化變數 vs 參數
+  - 生成領域特定約束（劑量範圍、時間非負）
+  - 輸出 USolver 範本
+- ✅ 創建 NSForge-USolver 協作 Skill（~300 行）
+  - 完整工作流程文檔
+  - Fentanyl 劑量優化範例
+  - 故障排除指南
+- ✅ 更新 README.md（英文）+ README.zh-TW.md（中文）
+  - 新增 USolver 生態系統條目
+  - 新增協作專區（流程圖、比較表）
+- ✅ 更新 Memory Bank（activeContext, progress, systemPatterns, decisionLog）
+
+### v0.2.2 步驟控制系統 (2026-01-03)
+- ✅ 實作步驟 CRUD 功能 (5 個新工具)
+- ✅ 更新 skill 文件反映新功能
+- ✅ Ruff 檢查通過 (All checks passed)
+- ✅ README/README.zh-TW 大幅更新（步驟控制功能）
+- ✅ CHANGELOG 新增 v0.2.2 版本
 
 ## Doing
 
-- （無）
+- (無進行中項目)
 
 ## Next
 
-- L3 編排器接上真實 derivation 引擎（目前 derivation/algorithm 階段為 PLANNED）
-- 依 reification-ladder P1 實體檢視器 / P2 provenance ledger 推進
+- 重啟 MCP 伺服器以載入新工具 (14 個新工具)
+- 實作外部公式搜尋功能 (Wikidata adapter)
+- 測試 apart + inverse_laplace 多隔室 PK 工作流

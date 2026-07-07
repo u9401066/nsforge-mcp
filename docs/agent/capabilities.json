@@ -1,12 +1,13 @@
 {
   "schema": "nsforge.capabilities/v1",
-  "tool_count": 78,
+  "tool_count": 87,
   "modules": [
     "calculate",
     "codegen",
     "derivation",
     "expression",
     "formula",
+    "music",
     "simplify",
     "task",
     "verify"
@@ -1136,6 +1137,202 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "搜尋公式（跨多個來源）"
+    },
+    {
+      "name": "music_compose_chord",
+      "module": "music",
+      "params": [
+        {
+          "name": "tones",
+          "type": "list[dict[str, Any]]"
+        },
+        {
+          "name": "normalize",
+          "type": "bool"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Combine multiple tones into a chord (sum of sinusoids)."
+    },
+    {
+      "name": "music_compose_sequence",
+      "module": "music",
+      "params": [
+        {
+          "name": "notes",
+          "type": "list[dict[str, Any]]"
+        },
+        {
+          "name": "default_duration",
+          "type": "float"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Compose a melody as a piecewise function of tones over time."
+    },
+    {
+      "name": "music_compose_tone",
+      "module": "music",
+      "params": [
+        {
+          "name": "frequency",
+          "type": "float | None"
+        },
+        {
+          "name": "note",
+          "type": "str | None"
+        },
+        {
+          "name": "amplitude",
+          "type": "float"
+        },
+        {
+          "name": "phase",
+          "type": "float"
+        },
+        {
+          "name": "duration",
+          "type": "float"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Create a symbolic tone function: A·sin(2πft + φ)."
+    },
+    {
+      "name": "music_function_info",
+      "module": "music",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Analyze a music function and return its symbolic properties."
+    },
+    {
+      "name": "music_function_to_waveform",
+      "module": "music",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "name": "sample_rate",
+          "type": "int"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Numerically evaluate a music function to produce waveform data."
+    },
+    {
+      "name": "music_generate_wav",
+      "module": "music",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "name": "sample_rate",
+          "type": "int"
+        },
+        {
+          "name": "output_path",
+          "type": "str"
+        },
+        {
+          "name": "amplitude_scale",
+          "type": "float"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Generate a WAV audio file from a mathematical function."
+    },
+    {
+      "name": "music_note_to_frequency",
+      "module": "music",
+      "params": [
+        {
+          "name": "note",
+          "type": "str"
+        },
+        {
+          "name": "a4_freq",
+          "type": "float"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Convert a musical note name to its frequency in Hz."
+    },
+    {
+      "name": "music_plot_spectrum",
+      "module": "music",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "name": "sample_rate",
+          "type": "int"
+        },
+        {
+          "name": "max_freq",
+          "type": "float"
+        },
+        {
+          "name": "title",
+          "type": "str"
+        },
+        {
+          "name": "output_path",
+          "type": "str | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Plot the frequency spectrum (FFT) of a music function."
+    },
+    {
+      "name": "music_plot_waveform",
+      "module": "music",
+      "params": [
+        {
+          "name": "expression",
+          "type": "str"
+        },
+        {
+          "name": "duration",
+          "type": "float"
+        },
+        {
+          "name": "sample_rate",
+          "type": "int"
+        },
+        {
+          "name": "title",
+          "type": "str"
+        },
+        {
+          "name": "output_path",
+          "type": "str | None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Plot the time-domain waveform of a music function."
     },
     {
       "name": "apart_expression",

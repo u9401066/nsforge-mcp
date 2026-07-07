@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**安全網就位後的 YOLO 三任務完成。** 基座（L0 harness+CI／L1 manifest）讓每步都能對綠色基線驗證，於是安全 YOLO：修型別債、清 harness 污染、建 L2/L3。harness 維持 7/7 全綠、7→**78 工具**。詳見 `docs/reification-ladder-direction.md`。
+**安全網就位後的 YOLO 三任務完成。** 基座（L0 harness+CI／L1 manifest）讓每步都能對綠色基線驗證，於是安全 YOLO：修型別債、清 harness 污染、建 L2/L3。harness 維持 7/7 全綠、76→**87 工具**（含合併後的 music 工具）。詳見 `docs/reification-ladder-direction.md`。
 
 ## ✅ 本次完成 (2026-07-07)
 

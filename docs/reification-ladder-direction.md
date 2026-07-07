@@ -60,7 +60,7 @@ flowchart TD
 |------|----------|------|
 | 概念層 | `derivation_start(name, description)` | ⚠️ 概念只是 session 上的字串標籤，不是可操作物件 |
 | 算式實體化 | SymPy-MCP `intro_many` / `introduce_expression` + NSForge session | ⚠️ **實體被切成兩半**，靠 `export_for_sympy` / `import_from_sympy` 手動搬運 |
-| 公式推導 | `derivation_record_step` / `substitute` / `simplify` / 滯源 / `rollback` | ✅ 最成熟（78 工具核心） |
+| 公式推導 | `derivation_record_step` / `substitute` / `simplify` / 滯源 / `rollback` | ✅ 最成熟（87 工具核心） |
 | Pseudocode→Code | `generate_python_function`（從已驗證步驟組裝） | ⚠️ **直接跳到 Python，跳過 pseudocode 那一階** |
 | 列出實體 | `derivation_show()` | 🟡 雛形，非完整「實體檢視器」 |
 
@@ -73,7 +73,7 @@ flowchart TD
 | 元件 | 產物 | 狀態 |
 |------|------|------|
 | **L0 驗證 harness + CI** | `scripts/check.py`、`.github/workflows/ci.yml` | ✅ 已實作 |
-| **L1 能力清單** | `scripts/gen_capabilities.py`、`docs/agent/capabilities.json`（78 工具自描述） | ✅ 已實作 |
+| **L1 能力清單** | `scripts/gen_capabilities.py`、`docs/agent/capabilities.json`（87 工具自描述） | ✅ 已實作 |
 | **L2 宣告式任務規格 DTS** | `src/nsforge/domain/task_spec.py`（`DerivationTaskSpec`） | ✅ 已實作 |
 | **L3 編排器骨架** | `src/nsforge/application/task_orchestrator.py` + `task_plan`/`task_run` | ✅ 骨架（derivation/algorithm 階段為 `PLANNED`，待接引擎） |
 | agent harness 去污染 | `AGENTS.md`、`.clinerules/*` 改 NSForge 專屬 | ✅ 已實作 |

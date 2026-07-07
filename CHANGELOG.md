@@ -7,11 +7,56 @@
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-01-21
+
+### Fixed
+
+- 🛠️ **類型安全性修正** - 修復 41 個 MyPy 類型錯誤
+  - `simplify.py`: 修正 int/bool 類型混淆 (lines 168-184, 252-258)
+  - `sympy_engine.py`: 為 equals() 方法添加顯式 bool() 轉換 (line 213)
+  - `derivation.py`: 使用 Union type `str | float` 處理 param_value (line 1904)
+  - `wikidata_formulas.py`: 完整類型標註 (lines 285-324)
+  - `biomodels.py`: 新增內部函數與上下文管理器類型標註 (lines 305-443)
+  - `adapters/__init__.py`: 使用 TYPE_CHECKING 模式避免循環導入 (lines 1-46)
+  - `formula.py`: 重新命名變數避免類型衝突
+
+- 🎨 **程式碼品質提升**
+  - Ruff 自動修正 17 issues (f-strings, 未使用 imports)
+  - 格式化 8 個檔案以保持一致性
+  - 新增安全豁免標記 (biomodels.py line 253: trusted XML source)
+
+- 🔒 **安全性**
+  - Bandit 掃描通過 (0 critical/high issues)
+  - 3 個 Low severity issues 均為可接受模式 (intentional try-except-pass, trusted XML)
+
+### Changed
+
+- 📚 **ARCHITECTURE.md 完整重寫**
+  - 新增完整 DDD 架構文檔 (~150 lines)
+  - 76 個工具詳細分類
+  - 資料流程圖與目錄結構說明
+
+- 📦 **版本同步**
+  - `pyproject.toml` version 更新至 "0.2.4"
+  - `src/nsforge/__init__.py` __version__ 更新至 "0.2.4"
+  - `src/nsforge_mcp/__init__.py` __version__ 更新至 "0.2.4"
+
+### Technical Details
+
+- **MyPy 驗證**: 標準模式 0 errors in 28 files ✅
+- **測試狀態**: 31/31 passed in 5.79s ✅
+- **覆蓋率**: Domain layer 100%, 整體 29% ✅
+- **Ruff 狀態**: 1 minor E402 in test file (acceptable) ✅
+
+---
+
+## [Unreleased - Future]
+
 ### Added
 
 - 🤖 **Agent 自駕基座（self-driving substrate）**
   - `scripts/check.py`：單一 ground-truth 驗證 harness（lint/format/type/import/manifest/test/diff），支援 `--json` 供 agent 解析
-  - `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：從 `@mcp.tool` AST 自動產生的 78 工具能力清單
+  - `scripts/gen_capabilities.py` + `docs/agent/capabilities.json`：從 `@mcp.tool` AST 自動產生的工具能力清單
   - `.github/workflows/ci.yml`：CI 驗證流程
   - `docs/reification-ladder-direction.md`：實體化階梯方向文件
 - 🆕 **L2 宣告式推導任務規格 + L3 編排器**（2 個新 MCP 工具 `task_plan` / `task_run`）
@@ -27,9 +72,17 @@
 ### Changed
 
 - 🧹 agent harness 去除 asset-aware-mcp 污染：`AGENTS.md`、`.clinerules/*` 改為 NSForge 專屬，驗證統一走 `scripts/check.py`
-- 📈 工具總數 76 → 78（生態系 108 → 110）
+- 📈 工具總數 76 → 87（含 9 個 music 工具；生態系 108 → 119）
 
 ### Added
+
+- 🧬 **生理學 Vd 體組成調整模型** (2026-01-16)
+  - **完整 PBPK 推導**：Poulin-Theil 組織分布模型
+  - **驗證分析**：9 種藥物測試，發現 logP-only Kp 預測的根本限制
+  - **公式重新定位**：從「通用 Vd 預測」→「體組成調整公式」
+  - **適用範圍定義**：logP > 2、中性分子、被動擴散
+  - **文檔**：`formulas/derivations/pharmacokinetics/physiological_vd_body_composition.md`
+  - **Python 實作**：`examples/physiological_vd_model.py` (PhysiologicalVdModel 類別)
 
 - 🆕 **Phase 2 - 積分變換工具** (4 個新 MCP 工具)
   - **P2 Laplace 變換** (2 個，🔥🔥 高優先度)：

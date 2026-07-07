@@ -10,7 +10,12 @@ Formula Search Tools - 公式檢索 MCP 工具
 直接精確檢索，不使用 RAG（避免公式錯誤）。
 """
 
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    pass
 
 
 def register_formula_tools(mcp: Any) -> None:
@@ -292,7 +297,7 @@ def register_formula_tools(mcp: Any) -> None:
                 }
             }
         """
-        categories = {}
+        categories: dict[str, list[str]] = {}
 
         if source in ["all", "wikidata"]:
             try:
@@ -361,13 +366,13 @@ def register_formula_tools(mcp: Any) -> None:
         try:
             from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
 
-            adapter = BioModelsAdapter()
+            pk_adapter = BioModelsAdapter()
             try:
                 search_query = f"{query} {drug}".strip() if drug else query
                 if not search_query:
                     search_query = "pharmacokinetics"
 
-                results = adapter.search_pk_models(search_query, limit)
+                results = pk_adapter.search_pk_models(search_query, limit)
 
                 return {
                     "success": True,
@@ -376,7 +381,7 @@ def register_formula_tools(mcp: Any) -> None:
                     "source": "biomodels",
                 }
             finally:
-                adapter.close()
+                pk_adapter.close()
         except Exception as e:
             return {
                 "success": False,
@@ -417,9 +422,9 @@ def register_formula_tools(mcp: Any) -> None:
         try:
             from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
 
-            adapter = BioModelsAdapter()
+            kinetic_adapter = BioModelsAdapter()
             try:
-                kinetic_laws = adapter.get_kinetic_laws(model_id)
+                kinetic_laws = kinetic_adapter.get_kinetic_laws(model_id)
 
                 return {
                     "success": True,
@@ -428,7 +433,7 @@ def register_formula_tools(mcp: Any) -> None:
                     "total": len(kinetic_laws),
                 }
             finally:
-                adapter.close()
+                kinetic_adapter.close()
         except Exception as e:
             return {
                 "success": False,
@@ -471,17 +476,22 @@ def register_formula_tools(mcp: Any) -> None:
         try:
             from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
 
-            adapter = ScipyConstantsAdapter()
+            const_adapter = ScipyConstantsAdapter()
 
             if query:
-                results = adapter.search(query)
+                results = const_adapter.search(query)
             else:
-                formula_ids = adapter.list_formulas(category)
-                results = [f for fid in formula_ids if (f := adapter.get_formula(fid)) is not None]
+                formula_ids = const_adapter.list_formulas(category)
+                # Filter out None values
+                results = [
+                    formula
+                    for fid in formula_ids
+                    if (formula := const_adapter.get_formula(fid)) is not None
+                ]
 
             return {
                 "success": True,
-                "results": [r.to_dict() for r in results if r],
+                "results": [r.to_dict() for r in results],
                 "total": len(results),
                 "source": "scipy",
                 "category": category,
