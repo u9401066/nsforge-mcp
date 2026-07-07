@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**泛公式探討路線圖 — 階段 2（推導評測 gate）+ 通用性 gate 完成。** `scripts/bench.py`（`bench` gate，4 個已知推導的正確率）與 `scripts/genericity.py`（`generic` gate：40 個隨機、從未手寫的公式組合過 L3 後與獨立 SymPy `.subs()` 交叉比對，40/40）——harness 從 7 升級為 **9 gate**。`generic` gate 是對「怎樣不流於自建整個公式庫」的結構性回答：NSForge 是推導演算法（動詞）、公式是輸入、運算子才是我們的、`formulas/` 是帶溯源的輸出。下一步：階段 3（檢索增強推薦器，且檢索須指向開放來源而非手建目錄）。藍圖見 `docs/general-formula-exploration-roadmap.md`。
+**泛公式探討路線圖 — 階段 A/B/C 完成（接完階梯 + 維度下沉 + 檢索推薦器）。** `task_run` 現在跑完整條實體化階梯：concept → symbol → derivation（代入＋`solve_for`）→ **verify（acceptance 神諭：equivalence/boundary/limit/dimensional + `verified` 旗標）** → **code（`generated_code`）**。維度分析下沉 `infrastructure/dimensional.py`（單一真相，消除 domain stub）。新增 `derivation_suggest_next`（retrieve-then-rank，排序開放來源候選；工具 87→88）。harness 9/9。下一步：階段 4（自我修正環——verify 失敗 → 回滾 → 換候選重試）。藍圖見 `docs/general-formula-exploration-roadmap.md`。
 
 ## ✅ 本次完成 (2026-07-07)
 

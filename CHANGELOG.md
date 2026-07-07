@@ -9,8 +9,14 @@
 
 ### Added
 
-- 🧪 **通用性 gate（`generic`）** — `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案交叉比對（40/40）。結構性證明 NSForge 是通用推導演算法、非手建公式庫。harness 8 → 9 gate。（roadmap 階段 2 延伸）
+- � **接完推導階梯（roadmap A）** — `task_run` 現在跑完 concept → symbol → derivation → **verify** → **code**：新增 `solve_for`（`engine.solve` 隳離未知數，如 `d=v*t`→`t=d/v`）、**ALGORITHM 產碼**（純 `domain/codegen.py` 把已驗證推導組成 Python 函數，回傳 `generated_code`）、**acceptance 神諭執行**（equivalence/boundary/limit 走引擎、dimensional 走 domain Verifier；回傳每項結果與單一 `verified` 信任旗標）；DTS 的 `assumptions`（如 `k>0`）接入符號上下文使極限正確。新增 `engine.limit`。
+- 🧭 **檢索增強推薦器（roadmap C）** — `derivation_suggest_next(goal, current_expression, candidates)`（`domain/suggester.py` 純排序 + `tools/suggest.py`）：依「候選是否定義現況符號＋目標詞重疊」排序開放來源候選（retrieve-then-rank，學自 ReProver）。工具 87→88。
+- �🧪 **通用性 gate（`generic`）** — `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案交叉比對（40/40）。結構性證明 NSForge 是通用推導演算法、非手建公式庫。harness 8 → 9 gate。（roadmap 階段 2 延伸）
 - 🧪 **推導評測 gate（`bench`）** — `benchmarks/*.json`（4 個已知推導：PK/力學/電路）+ `scripts/bench.py`：用引擎 `equals` 符號比對推導結果與期望（順序無關）。harness 7 → 8 gate，把「程式碼綠」升級成「推導正確」。（roadmap 階段 2）
+
+### Changed
+
+- ♻️ **維度分析下沉 domain（roadmap B）** — SI 維度邏輯集中到 `infrastructure/dimensional.py`（單一真相，化約成基本維度使 `N/kg`==`m/s**2`），`domain` 的 `BasicVerifier.check_dimensions` 真正實作（消除 "not yet implemented" stub），MCP `check_dimensions` 工具委派同一 helper（DRY）。
 
 ## [0.2.4] - 2026-01-21
 

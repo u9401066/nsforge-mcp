@@ -1,6 +1,6 @@
 {
   "schema": "nsforge.capabilities/v1",
-  "tool_count": 87,
+  "tool_count": 88,
   "modules": [
     "calculate",
     "codegen",
@@ -9,6 +9,7 @@
     "formula",
     "music",
     "simplify",
+    "suggest",
     "task",
     "verify"
   ],
@@ -1629,6 +1630,26 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Simplify trigonometric expressions."
+    },
+    {
+      "name": "derivation_suggest_next",
+      "module": "suggest",
+      "params": [
+        {
+          "name": "goal",
+          "type": "str"
+        },
+        {
+          "name": "current_expression",
+          "type": "str"
+        },
+        {
+          "name": "candidates",
+          "type": "list[dict[str, Any]]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Rank candidate next steps for a derivation by relevance."
     },
     {
       "name": "task_plan",

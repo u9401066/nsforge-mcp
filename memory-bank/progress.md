@@ -1,6 +1,11 @@
 # Progress (Updated: 2026-07-07)
 
 ## Done
+### 🪜 階段 A/B/C：接完階梯 + 維度下沉 + 推薦器 (2026-07-07)
+- ✅ **A**：`task_run` 跑完 concept→symbol→derivation→verify→code。solve_for（engine.solve）、ALGORITHM 產碼（domain/codegen.py→generated_code）、acceptance 神諭執行（equivalence/boundary/limit/dimensional + verified 旗標）、DTS assumptions（k>0）接入、新增 engine.limit
+- ✅ **B**：維度分析下沉 `infrastructure/dimensional.py`（單一真相，化約基本維度 N/kg==m/s**2），`BasicVerifier.check_dimensions` 真實作消除 stub，MCP 工具 DRY
+- ✅ **C**：`derivation_suggest_next`（domain/suggester.py 純排序 + tools/suggest.py）retrieve-then-rank，工具 87→88
+- ✅ 新增測試：test_orchestrator_ladder / test_dimensional / test_orchestrator_acceptance / test_suggester；harness 9/9
 ### 📊 階段 2：推導評測 gate + 通用性 gate (2026-07-07)
 - ✅ `benchmarks/*.json`（4 個已知推導：PK/力學/電路）+ `scripts/bench.py`：用引擎 `equals` 符號比對推導結果與期望（順序無關）；4/4 推導正確
 - ✅ `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 後與獨立 SymPy `.subs()` 參考答案交叉比對（40/40）→ 證明是通用推導演算法、非手建公式庫

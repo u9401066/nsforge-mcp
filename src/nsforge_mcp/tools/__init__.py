@@ -31,6 +31,7 @@ from nsforge_mcp.tools.expression import register_expression_tools
 from nsforge_mcp.tools.formula import register_formula_tools
 from nsforge_mcp.tools.music import register_music_tools
 from nsforge_mcp.tools.simplify import register_simplify_tools
+from nsforge_mcp.tools.suggest import register_suggest_tools
 from nsforge_mcp.tools.task import register_task_tools
 from nsforge_mcp.tools.verify import register_verify_tools
 
@@ -52,6 +53,9 @@ def register_all_tools(mcp: Any) -> None:
 
     # 🧭 L2/L3: Declarative task spec + reification-ladder orchestrator
     register_task_tools(mcp)
+
+    # 🧭 Phase 3: Retrieval-augmented next-step suggester (ranks open-source candidates)
+    register_suggest_tools(mcp)
 
     # 🎵 Music function composition and visualization
     register_music_tools(mcp)
