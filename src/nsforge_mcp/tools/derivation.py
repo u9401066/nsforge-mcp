@@ -267,12 +267,16 @@ def register_derivation_tools(mcp: Any) -> None:
             steps_summary = []
             for step in session.steps:
                 step_latex = step.output_latex or step.output_expression
-                steps_summary.append({
-                    "step": step.step_number,
-                    "operation": step.operation.value,
-                    "description": step.description[:50] + "..." if len(step.description) > 50 else step.description,
-                    "latex": step_latex,
-                })
+                steps_summary.append(
+                    {
+                        "step": step.step_number,
+                        "operation": step.operation.value,
+                        "description": step.description[:50] + "..."
+                        if len(step.description) > 50
+                        else step.description,
+                        "latex": step_latex,
+                    }
+                )
             result["steps"] = steps_summary
 
         if format == "latex":
@@ -1900,13 +1904,14 @@ def register_derivation_tools(mcp: Any) -> None:
             else:
                 # 參數（數值已從步驟中確定）
                 # 嘗試從推導步驟中提取數值
-                param_value = "unknown"
+                param_value: str | float = "unknown"
                 for step in session.steps:
                     # DerivationStep 是 dataclass，使用屬性存取
                     notes = getattr(step, "notes", "") or ""
                     if sym_str in notes:
                         # 嘗試提取數值
                         import re
+
                         match = re.search(rf"{sym_str}\s*[=:]\s*([\d.]+)", notes)
                         if match:
                             param_value = float(match.group(1))
@@ -1921,10 +1926,12 @@ def register_derivation_tools(mcp: Any) -> None:
         suggested_constraints = []
         for var in optimization_vars:
             if "dose" in var.lower():
-                suggested_constraints.extend([
-                    f"{var} >= 0.001",  # 最小劑量 1mg
-                    f"{var} <= 0.100",  # 最大劑量 100mg
-                ])
+                suggested_constraints.extend(
+                    [
+                        f"{var} >= 0.001",  # 最小劑量 1mg
+                        f"{var} <= 0.100",  # 最大劑量 100mg
+                    ]
+                )
             elif var.lower() in ["t", "time"]:
                 suggested_constraints.append(f"{var} >= 0")
             else:
@@ -1936,7 +1943,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
 Use usolver to optimize the following problem:
 
-**Objective**: Find optimal values for {', '.join(optimization_vars)}
+**Objective**: Find optimal values for {", ".join(optimization_vars)}
 
 **Function**:
   {function_str}
@@ -1945,7 +1952,7 @@ Use usolver to optimize the following problem:
   {latex_str}
 
 **Suggested Constraints**:
-{chr(10).join('  - ' + c for c in suggested_constraints)}
+{chr(10).join("  - " + c for c in suggested_constraints)}
 
 **Example Constraints** (customize based on your problem):
   - Therapeutic window: C(t=5) >= 2.0 AND C(t=5) <= 4.0

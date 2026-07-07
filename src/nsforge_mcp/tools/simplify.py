@@ -168,7 +168,7 @@ def register_simplify_tools(mcp: Any) -> None:
 
         try:
             # Build expand() kwargs
-            kwargs = {
+            kwargs: dict[str, Any] = {
                 "deep": deep,
                 "power_base": power_base,
                 "power_exp": power_exp,
@@ -249,7 +249,7 @@ def register_simplify_tools(mcp: Any) -> None:
             return {"success": False, "error": error or "Failed to parse expression"}
 
         try:
-            kwargs = {"deep": deep}
+            kwargs: dict[str, Any] = {"deep": deep}
             if modulus is not None:
                 kwargs["modulus"] = modulus
 

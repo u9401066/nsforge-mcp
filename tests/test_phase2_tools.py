@@ -54,8 +54,9 @@ def test_phase2_laplace_fourier_transforms():
     print(f"  Result: {result['result']}")
     # More flexible assertion - check for expected components
     result_str = result["result"]
-    assert ("1/" in result_str and ("s" in result_str or "k" in result_str)), \
+    assert "1/" in result_str and ("s" in result_str or "k" in result_str), (
         f"Unexpected result: {result_str}"
+    )
     print(f"  ✅ exp(-k*t) → {result['result']}")
     if result.get("convergence"):
         print(f"     Convergence: {result['convergence']}")

@@ -12,17 +12,24 @@ NPO（禁食）對口服抗生素療效影響分析
 - 弱酸性藥物在低 pH 時非離子化比例高，吸收較好
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def calculate_npo_antibiotic_effect(
-    pH: float, pKa: float, D: float, F_base: float, Vd: float,
-    E_0: float, E_max: float, EC_50: float, n: float
+    pH: float,
+    pKa: float,
+    D: float,
+    F_base: float,
+    Vd: float,
+    E_0: float,
+    E_max: float,
+    EC_50: float,
+    n: float,
 ) -> dict:
     """Calculate antibiotic effect considering pH-dependent absorption.
-    
-    Models how NPO (fasting) affects oral antibiotic efficacy through 
+
+    Models how NPO (fasting) affects oral antibiotic efficacy through
     changes in gastric pH and drug ionization.
 
     Args:
@@ -45,7 +52,7 @@ def calculate_npo_antibiotic_effect(
     """
     # Step 1: Calculate fraction of non-ionized (absorbable) drug
     # Henderson-Hasselbalch: f = 1 / (1 + 10^(pH-pKa)) for weak acids
-    f_nonionized = 1 / (1 + 10**(pH - pKa))
+    f_nonionized = 1 / (1 + 10 ** (pH - pKa))
 
     # Step 2: Calculate effective plasma concentration
     # C = F * D / Vd, where F is affected by ionization
@@ -55,11 +62,7 @@ def calculate_npo_antibiotic_effect(
     # E = E_0 + (E_max * C^n) / (EC_50^n + C^n)
     E = E_0 + (E_max * C_effective**n) / (EC_50**n + C_effective**n)
 
-    return {
-        "f_nonionized": f_nonionized,
-        "C_effective": C_effective,
-        "E": E
-    }
+    return {"f_nonionized": f_nonionized, "C_effective": C_effective, "E": E}
 
 
 def analyze_npo_impact():
@@ -69,19 +72,19 @@ def analyze_npo_impact():
     # 常見抗生素參數
     antibiotics = {
         "Amoxicillin": {
-            "pKa": 2.4,      # 弱酸性
-            "D": 500,        # 500 mg
-            "F_base": 0.8,   # 80% baseline bioavailability
-            "Vd": 20,        # 20 L
-            "EC_50": 2.0,    # 2 mg/L for typical bacteria
-            "n": 1.5,        # Hill coefficient
+            "pKa": 2.4,  # 弱酸性
+            "D": 500,  # 500 mg
+            "F_base": 0.8,  # 80% baseline bioavailability
+            "Vd": 20,  # 20 L
+            "EC_50": 2.0,  # 2 mg/L for typical bacteria
+            "n": 1.5,  # Hill coefficient
         },
         "Ciprofloxacin": {
-            "pKa": 6.1,      # 較弱酸性
-            "D": 500,        # 500 mg
-            "F_base": 0.7,   # 70% baseline bioavailability
-            "Vd": 140,       # 140 L (large Vd)
-            "EC_50": 0.5,    # 0.5 mg/L
+            "pKa": 6.1,  # 較弱酸性
+            "D": 500,  # 500 mg
+            "F_base": 0.7,  # 70% baseline bioavailability
+            "Vd": 140,  # 140 L (large Vd)
+            "EC_50": 0.5,  # 0.5 mg/L
             "n": 2.0,
         },
         "Levofloxacin": {
@@ -93,27 +96,27 @@ def analyze_npo_impact():
             "n": 1.8,
         },
     }
-    
+
     # 模擬參數
-    E_0 = 0        # 基線效果（無殺菌）
-    E_max = 100    # 最大殺菌效果（%）
-    
+    E_0 = 0  # 基線效果（無殺菌）
+    E_max = 100  # 最大殺菌效果（%）
+
     # pH 範圍
-    pH_fed = 2.0       # 進食後胃 pH
-    pH_npo = 4.5       # NPO 胃 pH
+    pH_fed = 2.0  # 進食後胃 pH
+    pH_npo = 4.5  # NPO 胃 pH
     pH_range = np.linspace(1.0, 7.0, 100)
-    
+
     print("=" * 70)
     print("NPO（禁食）對口服抗生素療效影響分析")
     print("=" * 70)
     print()
-    
+
     results = {}
-    
+
     for name, params in antibiotics.items():
         print(f"\n【{name}】(pKa = {params['pKa']})")
         print("-" * 50)
-        
+
         # 計算進食狀態
         fed_result = calculate_npo_antibiotic_effect(
             pH=pH_fed,
@@ -124,9 +127,9 @@ def analyze_npo_impact():
             E_0=E_0,
             E_max=E_max,
             EC_50=params["EC_50"],
-            n=params["n"]
+            n=params["n"],
         )
-        
+
         # 計算 NPO 狀態
         npo_result = calculate_npo_antibiotic_effect(
             pH=pH_npo,
@@ -137,9 +140,9 @@ def analyze_npo_impact():
             E_0=E_0,
             E_max=E_max,
             EC_50=params["EC_50"],
-            n=params["n"]
+            n=params["n"],
         )
-        
+
         # 計算不同 pH 下的效果曲線
         effects = []
         for ph in pH_range:
@@ -152,41 +155,41 @@ def analyze_npo_impact():
                 E_0=E_0,
                 E_max=E_max,
                 EC_50=params["EC_50"],
-                n=params["n"]
+                n=params["n"],
             )
             effects.append(r["E"])
-        
+
         results[name] = {
             "fed": fed_result,
             "npo": npo_result,
             "pH_range": pH_range,
-            "effects": effects
+            "effects": effects,
         }
-        
+
         # 報告
         print(f"  進食狀態 (pH={pH_fed}):")
         print(f"    - 非離子化比例: {fed_result['f_nonionized']:.1%}")
         print(f"    - 有效血漿濃度: {fed_result['C_effective']:.2f} mg/L")
         print(f"    - 殺菌效果: {fed_result['E']:.1f}%")
-        
+
         print(f"  NPO 狀態 (pH={pH_npo}):")
         print(f"    - 非離子化比例: {npo_result['f_nonionized']:.1%}")
         print(f"    - 有效血漿濃度: {npo_result['C_effective']:.2f} mg/L")
         print(f"    - 殺菌效果: {npo_result['E']:.1f}%")
-        
+
         # 療效下降百分比
-        effect_reduction = (fed_result['E'] - npo_result['E']) / fed_result['E'] * 100
+        effect_reduction = (fed_result["E"] - npo_result["E"]) / fed_result["E"] * 100
         print(f"  ⚠️  NPO 導致療效下降: {effect_reduction:.1f}%")
-    
+
     return results
 
 
 def plot_results(results):
     """繪製 pH-效果關係圖"""
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    
+
     colors = {"Amoxicillin": "blue", "Ciprofloxacin": "red", "Levofloxacin": "green"}
-    
+
     for i, (name, data) in enumerate(results.items()):
         ax = axes[i]
         ax.plot(data["pH_range"], data["effects"], color=colors[name], linewidth=2)
@@ -194,7 +197,7 @@ def plot_results(results):
         ax.axvline(x=4.5, color="orange", linestyle="--", alpha=0.7, label="NPO pH")
         ax.scatter([2.0], [data["fed"]["E"]], color="green", s=100, zorder=5, label="Fed")
         ax.scatter([4.5], [data["npo"]["E"]], color="red", s=100, zorder=5, label="NPO")
-        
+
         ax.set_xlabel("Gastric pH", fontsize=12)
         ax.set_ylabel("Bactericidal Effect (%)", fontsize=12)
         ax.set_title(f"{name} (pKa={results[name]['fed']['f_nonionized']:.2f})", fontsize=14)
@@ -202,7 +205,7 @@ def plot_results(results):
         ax.grid(True, alpha=0.3)
         ax.set_xlim(1, 7)
         ax.set_ylim(0, 105)
-    
+
     plt.suptitle("NPO Impact on Oral Antibiotic Efficacy", fontsize=16, y=1.02)
     plt.tight_layout()
     plt.savefig("npo_antibiotic_analysis.png", dpi=150, bbox_inches="tight")
@@ -240,10 +243,10 @@ def clinical_recommendations():
 if __name__ == "__main__":
     # 執行分析
     results = analyze_npo_impact()
-    
+
     # 臨床建議
     clinical_recommendations()
-    
+
     # 繪圖（如果有 matplotlib）
     try:
         plot_results(results)

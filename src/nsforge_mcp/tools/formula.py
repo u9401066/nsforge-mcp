@@ -92,18 +92,18 @@ def register_formula_tools(mcp: Any) -> None:
             try:
                 from nsforge.infrastructure.adapters.wikidata_formulas import WikidataFormulaAdapter
 
-                adapter = WikidataFormulaAdapter()
+                wikidata_adapter = WikidataFormulaAdapter()
                 try:
                     if domain:
-                        wikidata_results = adapter.search_by_category(domain, query, limit)
+                        wikidata_results = wikidata_adapter.search_by_category(domain, query, limit)
                     else:
-                        wikidata_results = adapter.search(query, limit)
+                        wikidata_results = wikidata_adapter.search(query, limit)
 
                     for r in wikidata_results:
                         results.append(r.to_dict())
                     sources_searched.append("wikidata")
                 finally:
-                    adapter.close()
+                    wikidata_adapter.close()
             except Exception as e:
                 print(f"Wikidata search failed: {e}")
 
@@ -112,22 +112,22 @@ def register_formula_tools(mcp: Any) -> None:
             try:
                 from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
 
-                adapter = BioModelsAdapter()
+                biomodels_adapter = BioModelsAdapter()
                 try:
                     if domain == "pharmacokinetics":
-                        biomodels_results = adapter.search_pk_models(query, limit)
+                        biomodels_results = biomodels_adapter.search_pk_models(query, limit)
                     elif domain == "pharmacodynamics":
-                        biomodels_results = adapter.search_pd_models(query, limit)
+                        biomodels_results = biomodels_adapter.search_pd_models(query, limit)
                     elif domain == "enzyme_kinetics":
-                        biomodels_results = adapter.search_enzyme_kinetics(query, limit)
+                        biomodels_results = biomodels_adapter.search_enzyme_kinetics(query, limit)
                     else:
-                        biomodels_results = adapter.search(query, limit)
+                        biomodels_results = biomodels_adapter.search(query, limit)
 
                     for r in biomodels_results:
                         results.append(r.to_dict())
                     sources_searched.append("biomodels")
                 finally:
-                    adapter.close()
+                    biomodels_adapter.close()
             except Exception as e:
                 print(f"BioModels search failed: {e}")
 
@@ -136,8 +136,8 @@ def register_formula_tools(mcp: Any) -> None:
             try:
                 from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
 
-                adapter = ScipyConstantsAdapter()
-                scipy_results = adapter.search(query)
+                scipy_adapter = ScipyConstantsAdapter()
+                scipy_results = scipy_adapter.search(query)
 
                 for r in scipy_results[:limit]:
                     results.append(r.to_dict())
@@ -208,11 +208,11 @@ def register_formula_tools(mcp: Any) -> None:
             try:
                 from nsforge.infrastructure.adapters.wikidata_formulas import WikidataFormulaAdapter
 
-                adapter = WikidataFormulaAdapter()
+                wikidata_adapter = WikidataFormulaAdapter()
                 try:
-                    result = adapter.get_formula(formula_id)
+                    result = wikidata_adapter.get_formula(formula_id)
                 finally:
-                    adapter.close()
+                    wikidata_adapter.close()
             except Exception as e:
                 return {
                     "success": False,
@@ -224,11 +224,11 @@ def register_formula_tools(mcp: Any) -> None:
             try:
                 from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
 
-                adapter = BioModelsAdapter()
+                biomodels_adapter = BioModelsAdapter()
                 try:
-                    result = adapter.get_formula(formula_id)
+                    result = biomodels_adapter.get_formula(formula_id)
                 finally:
-                    adapter.close()
+                    biomodels_adapter.close()
             except Exception as e:
                 return {
                     "success": False,
@@ -240,8 +240,8 @@ def register_formula_tools(mcp: Any) -> None:
             try:
                 from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
 
-                adapter = ScipyConstantsAdapter()
-                result = adapter.get_formula(formula_id)
+                scipy_adapter = ScipyConstantsAdapter()
+                result = scipy_adapter.get_formula(formula_id)
             except Exception as e:
                 return {
                     "success": False,
@@ -297,26 +297,29 @@ def register_formula_tools(mcp: Any) -> None:
         if source in ["all", "wikidata"]:
             try:
                 from nsforge.infrastructure.adapters.wikidata_formulas import WikidataFormulaAdapter
-                adapter = WikidataFormulaAdapter()
-                categories["wikidata"] = adapter.list_categories()
-                adapter.close()
+
+                wikidata_adapter = WikidataFormulaAdapter()
+                categories["wikidata"] = wikidata_adapter.list_categories()
+                wikidata_adapter.close()
             except Exception:
                 categories["wikidata"] = []
 
         if source in ["all", "biomodels"]:
             try:
                 from nsforge.infrastructure.adapters.biomodels import BioModelsAdapter
-                adapter = BioModelsAdapter()
-                categories["biomodels"] = adapter.list_categories()
-                adapter.close()
+
+                biomodels_adapter = BioModelsAdapter()
+                categories["biomodels"] = biomodels_adapter.list_categories()
+                biomodels_adapter.close()
             except Exception:
                 categories["biomodels"] = []
 
         if source in ["all", "scipy"]:
             try:
                 from nsforge.infrastructure.adapters.scipy_constants import ScipyConstantsAdapter
-                adapter = ScipyConstantsAdapter()
-                categories["scipy"] = adapter.list_categories()
+
+                scipy_adapter = ScipyConstantsAdapter()
+                categories["scipy"] = scipy_adapter.list_categories()
             except Exception:
                 categories["scipy"] = []
 
@@ -474,11 +477,7 @@ def register_formula_tools(mcp: Any) -> None:
                 results = adapter.search(query)
             else:
                 formula_ids = adapter.list_formulas(category)
-                results = [
-                    adapter.get_formula(fid)
-                    for fid in formula_ids
-                    if adapter.get_formula(fid)
-                ]
+                results = [f for fid in formula_ids if (f := adapter.get_formula(fid)) is not None]
 
             return {
                 "success": True,
