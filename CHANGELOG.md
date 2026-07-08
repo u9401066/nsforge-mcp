@@ -9,6 +9,7 @@
 
 ### Added
 
+- 🛡️ **統一 error envelope（跨全部工具）** — `EnvelopeMCP`（`src/nsforge_mcp/envelope.py`）在 `register_all_tools` 一處包住 FastMCP，讓每個 `@tool()` 未處理的例外都變成一致、記錄過的 `{success: false, error: {type, message, tool}}`；`functools.wraps` 保留簽章故 JSON schema 不變（實測 `calculate_limit` 仍有 expression/variable/point/direction）。成功與既有已處理錯誤輸出原樣通過——**改 1 處、不動任何工具本體、零契約破壞**。
 - 🏭 **生產級強化（tool 收斂＋wheel 打包＋可觀測性）** — (1) **精簡預設面**：`music`（9 工具）改 opt-in（`NSFORGE_ENABLE_MUSIC=1`），預設 91→82（少工具＝更好的工具選擇）；`nsforge_mcp/config.py` 單一真相、manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報告 active vs catalog。(2) **manifest 打包進 wheel**（hatch force-include），`uvx` 安裝也能自描述。(3) **stderr 結構化啟動日誌**（`NSFORGE_LOG_LEVEL`）＋伺服器 `website_url`／版本 metadata。harness 亦守衛 `nsforge_mcp.__version__`（第三份版本）與 optional metadata。
 - 🧩 **Agent harness 完整化（自描述＋自守衛）** — agents 賴以工作的基座現在自描述且自守衛：manifest **v2**（`docs/agent/capabilities.json` 除工具外自描述 version／north-star／module summaries／live gate 清單（匯自 `check.py`）／commands）；runtime 自省 MCP 工具 `nsforge_health`＋`nsforge_manifest`（新 `meta` 模組，工具 89→91）；第 11 個 **`harness` gate**（`scripts/harness_selfcheck.py`：版本單一真相、manifest／gate 對齊、工具自描述品質、AGENTS.md gate 漂移偵測）。harness 10→11。
 - 🌳 **explore mode（roadmap 階段 6）** — `task_explore`（`application/explorer.py`）：把 DTS 的 `alternatives` 當分支，對 base＋每個 alternative 各跑完整 L3 迴圈，回傳**所有**驗證候選（依 verified>通過神諭數>簡潔排序，各帶 acceptance＋provenance）。把「推導一個答案」變成「探索驗證過的答案空間」。工具 88→89。

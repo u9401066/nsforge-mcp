@@ -1,6 +1,10 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 🛡️ 統一 error envelope（跨全部工具，1 處邊界） (2026-07-08)
+- ✅ `envelope.py` `EnvelopeMCP`：在 `register_all_tools` 一處包住 FastMCP，每個 `@tool()` 自動套 `with_error_envelope`——未處理例外→一致、記錄過的 `{success:false, error:{type,message,tool}}`
+- ✅ `functools.wraps` 保留簽章，FastMCP schema 不變（實測 calculate_limit 仍 4 參數）；成功／已處理錯誤原樣通過→零契約破壞、tests（用 _FakeMCP）不受影響
+- ✅ tests/test_envelope.py；harness 11/11。避開了「逐一改 91 工具」的高風險路徑（e1d44e1）
 ### 🏭 生產級強化：tool 收斂 + wheel 打包 + 可觀測性 (2026-07-08)
 - ✅ **收斂**：`music` 改 opt-in（`config.py` `module_enabled` + `NSFORGE_ENABLE_MUSIC`），預設面 91→82；manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報 active vs catalog；selfcheck 亦查 `nsforge_mcp.__version__`（第三份）與 optional metadata（58c855c）
 - ✅ **打包**：hatch force-include 把 `capabilities.json` 打進 wheel（`nsforge_mcp/capabilities.json`），`uvx` 安裝也能自描述；meta 解析 repo→packaged；建 wheel 驗證含之（300758d）
