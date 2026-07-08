@@ -1,7 +1,10 @@
 # Progress (Updated: 2026-07-08)
 
-## Done
-### � 階段 4：自我修正環（critic-retry） (2026-07-08)
+## Done### 🧹 品質清理：孤兒盤點 + 消除重造輪子 (2026-07-08)
+- ✅ 用 Explore subagent 全面盤點：**幾乎無孤兒死碼**（唯 `FormulaRepository` ABC 是預留 port，保留）
+- ✅ **集中 SymPy 解析**（`infrastructure/parsing.py`）：3 份 `_parse_safe`→1；順帶修復 calculate/simplify **繞過 DoS 護欄** 的安全漏洞（含 calculate 另 2 處直接 parse_expr）；`TRANSFORMATIONS` 7→3（commit 5de5ac1）
+- ✅ **集中 `SYMPY_RESERVED_NAMES`**（`domain/safe_parse.py`）：3 份不一致（23 vs 11 名）→1；修正 bench/suggester 過去漏掉 cot/sinh 等的分類 bug（commit 1745e1e）
+- 🔜 選配：symbol_context 邏輯（orchestrator vs bench）、unicode preprocess 下沉 domain### � 階段 4：自我修正環（critic-retry） (2026-07-08)
 - ✅ `run()` 成重試迴圈：base 推導未通過 acceptance → 依 DTS `alternatives` 逐一組合重試 → 取第一個通過者
 - ✅ DTS 加 `alternatives: list[Modification]`；`TaskRunResult` 加 `attempts`（label/derived/verified）；`task_run` 輸出 attempts
 - ✅ tests/test_self_correction.py（base→gain_2 失敗→gain_5 通過）；harness 9/9；至此階段 1-4 全部落地、探索迴圈閉環
