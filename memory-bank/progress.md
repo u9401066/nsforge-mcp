@@ -1,6 +1,10 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 🌳 階段 6：explore mode (2026-07-08)
+- ✅ `application/explorer.py` `Explorer` + `task_explore` 工具：DTS 的 `alternatives` 視為分支，對 base＋每分支各跑完整 L3 迴圈，回傳全部候選
+- ✅ 依「verified > 通過神諭數 > 較簡潔」排序，每候選帶 acceptance＋provenance；工具 88→89、manifest 重生
+- ✅ tests/test_explorer.py（全分支探索、驗證者排前、皆 provenance 完整）；harness 10/10。路線圖階段 1-6 全部落地
 ### 🔑 (3) 全量 session_id 化（多 agent Tier 0） (2026-07-08)
 - ✅ 22 個有狀態 derivation 工具皆加 `session_id: str = ""`（向後相容）+ `_resolve_session(session_id)` helper（給 id 查該會話、否則退回 current）
 - ✅ complete/abort 只在完成者正是 current 時才清 current（不清別 agent 的）；manifest 重生

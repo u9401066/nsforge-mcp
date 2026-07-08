@@ -10,6 +10,7 @@ See docs/reification-ladder-direction.md.
 
 from typing import Any
 
+from nsforge.application.explorer import Explorer
 from nsforge.application.task_orchestrator import TaskOrchestrator
 from nsforge.domain.task_spec import DerivationTaskSpec
 from nsforge.infrastructure.sympy_engine import SymPyEngine
@@ -109,5 +110,44 @@ def register_task_tools(mcp: Any) -> None:
                     ],
                 }
                 for phase in result.phases
+            ],
+        }
+
+    @mcp.tool()
+    def task_explore(spec: dict[str, Any]) -> dict[str, Any]:
+        """
+        Explore a branching derivation tree from a DTS.
+
+        Runs the base derivation plus each ``alternatives`` candidate through the
+        full loop and returns ALL candidates -- each with its acceptance result
+        and provenance -- ranked best-first (verified > more oracles passed >
+        simpler). Unlike task_run (which self-corrects to the first passing
+        branch), this surfaces the whole space of verified answers.
+
+        Args:
+            spec: A DTS dict (see task_plan); ``alternatives`` are the branches.
+
+        Returns:
+            {"success", "concept", "candidates": [...]} ranked best-first.
+        """
+        try:
+            dts = DerivationTaskSpec.from_dict(spec)
+        except (KeyError, ValueError) as exc:
+            return {"success": False, "error": f"invalid spec: {exc}"}
+
+        result = Explorer(dts, engine=SymPyEngine(), verifier=BasicVerifier()).explore()
+        return {
+            "success": True,
+            "concept": result.concept,
+            "candidates": [
+                {
+                    "label": c.label,
+                    "derived_expression": c.derived,
+                    "verified": c.verified,
+                    "provenance_complete": c.provenance_complete,
+                    "oracles": f"{c.oracles_passed}/{c.oracles_total}",
+                    "generated_code": c.generated_code,
+                }
+                for c in result.candidates
             ],
         }

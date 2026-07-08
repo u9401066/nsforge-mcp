@@ -1,6 +1,6 @@
 {
   "schema": "nsforge.capabilities/v1",
-  "tool_count": 88,
+  "tool_count": 89,
   "modules": [
     "calculate",
     "codegen",
@@ -1743,6 +1743,18 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Rank candidate next steps for a derivation by relevance."
+    },
+    {
+      "name": "task_explore",
+      "module": "task",
+      "params": [
+        {
+          "name": "spec",
+          "type": "dict[str, Any]"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "summary": "Explore a branching derivation tree from a DTS."
     },
     {
       "name": "task_plan",
