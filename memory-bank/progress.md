@@ -1,6 +1,11 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 🏭 生產級強化：tool 收斂 + wheel 打包 + 可觀測性 (2026-07-08)
+- ✅ **收斂**：`music` 改 opt-in（`config.py` `module_enabled` + `NSFORGE_ENABLE_MUSIC`），預設面 91→82；manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報 active vs catalog；selfcheck 亦查 `nsforge_mcp.__version__`（第三份）與 optional metadata（58c855c）
+- ✅ **打包**：hatch force-include 把 `capabilities.json` 打進 wheel（`nsforge_mcp/capabilities.json`），`uvx` 安裝也能自描述；meta 解析 repo→packaged；建 wheel 驗證含之（300758d）
+- ✅ **可觀測性**：server stderr 結構化啟動日誌（stdout 留給 stdio 協定）＋`NSFORGE_LOG_LEVEL` ＋ `website_url`／版本 metadata；test_server（ea1b66f）
+- ✅ 判斷：91 多數為單一職責、可自描述的獨立符號運算，不宜硬併；只收斂任務外圍 music。harness 11/11
 ### 🧩 Agent harness 完整化：自描述 + 自守衛 (2026-07-08)
 - ✅ **Stage A** manifest v2（`gen_capabilities.py`）：除工具外自描述 version／north_star／module_summaries／live gate 清單（匯自 `check.py`）／commands——單一機讀契約（61ffdcd）
 - ✅ **Stage B** `meta` 模組（`tools/meta.py`）：`nsforge_health`＋`nsforge_manifest` runtime 自省；工具 89→91、雙語 README/tools-reference 同步（ad458b8）
