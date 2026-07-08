@@ -1,6 +1,11 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 🧩 Agent harness 完整化：自描述 + 自守衛 (2026-07-08)
+- ✅ **Stage A** manifest v2（`gen_capabilities.py`）：除工具外自描述 version／north_star／module_summaries／live gate 清單（匯自 `check.py`）／commands——單一機讀契約（61ffdcd）
+- ✅ **Stage B** `meta` 模組（`tools/meta.py`）：`nsforge_health`＋`nsforge_manifest` runtime 自省；工具 89→91、雙語 README/tools-reference 同步（ad458b8）
+- ✅ **Stage C** 第 11 gate `harness`（`scripts/harness_selfcheck.py`）：版本單一真相、manifest／gate 對齊、工具自描述品質、AGENTS.md gate 漂移；harness 守衛自身；AGENTS/.clinerules 同步（2889c15）
+- ✅ harness 10→11 全綠；CI 本就跑同一 harness
 ### 📖 README 視覺化雙語大改版 + GitHub metadata (2026-07-08)
 - ✅ 建 2 個自含式 SVG（`docs/images/nsforge-hero.svg`、`reification-ladder.svg`）＋ 6 個 Mermaid（生態系／SymPy-first 工作流／explore／步進控制 stateDiagram，中英各 6）取代 ASCII art
 - ✅ 龐大工具表移至 `docs/tools-reference.md`（89 工具、10 模組單一真相）；README 精簡化、補 task/suggest/music 模組與實體化階梯敘事；工具數校正 75/87→89

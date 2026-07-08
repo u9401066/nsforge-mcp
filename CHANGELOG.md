@@ -9,6 +9,7 @@
 
 ### Added
 
+- 🧩 **Agent harness 完整化（自描述＋自守衛）** — agents 賴以工作的基座現在自描述且自守衛：manifest **v2**（`docs/agent/capabilities.json` 除工具外自描述 version／north-star／module summaries／live gate 清單（匯自 `check.py`）／commands）；runtime 自省 MCP 工具 `nsforge_health`＋`nsforge_manifest`（新 `meta` 模組，工具 89→91）；第 11 個 **`harness` gate**（`scripts/harness_selfcheck.py`：版本單一真相、manifest／gate 對齊、工具自描述品質、AGENTS.md gate 漂移偵測）。harness 10→11。
 - 🌳 **explore mode（roadmap 階段 6）** — `task_explore`（`application/explorer.py`）：把 DTS 的 `alternatives` 當分支，對 base＋每個 alternative 各跑完整 L3 迴圈，回傳**所有**驗證候選（依 verified>通過神諭數>簡潔排序，各帶 acceptance＋provenance）。把「推導一個答案」變成「探索驗證過的答案空間」。工具 88→89。
 - � **infra 純程式碼收尾：DI 組合根 + process-pool timeout** — `nsforge_mcp/composition.py`：組合根（frozen `Services`：engine/verifier/session_manager/repository）+ `get_services()`（雙重檢查鎖），object graph「建一次、注入」的單一組裝點；`task.py`／`derivation.py` 全改走它（消除每次 `new` engine/verifier、自有 `_manager` 全域與 7 處重複 `Path("formulas")`）。`nsforge/infrastructure/timeout.py` `run_with_timeout`（spawn 子行程硬牆鐘逾時、超時即 terminate→`ComputationTimeout`）；`task_run`/`task_explore` 加 opt-in `timeout_s`，可真殺失控推導。
 - �🧬 **provenance ledger 強制（roadmap 階段 5）** — 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（`scripts/provenance.py`）驗證每個 benchmark 推導都可溯源。harness 9→10。把北極星從約定升級成架構。
