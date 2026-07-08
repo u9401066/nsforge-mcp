@@ -25,6 +25,7 @@ Design Principles:
 from typing import Any
 
 from nsforge_mcp.config import module_enabled
+from nsforge_mcp.envelope import EnvelopeMCP
 from nsforge_mcp.tools.calculate import register_calculate_tools
 from nsforge_mcp.tools.codegen import register_codegen_tools
 from nsforge_mcp.tools.derivation import register_derivation_tools
@@ -40,6 +41,10 @@ from nsforge_mcp.tools.verify import register_verify_tools
 
 def register_all_tools(mcp: Any) -> None:
     """Register all NSForge tools with the MCP server."""
+    # Wrap once so every tool gets a uniform error envelope (an unhandled exception
+    # becomes a structured, logged error dict) without touching any tool body.
+    mcp = EnvelopeMCP(mcp)
+
     # 🔥 Core: Derivation engine (the "Forge" in NSForge)
     register_derivation_tools(mcp)
 
