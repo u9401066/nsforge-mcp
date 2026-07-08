@@ -12,7 +12,11 @@ The "Forge" in NSForge means we CREATE new formulas through derivation.
 
 from __future__ import annotations
 
+import contextlib
 import json
+import os
+import tempfile
+import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -1016,8 +1020,19 @@ class DerivationSession:
 
         save_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(save_path, "w", encoding="utf-8") as f:
-            json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
+        # Atomic write: temp file in the same dir + os.replace, so a concurrent
+        # reader or a crash never sees a half-written session file.
+        tmp_fd, tmp_name = tempfile.mkstemp(
+            dir=str(save_path.parent), prefix=f".{save_path.stem}_", suffix=".tmp"
+        )
+        try:
+            with open(tmp_fd, "w", encoding="utf-8") as f:
+                json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
+            os.replace(tmp_name, save_path)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp_name)
+            raise
 
         self._persist_path = save_path
         self.status = SessionStatus.PAUSED if self.status == SessionStatus.ACTIVE else self.status
@@ -1091,6 +1106,7 @@ class SessionManager:
 
     def __init__(self, sessions_dir: Path | None = None):
         self.sessions: dict[str, DerivationSession] = {}
+        self._lock = threading.RLock()
         self.sessions_dir = sessions_dir or Path("derivation_sessions")
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1125,15 +1141,19 @@ class SessionManager:
             session._persist_path = self.sessions_dir / f"session_{session.session_id}.json"
             session.save()
 
-        self.sessions[session.session_id] = session
+        with self._lock:
+            self.sessions[session.session_id] = session
         return session
 
     def get(self, session_id: str) -> DerivationSession | None:
         """取得會話"""
-        return self.sessions.get(session_id)
+        with self._lock:
+            return self.sessions.get(session_id)
 
     def list_sessions(self) -> list[dict[str, Any]]:
         """列出所有會話"""
+        with self._lock:
+            sessions = list(self.sessions.values())
         return [
             {
                 "session_id": s.session_id,
@@ -1143,28 +1163,31 @@ class SessionManager:
                 "created_at": s.created_at,
                 "updated_at": s.updated_at,
             }
-            for s in self.sessions.values()
+            for s in sessions
         ]
 
     def delete(self, session_id: str) -> bool:
         """刪除會話"""
-        if session_id not in self.sessions:
+        with self._lock:
+            session = self.sessions.pop(session_id, None)
+        if session is None:
             return False
-
-        session = self.sessions.pop(session_id)
         if session._persist_path and session._persist_path.exists():
             session._persist_path.unlink()
 
         return True
 
 
-# 全域會話管理器
+# 全域會話管理器（雙重檢查鎖，避免並發初始化競態）
 _manager: SessionManager | None = None
+_manager_lock = threading.Lock()
 
 
 def get_session_manager(sessions_dir: Path | None = None) -> SessionManager:
     """取得全域會話管理器"""
     global _manager
     if _manager is None:
-        _manager = SessionManager(sessions_dir)
+        with _manager_lock:
+            if _manager is None:
+                _manager = SessionManager(sessions_dir)
     return _manager
