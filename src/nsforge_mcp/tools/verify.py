@@ -10,31 +10,8 @@ Tools for verifying mathematical derivations using:
 from typing import Any
 
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
 
-from nsforge.domain.safe_parse import check_expression_safety
-
-TRANSFORMATIONS = standard_transformations + (
-    implicit_multiplication_application,
-    convert_xor,
-)
-
-
-def _parse_safe(expression: str) -> tuple[Any, str | None]:
-    """Safely parse expression (with an untrusted-input complexity guard)."""
-    unsafe = check_expression_safety(expression)
-    if unsafe:
-        return None, unsafe
-    try:
-        expr_clean = expression.replace("^", "**")
-        return parse_expr(expr_clean, transformations=TRANSFORMATIONS), None
-    except Exception as e:
-        return None, str(e)
+from nsforge.infrastructure.parsing import parse_expression_safe as _parse_safe
 
 
 def register_verify_tools(mcp: Any) -> None:

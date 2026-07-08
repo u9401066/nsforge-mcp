@@ -33,21 +33,14 @@ from typing import Any
 
 import numpy as np
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
+from sympy.parsing.sympy_parser import parse_expr
+
+from nsforge.infrastructure.parsing import SYMPY_PARSER_TRANSFORMATIONS
 
 # WAV file header size in bytes (RIFF header + fmt chunk + data chunk header)
 _WAV_HEADER_BYTES = 44
 
-# Standard transformations for parsing
-TRANSFORMATIONS = standard_transformations + (
-    implicit_multiplication_application,
-    convert_xor,
-)
+TRANSFORMATIONS = SYMPY_PARSER_TRANSFORMATIONS
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Musical note → frequency mapping (Equal temperament, A4 = 440 Hz)

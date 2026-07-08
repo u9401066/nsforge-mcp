@@ -39,27 +39,8 @@ from __future__ import annotations
 from typing import Any
 
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
 
-# Standard transformations for parsing
-TRANSFORMATIONS = standard_transformations + (
-    implicit_multiplication_application,
-    convert_xor,
-)
-
-
-def _parse_safe(expression: str) -> tuple[sp.Expr | None, str | None]:
-    """Safely parse an expression, returning (expr, error)."""
-    try:
-        expr_clean = expression.replace("^", "**")
-        return parse_expr(expr_clean, transformations=TRANSFORMATIONS), None
-    except Exception as e:
-        return None, str(e)
+from nsforge.infrastructure.parsing import parse_expression_safe as _parse_safe
 
 
 def _create_distribution(distribution_type: str, params: dict[str, Any], name: str) -> Any:
@@ -886,9 +867,10 @@ def register_calculate_tools(mcp: Any) -> None:  # noqa: C901
                         sym_kwargs[a] = True
                     local_dict[var_name] = sp.Symbol(var_name, **sym_kwargs)
 
-            # Parse expression
-            expr_clean = expression.replace("^", "**")
-            expr = parse_expr(expr_clean, local_dict=local_dict, transformations=TRANSFORMATIONS)
+            # Parse expression (guarded)
+            expr, parse_error = _parse_safe(expression, local_dict=local_dict)
+            if parse_error:
+                return {"success": False, "error": parse_error}
 
             # Get query predicate
             query_map = {
@@ -980,9 +962,10 @@ def register_calculate_tools(mcp: Any) -> None:  # noqa: C901
                     sym_kwargs[a] = True
                 local_dict[var_name] = sp.Symbol(var_name, **sym_kwargs)
 
-            # Parse expression
-            expr_clean = expression.replace("^", "**")
-            expr = parse_expr(expr_clean, local_dict=local_dict, transformations=TRANSFORMATIONS)
+            # Parse expression (guarded)
+            expr, parse_error = _parse_safe(expression, local_dict=local_dict)
+            if parse_error:
+                return {"success": False, "error": parse_error}
 
             # Build assumption context
             from sympy.assumptions import refine  # noqa: F401

@@ -61,27 +61,8 @@ from __future__ import annotations
 from typing import Any
 
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
 
-# Standard transformations for parsing
-TRANSFORMATIONS = standard_transformations + (
-    implicit_multiplication_application,
-    convert_xor,
-)
-
-
-def _parse_safe(expression: str) -> tuple[sp.Expr | None, str | None]:
-    """Safely parse an expression, returning (expr, error)."""
-    try:
-        expr_clean = expression.replace("^", "**")
-        return parse_expr(expr_clean, transformations=TRANSFORMATIONS), None
-    except Exception as e:
-        return None, str(e)
+from nsforge.infrastructure.parsing import parse_expression_safe as _parse_safe
 
 
 def register_simplify_tools(mcp: Any) -> None:

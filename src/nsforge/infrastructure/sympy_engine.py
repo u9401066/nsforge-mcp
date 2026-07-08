@@ -7,17 +7,13 @@ Concrete implementation of the SymbolicEngine interface using SymPy.
 from typing import Any
 
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
+from sympy.parsing.sympy_parser import parse_expr
 
 from nsforge.domain.entities import Expression, ExpressionType
 from nsforge.domain.safe_parse import check_expression_safety
 from nsforge.domain.services import SymbolicEngine
 from nsforge.domain.value_objects import MathContext, SimplificationLevel
+from nsforge.infrastructure.parsing import SYMPY_PARSER_TRANSFORMATIONS
 
 
 class SymPyEngine(SymbolicEngine):
@@ -28,7 +24,7 @@ class SymPyEngine(SymbolicEngine):
     """
 
     # Parser transformations for flexible input
-    TRANSFORMATIONS = standard_transformations + (implicit_multiplication_application, convert_xor)
+    TRANSFORMATIONS = SYMPY_PARSER_TRANSFORMATIONS
 
     def parse(self, expr_str: str, context: MathContext | None = None) -> Expression:
         """Parse a string into an Expression using SymPy."""
