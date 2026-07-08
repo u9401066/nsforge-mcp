@@ -1,6 +1,6 @@
 # 🛠️ NSForge Tool Reference
 
-Complete reference for all **91 MCP tools** across **11 modules**.
+Complete reference for all **91 MCP tools** across **11 modules** — **82 loaded by default**; the `music` module (9 tools) is opt-in via `NSFORGE_ENABLE_MUSIC=1`.
 
 > This page is the single source of truth for the tool surface, linked from both
 > [README (English)](../README.md) and [README (繁體中文)](../README.zh-TW.md).
@@ -17,7 +17,7 @@ Complete reference for all **91 MCP tools** across **11 modules**.
 | [📝 Expression](#-expression-3) | 3 | Parse, validate, extract symbols |
 | [💻 Code generation](#-code-generation-4) | 4 | Python function, LaTeX, report, standalone script |
 | [🌐 Formula search](#-formula-search-6) | 6 | Wikidata, BioModels, SciPy constants |
-| [🎵 Music](#-music-9) | 9 | Symbolic tones → waveform, spectrum, WAV |
+| [🎵 Music](#-music-9) _(opt-in)_ | 9 | Symbolic tones → waveform, spectrum, WAV |
 | [🧩 Runtime self-description](#-runtime-self-description-meta-2) | 2 | Live server introspection: health, manifest |
 
 ---
@@ -199,7 +199,8 @@ Formulas are **inputs** (from open sources), not a hand-built catalog.
 
 ## 🎵 Music (9)
 
-Music as symbolic functions of time — a fun demonstration of the symbolic core.
+Music as symbolic functions of time — a demonstration of the symbolic core.
+**Opt-in:** set `NSFORGE_ENABLE_MUSIC=1` to load these (kept out of the default surface).
 
 | Tool | Purpose |
 | ---- | ------- |

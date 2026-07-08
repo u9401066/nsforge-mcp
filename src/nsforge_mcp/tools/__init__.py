@@ -24,6 +24,7 @@ Design Principles:
 
 from typing import Any
 
+from nsforge_mcp.config import module_enabled
 from nsforge_mcp.tools.calculate import register_calculate_tools
 from nsforge_mcp.tools.codegen import register_codegen_tools
 from nsforge_mcp.tools.derivation import register_derivation_tools
@@ -61,5 +62,7 @@ def register_all_tools(mcp: Any) -> None:
     # 🧩 Agent harness: runtime self-description (health, manifest)
     register_meta_tools(mcp)
 
-    # 🎵 Music function composition and visualization
-    register_music_tools(mcp)
+    # 🎵 Music: mission-tangential; opt-in via NSFORGE_ENABLE_MUSIC=1 so the default
+    # surface stays lean (fewer tools => better tool selection by the model).
+    if module_enabled("music"):
+        register_music_tools(mcp)

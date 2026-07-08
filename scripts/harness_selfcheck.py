@@ -37,23 +37,25 @@ def _pyproject_version() -> str:
     return str(data["project"]["version"])
 
 
-def _package_version() -> str:
-    tree = ast.parse((SRC / "nsforge" / "__init__.py").read_text(encoding="utf-8"))
+def _module_version(init_path: Path) -> str:
+    tree = ast.parse(init_path.read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign) and any(
             isinstance(t, ast.Name) and t.id == "__version__" for t in node.targets
         ):
             return str(ast.literal_eval(node.value))
-    raise AssertionError("nsforge.__version__ not found in src/nsforge/__init__.py")
+    raise AssertionError(f"__version__ not found in {init_path}")
 
 
 def main() -> int:
     problems: list[str] = []
 
-    # 1. version single-source
-    py_v, pkg_v = _pyproject_version(), _package_version()
-    if py_v != pkg_v:
-        problems.append(f"version drift: pyproject {py_v!r} != nsforge.__version__ {pkg_v!r}")
+    # 1. version single-source (pyproject drives every package)
+    py_v = _pyproject_version()
+    for pkg in ("nsforge", "nsforge_mcp"):
+        pkg_v = _module_version(SRC / pkg / "__init__.py")
+        if pkg_v != py_v:
+            problems.append(f"version drift: pyproject {py_v!r} != {pkg}.__version__ {pkg_v!r}")
 
     if not MANIFEST.exists():
         print("FAIL harness: manifest missing (run: python scripts/gen_capabilities.py)")
@@ -69,6 +71,12 @@ def main() -> int:
     missing_docs = [g for g in check.DEFAULT_ORDER if not check.GATE_DOC.get(g)]
     if missing_docs:
         problems.append(f"gates missing a GATE_DOC description: {missing_docs}")
+
+    optional = manifest.get("optional_modules")
+    if optional is None:
+        problems.append("manifest missing 'optional_modules'")
+    elif not set(optional).issubset(manifest.get("modules", [])):
+        problems.append(f"optional_modules {optional} not a subset of modules")
 
     # 3. self-describing tools
     tools = manifest.get("tools", [])

@@ -3,6 +3,7 @@
   "version": "0.2.4",
   "north_star": "Every symbol, equation, value, and line of code in a result has a tool call as its birth certificate; the AI hand-derives nothing.",
   "tool_count": 91,
+  "default_tool_count": 82,
   "modules": [
     "calculate",
     "codegen",
@@ -15,6 +16,9 @@
     "suggest",
     "task",
     "verify"
+  ],
+  "optional_modules": [
+    "music"
   ],
   "module_summaries": {
     "calculate": "Limits, series, sums, inequalities, probability, numerics",

@@ -66,6 +66,24 @@ def _project_version() -> str:
     return str(data["project"]["version"])
 
 
+def _optional_modules() -> list[str]:
+    """Read OPTIONAL_MODULES from config.py statically (single source of truth)."""
+    config = REPO / "src" / "nsforge_mcp" / "config.py"
+    tree = ast.parse(config.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            names = [t.id for t in node.targets if isinstance(t, ast.Name)]
+            value = node.value
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names = [node.target.id]
+            value = node.value
+        else:
+            continue
+        if "OPTIONAL_MODULES" in names and value is not None:
+            return list(ast.literal_eval(value))
+    return []
+
+
 def _is_mcp_tool(dec: ast.expr) -> bool:
     """Match both `@mcp.tool()` and `@mcp.tool`."""
     node = dec.func if isinstance(dec, ast.Call) else dec
@@ -112,12 +130,16 @@ def collect() -> list[dict]:
 def build() -> dict:
     tools = collect()
     modules = sorted({t["module"] for t in tools})
+    optional = _optional_modules()
+    default_tools = [t for t in tools if t["module"] not in optional]
     return {
         "schema": "nsforge.capabilities/v2",
         "version": _project_version(),
         "north_star": NORTH_STAR,
         "tool_count": len(tools),
+        "default_tool_count": len(default_tools),
         "modules": modules,
+        "optional_modules": optional,
         "module_summaries": {m: MODULE_SUMMARIES.get(m, "") for m in modules},
         "harness": [
             {

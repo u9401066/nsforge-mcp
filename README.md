@@ -189,7 +189,7 @@ stateDiagram-v2
 
 ---
 
-## 🛠️ Tools at a glance — 91 tools, 11 modules
+## 🛠️ Tools at a glance — 91 tools · 82 loaded by default
 
 | Module | # | What it does |
 | ------ | :-: | ------------ |
@@ -202,7 +202,7 @@ stateDiagram-v2
 | 📝 Expression | 3 | Parse, validate, extract symbols |
 | 🧭 Task orchestration | 3 | `task_plan` / `task_run` / `task_explore` |
 | 🧭 Suggester | 1 | Retrieval-augmented next-step ranking |
-| 🎵 Music | 9 | Symbolic tones → waveform, spectrum, WAV |
+| 🎵 Music _(opt-in)_ | 9 | Symbolic tones → waveform, spectrum, WAV — set `NSFORGE_ENABLE_MUSIC=1` |
 | 🧩 Runtime self-description | 2 | `nsforge_health` · `nsforge_manifest` (agent harness) |
 
 > 📖 **Full list with every tool:** [Tool Reference](docs/tools-reference.md) · machine-readable [`capabilities.json`](docs/agent/capabilities.json)

@@ -191,7 +191,7 @@ stateDiagram-v2
 
 ---
 
-## 🛠️ 工具總覽 — 91 工具、11 模組
+## 🛠️ 工具總覽 — 91 工具 · 預設載入 82
 
 | 模組 | 數 | 說明 |
 | ---- | :-: | ---- |
@@ -204,7 +204,7 @@ stateDiagram-v2
 | 📝 表達式 | 3 | 解析、驗證、抽取符號 |
 | 🧭 任務編排 | 3 | `task_plan` / `task_run` / `task_explore` |
 | 🧭 推薦器 | 1 | 檢索增強的下一步排序 |
-| 🎵 音樂 | 9 | 符號音調 → 波形、頻譜、WAV |
+| 🎵 音樂 _(選用)_ | 9 | 符號音調 → 波形、頻譜、WAV — 設 `NSFORGE_ENABLE_MUSIC=1` |
 | 🧩 Runtime 自述 | 2 | `nsforge_health` · `nsforge_manifest`（agent harness） |
 
 > 📖 **含每個工具的完整清單：** [工具參考](docs/tools-reference.md) · 機器可讀 [`capabilities.json`](docs/agent/capabilities.json)

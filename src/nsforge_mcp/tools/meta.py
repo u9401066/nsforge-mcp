@@ -16,6 +16,7 @@ from typing import Any
 import sympy
 
 from nsforge import __version__
+from nsforge_mcp.config import OPTIONAL_MODULES, module_enabled
 
 # docs/agent/capabilities.json relative to this file:
 # tools -> nsforge_mcp -> src -> <repo root>
@@ -46,11 +47,15 @@ def register_meta_tools(mcp: Any) -> None:
         what it is talking to — no repo access required.
         """
         manifest = _load_manifest()
+        tools = manifest.get("tools", []) if manifest else []
+        active_tool_count = sum(1 for t in tools if module_enabled(t.get("module", ""))) or None
         return {
             "status": "ok",
             "name": "nsforge",
             "version": __version__,
             "tool_count": manifest.get("tool_count") if manifest else None,
+            "active_tool_count": active_tool_count,
+            "optional_modules": {m: module_enabled(m) for m in OPTIONAL_MODULES},
             "modules": manifest.get("modules") if manifest else None,
             "sympy_version": sympy.__version__,
             "python_version": sys.version.split()[0],
