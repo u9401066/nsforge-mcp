@@ -36,11 +36,13 @@ python scripts/check.py --json     # machine-readable summary (for agents)
 python scripts/check.py --gates lint,type,test   # subset
 ```
 
-Gates: lint, format, type, import, manifest, test, bench, generic, provenance, diff. Exit code 0 = green.
+Gates: lint, format, type, import, manifest, test, bench, generic, provenance, harness, diff. Exit code 0 = green.
 (bench = derivation-correctness of `benchmarks/*.json` through the L3 orchestrator;
 generic = arbitrary unseen compositions derive correctly, proving NSForge is a
 derivation *calculus*, not a hand-built formula library; provenance = every
-benchmark derivation carries a complete tool-provenance ledger, no hand-derived leaks.)
+benchmark derivation carries a complete tool-provenance ledger, no hand-derived leaks;
+harness = the harness self-checks its own invariants — version single-source,
+self-describing tools, and gate/doc parity — so agents can trust the signal.)
 
 ## Repo Layout (DDD)
 

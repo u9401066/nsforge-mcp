@@ -76,6 +76,11 @@
       "command": "python scripts/provenance.py"
     },
     {
+      "gate": "harness",
+      "verifies": "the harness guards its own invariants (version, self-description, gate/doc parity)",
+      "command": "python scripts/harness_selfcheck.py"
+    },
+    {
       "gate": "diff",
       "verifies": "no whitespace errors or leftover conflict markers",
       "command": "git diff --check"

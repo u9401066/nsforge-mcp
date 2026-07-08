@@ -52,6 +52,7 @@ GATES: dict[str, list[str]] = {
     "bench": ["python", "scripts/bench.py"],
     "generic": ["python", "scripts/genericity.py"],
     "provenance": ["python", "scripts/provenance.py"],
+    "harness": ["python", "scripts/harness_selfcheck.py"],
     "diff": ["git", "diff", "--check"],
 }
 
@@ -66,6 +67,7 @@ DEFAULT_ORDER = [
     "bench",
     "generic",
     "provenance",
+    "harness",
     "diff",
 ]
 
@@ -81,6 +83,7 @@ GATE_DOC: dict[str, str] = {
     "bench": "known derivations reproduce correctly (benchmarks/*.json)",
     "generic": "unseen, randomly-composed formulas derive correctly (a calculus, not a library)",
     "provenance": "every benchmark derivation carries a complete tool-provenance ledger",
+    "harness": "the harness guards its own invariants (version, self-description, gate/doc parity)",
     "diff": "no whitespace errors or leftover conflict markers",
 }
 
