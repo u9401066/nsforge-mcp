@@ -1,6 +1,10 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 📖 README 視覺化雙語大改版 + GitHub metadata (2026-07-08)
+- ✅ 建 2 個自含式 SVG（`docs/images/nsforge-hero.svg`、`reification-ladder.svg`）＋ 6 個 Mermaid（生態系／SymPy-first 工作流／explore／步進控制 stateDiagram，中英各 6）取代 ASCII art
+- ✅ 龐大工具表移至 `docs/tools-reference.md`（89 工具、10 模組單一真相）；README 精簡化、補 task/suggest/music 模組與實體化階梯敘事；工具數校正 75/87→89
+- ✅ 中英 README 對照同步（各 15 章節、6 Mermaid、無殘留 HTML 實體）；GitHub 描述更新、新增 16 topics；commits 9b44378/58d3c05
 ### 🧩 infra 層純程式碼收尾：DI 組合根 + process-pool timeout (2026-07-08)
 - ✅ `nsforge_mcp/composition.py`：組合根（frozen `Services`：engine/verifier/session_manager/repository）+ `build_services()` + `get_services()` 雙重檢查鎖，object graph「建一次、注入」的單一組裝點
 - ✅ `task.py` 改用 `get_services()`（不再每次 `SymPyEngine()`/`BasicVerifier()`）；`derivation.py` 的 `_get_manager` + 新 `_get_repository` 全走組合根，消除自有 `_manager` 全域與 7 處重複 `Path("formulas")`
