@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**泛公式探討路線圖 — 階段 4（自我修正環）完成，探索迴圈閉環。** `task_run` 的 `run()` 成 critic-retry：先跑 base 推導 + acceptance 神諭；未通過則依 DTS 新增的 `alternatives`（候選修正）逐一重跑，取第一個通過者，全程記於 `TaskRunResult.attempts`。至此「探索→提出→實體化→驗證→自我修正」閉環（階段 1-4 全部落地）。harness 9/9。下一步：階段 5（provenance ledger 強制——每符號/步驟帶出生證明、codegen 拒無溯源產物）。另有多 agent 服務化的 infra 剩餘項待決策（見 decisionLog）。
+**泛公式探討路線圖 — 階段 5（provenance ledger 強制）完成，北極星落地為架構。** 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（harness 9→10）驗證每 benchmark 推導可溯源——把「AI 不徒手生」從約定升級成可強制的架構不變量。至此路線圖階段 1-5 全部落地。下一步：階段 6（explore mode——分支推導樹的泛探索完全體），或 (3) 全量 session_id 化（多 agent 租戶隔離銖路）。
 
 ## ✅ 本次完成 (2026-07-07)
 

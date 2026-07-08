@@ -16,7 +16,7 @@ Rules for Cline (and other agents) in the Neurosymbolic Forge repository.
 
 ## Canonical Commands
 - One-shot verification: `python scripts/check.py`
-  (gates: lint / format / type / import / manifest / test / bench / generic / diff)
+  (gates: lint / format / type / import / manifest / test / bench / generic / provenance / diff)
 - Individual gates: `uv run ruff check .`, `uv run mypy src --ignore-missing-imports`, `uv run pytest`
 - Regenerate tool manifest: `python scripts/gen_capabilities.py`
 

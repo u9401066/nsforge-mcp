@@ -1,6 +1,12 @@
 # Progress (Updated: 2026-07-08)
 
-## Done### 🧹 品質清理：孤兒盤點 + 消除重造輪子 (2026-07-08)
+## Done
+### 🧬 階段 5：provenance ledger 強制 (2026-07-08)
+- ✅ `domain/provenance.py`（ProvenanceEntry/ProvenanceLedger，純）：每推導帶「出生證明」帳本（base 公式=input、每步=工具、最終=engine）
+- ✅ orchestrator `_build_ledger` + 強制：codegen **只在 provenance 完整時才產碼**，否則 ALGORITHM PLANNED「refused: 無溯源」；`task_run` 輸出 provenance
+- ✅ `scripts/provenance.py` 成 `provenance` gate → harness 9→10（每 benchmark 推導都須可溯源，鎖住「AI 不徒手生」不變量）
+- ✅ tests/test_provenance.py；AGENTS/.clinerules gate 清單加 provenance
+### 🧹 品質清理：孤兒盤點 + 消除重造輪子 (2026-07-08)
 - ✅ 用 Explore subagent 全面盤點：**幾乎無孤兒死碼**（唯 `FormulaRepository` ABC 是預留 port，保留）
 - ✅ **集中 SymPy 解析**（`infrastructure/parsing.py`）：3 份 `_parse_safe`→1；順帶修復 calculate/simplify **繞過 DoS 護欄** 的安全漏洞（含 calculate 另 2 處直接 parse_expr）；`TRANSFORMATIONS` 7→3（commit 5de5ac1）
 - ✅ **集中 `SYMPY_RESERVED_NAMES`**（`domain/safe_parse.py`）：3 份不一致（23 vs 11 名）→1；修正 bench/suggester 過去漏掉 cot/sinh 等的分類 bug（commit 1745e1e）

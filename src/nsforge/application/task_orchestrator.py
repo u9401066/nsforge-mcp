@@ -23,6 +23,7 @@ from typing import Any
 
 from nsforge.domain.codegen import render_python_function
 from nsforge.domain.entities import Expression
+from nsforge.domain.provenance import ProvenanceEntry, ProvenanceLedger
 from nsforge.domain.safe_parse import SYMPY_RESERVED_NAMES
 from nsforge.domain.services import SymbolicEngine, Verifier
 from nsforge.domain.task_spec import (
@@ -105,6 +106,7 @@ class TaskRunResult:
     acceptance: list[AcceptanceOutcome] = field(default_factory=list)
     verified: bool = True  # False if any acceptance oracle did not pass
     attempts: list[AttemptOutcome] = field(default_factory=list)  # self-correction log
+    provenance: ProvenanceLedger = field(default_factory=ProvenanceLedger)  # birth certificates
 
     @property
     def plan(self) -> list[PlannedStep]:
@@ -230,6 +232,7 @@ class TaskOrchestrator:
         acceptance: list[AcceptanceOutcome] = []
         verified = True
         attempts: list[AttemptOutcome] = []
+        provenance = ProvenanceLedger()
         if self.engine is not None:
             candidates: list[Modification | None] = [None, *self.spec.alternatives]
             derivation_result: PhaseResult | None = None
@@ -248,6 +251,8 @@ class TaskOrchestrator:
                     break
             assert derivation_result is not None  # candidates always has the base
             phases.append(derivation_result)
+            if derived_expression:
+                provenance = self._build_ledger(derivation_result, derived_expression)
         else:
             derivation_steps = [s for s in plan if s.phase is LadderPhase.DERIVATION]
             phases.append(
@@ -260,11 +265,20 @@ class TaskOrchestrator:
                 )
             )
 
-        # ALGORITHM: reify the best (verified) derivation into code when we have one.
+        # ALGORITHM: reify the derivation into code ONLY when its provenance is
+        # complete — the north star enforced as architecture (no un-sourced code).
         generated_code = ""
-        if derived_expression and self.engine is not None:
+        if derived_expression and self.engine is not None and provenance.is_complete:
             algo_result, generated_code = self._execute_algorithm(derived_expression)
             phases.append(algo_result)
+        elif derived_expression and self.engine is not None:
+            phases.append(
+                PhaseResult(
+                    LadderPhase.ALGORITHM,
+                    PhaseStatus.PLANNED,
+                    "refused: derivation lacks complete provenance (no un-sourced code emitted)",
+                )
+            )
         else:
             algo_steps = [s for s in plan if s.phase is LadderPhase.ALGORITHM]
             phases.append(
@@ -285,6 +299,7 @@ class TaskOrchestrator:
             acceptance=acceptance,
             verified=verified,
             attempts=attempts,
+            provenance=provenance,
         )
 
     def _execute_derivation(
@@ -484,6 +499,26 @@ class TaskOrchestrator:
         except Exception as exc:  # an oracle must never crash the run
             return AcceptanceOutcome(kind.value, "error", str(exc))
         return AcceptanceOutcome(kind.value, "inconclusive", "unhandled acceptance kind")
+
+    def _build_ledger(self, phase: PhaseResult, derived: str) -> ProvenanceLedger:
+        """Assemble the derivation's provenance: base formulas (inputs), each executed
+        step (its tool = birth certificate), and the final expression.
+        """
+        entries: list[ProvenanceEntry] = [
+            ProvenanceEntry(entity=base, tool="input:base_formula", source="spec")
+            for base in self.spec.base_formulas
+        ]
+        entries.extend(
+            ProvenanceEntry(
+                entity=step.purpose, tool=step.tool, source=str(step.args.get("source", ""))
+            )
+            for step in phase.steps
+        )
+        if derived:
+            entries.append(
+                ProvenanceEntry(entity=derived, tool="engine.simplify", source="derivation")
+            )
+        return ProvenanceLedger(entries=tuple(entries))
 
     def _execute_algorithm(self, derived: str) -> tuple[PhaseResult, str]:
         """Reify the verified derivation into an executable Python function.

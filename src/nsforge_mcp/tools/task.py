@@ -88,6 +88,13 @@ def register_task_tools(mcp: Any) -> None:
                 {"label": a.label, "derived": a.derived, "verified": a.verified}
                 for a in result.attempts
             ],
+            "provenance": {
+                "complete": result.provenance.is_complete,
+                "entries": [
+                    {"entity": e.entity, "tool": e.tool, "source": e.source}
+                    for e in result.provenance.entries
+                ],
+            },
             "acceptance": [
                 {"kind": o.kind, "status": o.status, "detail": o.detail} for o in result.acceptance
             ],

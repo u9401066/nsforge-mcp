@@ -51,6 +51,7 @@ GATES: dict[str, list[str]] = {
     "test": ["pytest", "-q"],
     "bench": ["python", "scripts/bench.py"],
     "generic": ["python", "scripts/genericity.py"],
+    "provenance": ["python", "scripts/provenance.py"],
     "diff": ["git", "diff", "--check"],
 }
 
@@ -64,6 +65,7 @@ DEFAULT_ORDER = [
     "test",
     "bench",
     "generic",
+    "provenance",
     "diff",
 ]
 

@@ -9,6 +9,7 @@
 
 ### Added
 
+- 🧬 **provenance ledger 強制（roadmap 階段 5）** — 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（`scripts/provenance.py`）驗證每個 benchmark 推導都可溯源。harness 9→10。把北極星從約定升級成架構。
 - 🔁 **自我修正環（roadmap 階段 4）** — `task_run` 的 `run()` 成 critic-retry 迴圈：base 推導未通過 acceptance 時，依 DTS 新增的 `alternatives`（候選修正）逐一重試、重跑神諭，取第一個通過者；全程記於 `TaskRunResult.attempts`。閉環「探索→驗證→修正→再驗證」。
 - � **接完推導階梯（roadmap A）** — `task_run` 現在跑完 concept → symbol → derivation → **verify** → **code**：新增 `solve_for`（`engine.solve` 隳離未知數，如 `d=v*t`→`t=d/v`）、**ALGORITHM 產碼**（純 `domain/codegen.py` 把已驗證推導組成 Python 函數，回傳 `generated_code`）、**acceptance 神諭執行**（equivalence/boundary/limit 走引擎、dimensional 走 domain Verifier；回傳每項結果與單一 `verified` 信任旗標）；DTS 的 `assumptions`（如 `k>0`）接入符號上下文使極限正確。新增 `engine.limit`。
 - 🧭 **檢索增強推薦器（roadmap C）** — `derivation_suggest_next(goal, current_expression, candidates)`（`domain/suggester.py` 純排序 + `tools/suggest.py`）：依「候選是否定義現況符號＋目標詞重疊」排序開放來源候選（retrieve-then-rank，學自 ReProver）。工具 87→88。

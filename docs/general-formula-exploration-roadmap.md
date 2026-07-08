@@ -40,7 +40,7 @@ flowchart LR
 
 | 支柱 | 負責迴圈段落 | 現況 | 學自哪個 repo |
 |------|-------------|------|--------------|
-| **運算核心**（SymPy / 推導引擎 / 驗證） | 實體化、驗證 | ✅ 88 工具；階梯全通(concept→symbol→derivation→verify→code) | 自己 |
+| **運算核心**（SymPy / 推導引擎 / 驗證） | 實體化、驗證 | ✅ 88 工具；階梯全通＋provenance 強制(北極星落地) | 自己 |
 | **harness**（自駕基座） | 評測、讓自主建構安全 | ✅ L0/L1；✅ 評測+通用性 | [llm-srbench](https://github.com/deep-symbolic-mathematics/llm-srbench)(113★) |
 | **輔助 agent**（AI 編排） | 檢索、提出、自我修正 | 🟢 L3 執行 + 推薦器 + 自我修正（階段 3-4） | [ReProver](https://github.com/lean-dojo/ReProver)(327★)、[group-theoretic-agentic-pipeline](https://github.com/anantshri1/group-theoretic-agentic-pipeline)、[LLM-SR](https://github.com/deep-symbolic-mathematics/LLM-SR)(259★)/[TPSR](https://github.com/deep-symbolic-mathematics/TPSR)(82★) |
 
@@ -55,7 +55,7 @@ flowchart LR
 | **2** ✅ | **推導評測 + 通用性 gate**：`scripts/bench.py`（推導正確率）＋ `scripts/genericity.py`（任意未見組合正確＝不退化成庫），把「程式碼綠」升級成「推導正確＋通用」 | harness | llm-srbench | 低 | 0 |
 | **3** ✅ | **檢索增強**：`derivation_suggest_next(goal, 現況)` → 排序候選步驟/公式/修正 | agent | ReProver | 低中 | 2 |
 | **4** ✅ | **自我修正環**：base 推導未通過 acceptance → 逐一試 `alternatives` 候選 → 取第一個通過者（記 `attempts`） | agent+核心 | group-theoretic pipeline | 中 | 1,3 |
-| **5** | **provenance ledger 強制**：每符號/步驟帶出生證明，codegen 拒無溯源產物 | 核心 | provenance-neurosymbolic | 中 | 1 |
+| **5** ✅ | **provenance ledger 強制**：每推導帶出生證明帳本，codegen 只在溯源完整時產碼（`provenance` gate） | 核心 | provenance-neurosymbolic | 中 | 1 |
 | **6** | **explore mode**：分支推導樹的泛探索迴圈（提問→自動跑完整迴圈→多條驗證過的新公式） | 全 | LLM-SR / TPSR | 高 | 1–5 |
 | **7**（可選/長期） | **Lean4 驗證後端**：最高保證等級的形式驗證 | 核心 | lean-dojo | 高 | 5 |
 
@@ -79,8 +79,8 @@ flowchart LR
 ### 階段 4 — 自我修正環（critic-retry）✅ 已實作
 `task_run` 的 `run()` 成為重試迴圈：先跑 base 推導 + acceptance 神諭；未通過則依 DTS 新增的 `alternatives`（候選修正）逐一（base + 該候選）重新組合、重跑 acceptance，**取第一個通過者**，全程記於 `attempts`（每次 label/derived/verified）。DTS 新增 `alternatives: list[Modification]`；`TaskRunResult` 新增 `attempts`。向後相容（無 alternatives 時等同單次）。這把「探索→驗證→修正→再驗證」閉環（學自 group-theoretic critic-retry）。候選未來可由階段 3 `derivation_suggest_next` 排序後餵入。
 
-### 階段 5 — provenance ledger 強制
-每個符號/算式/步驟攜帶「哪次工具調用產生」；`derivation_complete` / codegen 驗證覆蓋率，先警告後硬性拒絕無溯源產物。把北極星從約定升級成架構（實體化階梯 P2）。
+### 階段 5 — provenance ledger 強制 ✅ 已實作
+`domain/provenance.py`（`ProvenanceEntry`/`ProvenanceLedger`，純）：每個推導組一本帳——base 公式＝`input:base_formula`、每個執行步驟＝其工具（`engine.substitute`/`engine.solve`）、最終＝`engine.simplify`；`is_complete` = 每個 entry 都 tool-sourced。orchestrator `_build_ledger` 建帳，`run()` 強制「**codegen 只在 provenance 完整時產碼**」（否則 ALGORITHM 標 PLANNED「refused: 無溯源」）；`task_run` 輸出 provenance。`scripts/provenance.py` 成第 10 個 gate：跑每個 benchmark、斷言溯源完整（5/5），把北極星從約定升級成**可強制的架構不變量**。每符號級溯源列未來深化。
 
 ### 階段 6 — explore mode
 `explore(concept)`：分支推導樹，對每條路徑跑「檢索→提出→實體化→驗證→自我修正」，用評測 gate 排序，產出多條驗證過、帶 provenance 的候選新公式。這是「泛公式探討」的完全體。
@@ -94,8 +94,8 @@ flowchart LR
 
 1. ✅ **階段 1（接通 L3 引擎）** — 骨架變成「真的會跑」，探索迴圈的地基。
 2. ✅ **階段 2（評測 + 通用性 gate）** — 「推導正確率」成 `bench` gate、「任意未見組合正確」成 `generic` gate（杜絕退化成公式庫），後續自主探索有信任基礎。
-3. ✅ **階段 3-4（檢索增強 + 自我修正環）** — `derivation_suggest_next` 排序開放來源候選；`run()` 重試 `alternatives` 取第一個通過 acceptance 者（`attempts` 溯源）。**階段 5（provenance 強制）** ← 下一步。
-4. **階段 5（provenance 強制）** — 北極星落地。
+3. ✅ **階段 3-4（檢索增強 + 自我修正環）** — `derivation_suggest_next` 排序開放來源候選；`run()` 重試 `alternatives` 取第一個通過 acceptance 者（`attempts` 溯源）。
+4. ✅ **階段 5（provenance 強制）** — codegen 只在 provenance ledger 完整時產碼、`provenance` gate（harness 9→10）鎖住不變量；北極星落地為架構。**階段 6（explore mode）** ← 下一步。
 5. **階段 6（explore mode）** — 泛探索完全體。
 6. **階段 7（Lean4）** — 長期選項。
 
