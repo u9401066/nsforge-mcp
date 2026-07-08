@@ -51,6 +51,18 @@ def _set_current_session(session: DerivationSession | None) -> None:
     _current_session = session
 
 
+def _resolve_session(session_id: str = "") -> DerivationSession | None:
+    """Resolve the target session for a tool call.
+
+    With an explicit ``session_id`` the session is looked up by id (multi-agent
+    safe — an agent addresses its own session); without one it falls back to the
+    process-current session (single-client back-compatibility).
+    """
+    if session_id:
+        return _get_manager().get(session_id)
+    return _get_current_session()
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Unicode Greek → ASCII 預處理器（讓 SymPy 能解析含希臘字母的表達式）
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -287,14 +299,14 @@ def register_derivation_tools(mcp: Any) -> None:
         }
 
     @mcp.tool()
-    def derivation_status() -> dict[str, Any]:
+    def derivation_status(session_id: str = "") -> dict[str, Any]:
         """
         取得當前會話狀態
 
         Returns:
             當前會話詳細狀態
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -308,8 +320,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
     @mcp.tool()
     def derivation_show(
-        format: str = "all",
-        show_steps: bool = False,
+        format: str = "all", show_steps: bool = False, session_id: str = ""
     ) -> dict[str, Any]:
         """
         顯示當前推導狀態和公式（類似 SymPy-MCP 的 print_latex_expression）
@@ -347,7 +358,7 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         from sympy import latex
 
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -431,6 +442,7 @@ def register_derivation_tools(mcp: Any) -> None:
         source_detail: str = "",
         name: str = "",
         description: str = "",
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         載入公式到當前會話
@@ -469,7 +481,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 }
             })
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -505,6 +517,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str = "",
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         代入操作（帶人類知識記錄）
@@ -538,7 +551,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 limitations=["Not valid for high temperature"]
             )
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -563,6 +576,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str = "",
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         簡化當前表達式（帶人類知識記錄）
@@ -581,7 +595,7 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             簡化結果
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -604,6 +618,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str = "",
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         求解變數（帶人類知識記錄）
@@ -629,7 +644,7 @@ def register_derivation_tools(mcp: Any) -> None:
             )
             → a = F/m
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -653,6 +668,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str = "",
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         對當前表達式微分（帶人類知識記錄）
@@ -668,7 +684,7 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             微分結果
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -694,6 +710,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str = "",
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         對當前表達式積分（帶人類知識記錄）
@@ -710,7 +727,7 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             積分結果
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -740,6 +757,7 @@ def register_derivation_tools(mcp: Any) -> None:
         source: str = "sympy_mcp",
         operation_type: str = "custom",
         set_as_current: bool = True,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         記錄一個推導步驟（從 SymPy-MCP 或手動）
@@ -784,7 +802,7 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         import sympy as sp
 
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -859,6 +877,7 @@ def register_derivation_tools(mcp: Any) -> None:
         note_type: str = "observation",
         related_variables: list[str] | None = None,
         related_step: int | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         在推導中加入說明（不是計算步驟）
@@ -906,7 +925,7 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         import sympy as sp
 
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -963,7 +982,7 @@ def register_derivation_tools(mcp: Any) -> None:
     # ═══════════════════════════════════════════════════════════════════════
 
     @mcp.tool()
-    def derivation_get_steps() -> dict[str, Any]:
+    def derivation_get_steps(session_id: str = "") -> dict[str, Any]:
         """
         取得所有推導步驟
 
@@ -976,7 +995,7 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             步驟列表
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -996,7 +1015,7 @@ def register_derivation_tools(mcp: Any) -> None:
     # ═══════════════════════════════════════════════════════════════════════
 
     @mcp.tool()
-    def derivation_get_step(step_number: int) -> dict[str, Any]:
+    def derivation_get_step(step_number: int, session_id: str = "") -> dict[str, Any]:
         """
         取得單一步驟的詳細資訊
 
@@ -1016,7 +1035,7 @@ def register_derivation_tools(mcp: Any) -> None:
             derivation_get_step(11)
             → {"success": True, "step": {"step_number": 11, "operation": "substitute", ...}}
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1032,6 +1051,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str | None = None,
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         更新步驟的元資料
@@ -1067,7 +1087,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 limitations=["Valid only for T < 42°C"]
             )
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1083,7 +1103,7 @@ def register_derivation_tools(mcp: Any) -> None:
         )
 
     @mcp.tool()
-    def derivation_delete_step(step_number: int) -> dict[str, Any]:
+    def derivation_delete_step(step_number: int, session_id: str = "") -> dict[str, Any]:
         """
         刪除單一步驟
 
@@ -1104,7 +1124,7 @@ def register_derivation_tools(mcp: Any) -> None:
             derivation_delete_step(16)  # 假設有 16 步，刪除最後一步
             → {"success": True, "deleted_step": {...}, "new_step_count": 15}
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1114,7 +1134,7 @@ def register_derivation_tools(mcp: Any) -> None:
         return session.delete_step(step_number)
 
     @mcp.tool()
-    def derivation_rollback(to_step: int) -> dict[str, Any]:
+    def derivation_rollback(to_step: int, session_id: str = "") -> dict[str, Any]:
         """
         回滾到指定步驟
 
@@ -1148,7 +1168,7 @@ def register_derivation_tools(mcp: Any) -> None:
               }
             # 現在可以從步驟 10 的表達式繼續，走不同的推導路徑
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1163,6 +1183,7 @@ def register_derivation_tools(mcp: Any) -> None:
         note: str,
         note_type: str = "observation",
         related_variables: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         在指定位置插入說明
@@ -1198,7 +1219,7 @@ def register_derivation_tools(mcp: Any) -> None:
             )
             → {"success": True, "inserted_at": 6, "new_step_count": 17}
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1221,6 +1242,7 @@ def register_derivation_tools(mcp: Any) -> None:
         references: list[str] | None = None,
         tags: list[str] | None = None,
         auto_save: bool = True,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         完成推導並自動存檔
@@ -1255,7 +1277,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 tags=["pharmacokinetics", "temperature", "elimination"]
             )
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1306,8 +1328,9 @@ def register_derivation_tools(mcp: Any) -> None:
             except Exception as e:
                 result["save_warning"] = f"Completed but save failed: {e}"
 
-        # 清除當前會話
-        _set_current_session(None)
+        # 清除當前會話（僅當它正是 current 時，避免影響其他 agent）
+        if session is _get_current_session():
+            _set_current_session(None)
 
         if saved_path:
             result["saved_to"] = str(saved_path)
@@ -1316,7 +1339,7 @@ def register_derivation_tools(mcp: Any) -> None:
         return result
 
     @mcp.tool()
-    def derivation_abort() -> dict[str, Any]:
+    def derivation_abort(session_id: str = "") -> dict[str, Any]:
         """
         放棄當前推導
 
@@ -1325,7 +1348,7 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             操作結果
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1334,7 +1357,8 @@ def register_derivation_tools(mcp: Any) -> None:
 
         session_id = session.session_id
         session.save()  # 確保保存
-        _set_current_session(None)
+        if session is _get_current_session():
+            _set_current_session(None)
 
         return {
             "success": True,
@@ -1663,6 +1687,7 @@ def register_derivation_tools(mcp: Any) -> None:
     def derivation_export_for_sympy(
         include_variables: bool = True,
         include_current_expression: bool = True,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         導出當前推導狀態給 SymPy-MCP
@@ -1700,7 +1725,7 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         import sympy as sp
 
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1782,6 +1807,7 @@ def register_derivation_tools(mcp: Any) -> None:
         notes: str | None = None,
         assumptions_used: list[str] | None = None,
         limitations: list[str] | None = None,
+        session_id: str = "",
     ) -> dict[str, Any]:
         """
         從 SymPy-MCP 導入結果回 NSForge
@@ -1825,7 +1851,7 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         import sympy as sp
 
-        session = _get_current_session()
+        session = _resolve_session(session_id)
         if session is None:
             return {
                 "success": False,
@@ -1890,7 +1916,7 @@ def register_derivation_tools(mcp: Any) -> None:
         }
 
     @mcp.tool()
-    def derivation_handoff_status() -> dict[str, Any]:
+    def derivation_handoff_status(session_id: str = "") -> dict[str, Any]:
         """
         顯示 Handoff 狀態和可用選項
 
@@ -1902,7 +1928,7 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             Handoff 狀態和建議
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
 
         nsforge_capabilities = {
             "can_do": [
@@ -1974,7 +2000,7 @@ def register_derivation_tools(mcp: Any) -> None:
         }
 
     @mcp.tool()
-    def derivation_prepare_for_optimization() -> dict[str, Any]:
+    def derivation_prepare_for_optimization(session_id: str = "") -> dict[str, Any]:
         """
         準備推導結果給優化求解器（如 USolver）
 
@@ -2003,7 +2029,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 "usolver_template": "..."
               }
         """
-        session = _get_current_session()
+        session = _resolve_session(session_id)
 
         if session is None:
             return {

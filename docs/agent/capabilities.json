@@ -353,7 +353,12 @@
     {
       "name": "derivation_abort",
       "module": "derivation",
-      "params": [],
+      "params": [
+        {
+          "name": "session_id",
+          "type": "str"
+        }
+      ],
       "returns": "dict[str, Any]",
       "summary": "放棄當前推導"
     },
@@ -376,6 +381,10 @@
         {
           "name": "related_step",
           "type": "int | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -412,6 +421,10 @@
         {
           "name": "auto_save",
           "type": "bool"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -440,6 +453,10 @@
         {
           "name": "step_number",
           "type": "int"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -472,6 +489,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -488,6 +509,10 @@
         {
           "name": "include_current_expression",
           "type": "bool"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -512,6 +537,10 @@
         {
           "name": "step_number",
           "type": "int"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -520,14 +549,24 @@
     {
       "name": "derivation_get_steps",
       "module": "derivation",
-      "params": [],
+      "params": [
+        {
+          "name": "session_id",
+          "type": "str"
+        }
+      ],
       "returns": "dict[str, Any]",
       "summary": "取得所有推導步驟"
     },
     {
       "name": "derivation_handoff_status",
       "module": "derivation",
-      "params": [],
+      "params": [
+        {
+          "name": "session_id",
+          "type": "str"
+        }
+      ],
       "returns": "dict[str, Any]",
       "summary": "顯示 Handoff 狀態和可用選項"
     },
@@ -562,6 +601,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -586,6 +629,10 @@
         {
           "name": "related_variables",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -622,6 +669,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -673,6 +724,10 @@
         {
           "name": "description",
           "type": "str"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -681,7 +736,12 @@
     {
       "name": "derivation_prepare_for_optimization",
       "module": "derivation",
-      "params": [],
+      "params": [
+        {
+          "name": "session_id",
+          "type": "str"
+        }
+      ],
       "returns": "dict[str, Any]",
       "summary": "準備推導結果給優化求解器（如 USolver）"
     },
@@ -716,6 +776,10 @@
         {
           "name": "set_as_current",
           "type": "bool"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -747,6 +811,10 @@
         {
           "name": "to_step",
           "type": "int"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -775,6 +843,10 @@
         {
           "name": "show_steps",
           "type": "bool"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -803,6 +875,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -831,6 +907,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -859,7 +939,12 @@
     {
       "name": "derivation_status",
       "module": "derivation",
-      "params": [],
+      "params": [
+        {
+          "name": "session_id",
+          "type": "str"
+        }
+      ],
       "returns": "dict[str, Any]",
       "summary": "取得當前會話狀態"
     },
@@ -894,6 +979,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
@@ -974,6 +1063,10 @@
         {
           "name": "limitations",
           "type": "list[str] | None"
+        },
+        {
+          "name": "session_id",
+          "type": "str"
         }
       ],
       "returns": "dict[str, Any]",
