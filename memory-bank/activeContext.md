@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**泛公式探討路線圖 — 階段 A/B/C 完成（接完階梯 + 維度下沉 + 檢索推薦器）。** `task_run` 現在跑完整條實體化階梯：concept → symbol → derivation（代入＋`solve_for`）→ **verify（acceptance 神諭：equivalence/boundary/limit/dimensional + `verified` 旗標）** → **code（`generated_code`）**。維度分析下沉 `infrastructure/dimensional.py`（單一真相，消除 domain stub）。新增 `derivation_suggest_next`（retrieve-then-rank，排序開放來源候選；工具 87→88）。harness 9/9。下一步：階段 4（自我修正環——verify 失敗 → 回滾 → 換候選重試）。藍圖見 `docs/general-formula-exploration-roadmap.md`。
+**多 agent 服務化硬化（安全+並發）第一批完成。** 從 local MCP 轉共享服務的最大風險是「單機假設寫進全域變數」。已用 Explore subagent 盤點爆炸半徑，並 YOLO 三塊純程式碼硬化（各 harness 9/9、已推送）：(1) 安全 parse 護欄擋 sympify DoS（`domain/safe_parse.py`，接進引擎/verify/derivation）；(2) 會話原子寫入 + `SessionManager` 並發鎖（`domain/derivation_session.py`）；(3) `music.py` matplotlib 改物件式 `Figure` 去全域狀態。剩餘為 infra 耦合項（DI 組合根、全量 `session_id` 化+租戶隔離、process-pool timeout、HTTP+auth、DB 後端、快取、observability、分散式鎖）——需 infra 決策，設計已記 decisionLog，逐項確認再上。（泛公式路線圖階段 4 自我修正環仍待做。）
 
 ## ✅ 本次完成 (2026-07-07)
 

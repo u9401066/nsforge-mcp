@@ -1,6 +1,12 @@
-# Progress (Updated: 2026-07-07)
+# Progress (Updated: 2026-07-08)
 
 ## Done
+### 🛡️ 多 agent 服務化硬化：安全 parse + 會話原子/並發 + matplotlib (2026-07-08)
+- ✅ 用 Explore subagent 盤點爆炸半徑：31 個 derivation 工具依賴 `_current_session` 全域、3 個全域單例、sympify 無 DoS 防護、src 無 exec/eval、music.py matplotlib 全域狀態
+- ✅ **安全 parse 護欄**（`domain/safe_parse.py`）：拒 power tower/超長/深巢/巨大字面量；接進 `SymPyEngine.parse` + `verify._parse_safe` + `derivation._preprocess_for_sympify`（commit e0030d6）
+- ✅ **會話原子/並發**：`DerivationSession.save()` temp+os.replace 原子寫入；`SessionManager` RLock + `get_session_manager` 雙重檢查鎖（commit 8cb58e8）
+- ✅ **matplotlib 並發**：`music.py` 改物件式 `Figure`+`FigureCanvasAgg`，去 pyplot 全域狀態（commit c64293b）
+- 🔜 infra 層（需決策/相依，設計見 decisionLog）：DI 組合根、explicit `session_id`×31 工具+租戶隔離、process-pool timeout、Streamable HTTP+auth、DB 後端、context-aware 快取、observability、分散式鎖
 ### 🪜 階段 A/B/C：接完階梯 + 維度下沉 + 推薦器 (2026-07-07)
 - ✅ **A**：`task_run` 跑完 concept→symbol→derivation→verify→code。solve_for（engine.solve）、ALGORITHM 產碼（domain/codegen.py→generated_code）、acceptance 神諭執行（equivalence/boundary/limit/dimensional + verified 旗標）、DTS assumptions（k>0）接入、新增 engine.limit
 - ✅ **B**：維度分析下沉 `infrastructure/dimensional.py`（單一真相，化約基本維度 N/kg==m/s**2），`BasicVerifier.check_dimensions` 真實作消除 stub，MCP 工具 DRY
