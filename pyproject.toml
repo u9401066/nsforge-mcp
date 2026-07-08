@@ -72,6 +72,11 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/nsforge", "src/nsforge_mcp"]
 
+# Ship the capability manifest inside the wheel so the server can self-describe
+# (nsforge_manifest / nsforge_health) even when installed via `uvx`, with no repo.
+[tool.hatch.build.targets.wheel.force-include]
+"docs/agent/capabilities.json" = "nsforge_mcp/capabilities.json"
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100

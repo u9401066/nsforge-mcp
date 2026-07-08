@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import sys
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -24,16 +25,32 @@ _MANIFEST_PATH = Path(__file__).resolve().parents[3] / "docs" / "agent" / "capab
 
 
 def _load_manifest() -> dict[str, Any] | None:
-    """Load the on-disk capability manifest, or None if it is unavailable."""
+    """Load the capability manifest — the repo copy (dev) or the packaged copy."""
+    for text in (_repo_manifest_text(), _packaged_manifest_text()):
+        if text is None:
+            continue
+        try:
+            data = json.loads(text)
+        except ValueError:
+            continue
+        if isinstance(data, dict):
+            return data
+    return None
+
+
+def _repo_manifest_text() -> str | None:
     try:
-        text = _MANIFEST_PATH.read_text(encoding="utf-8")
+        return _MANIFEST_PATH.read_text(encoding="utf-8")
     except OSError:
         return None
+
+
+def _packaged_manifest_text() -> str | None:
     try:
-        data = json.loads(text)
-    except ValueError:
+        resource = resources.files("nsforge_mcp") / "capabilities.json"
+        return resource.read_text(encoding="utf-8") if resource.is_file() else None
+    except (FileNotFoundError, ModuleNotFoundError, OSError):
         return None
-    return data if isinstance(data, dict) else None
 
 
 def register_meta_tools(mcp: Any) -> None:
