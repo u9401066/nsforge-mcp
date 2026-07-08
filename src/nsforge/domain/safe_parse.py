@@ -27,6 +27,35 @@ _BIG_FACTORIAL = re.compile(r"\d{4,}\s*!")
 _OPEN = "([{"
 _CLOSE = ")]}"
 
+# SymPy function / constant names that must not be treated as free symbols when
+# scanning expression strings. Single source of truth, imported by the engine,
+# the orchestrator, the suggester and the benchmark harness.
+SYMPY_RESERVED_NAMES = frozenset(
+    {
+        "exp",
+        "log",
+        "ln",
+        "sqrt",
+        "Abs",
+        "sin",
+        "cos",
+        "tan",
+        "cot",
+        "sec",
+        "csc",
+        "asin",
+        "acos",
+        "atan",
+        "sinh",
+        "cosh",
+        "tanh",
+        "pi",
+        "E",
+        "I",
+        "oo",
+    }
+)
+
 
 def check_expression_safety(text: str) -> str | None:
     """Return an error message if ``text`` is unsafe to parse, else ``None``.

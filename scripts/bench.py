@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 from nsforge.application.task_orchestrator import TaskOrchestrator
+from nsforge.domain.safe_parse import SYMPY_RESERVED_NAMES
 from nsforge.domain.task_spec import DerivationTaskSpec
 from nsforge.domain.value_objects import MathContext
 from nsforge.infrastructure.sympy_engine import SymPyEngine
@@ -30,9 +31,7 @@ REPO = Path(__file__).resolve().parent.parent
 BENCH_DIR = REPO / "benchmarks"
 
 # SymPy functions / constants that must NOT be declared as plain symbols.
-_FUNCTION_NAMES = frozenset(
-    {"exp", "log", "ln", "sqrt", "Abs", "sin", "cos", "tan", "pi", "E", "I", "oo"}
-)
+_FUNCTION_NAMES = SYMPY_RESERVED_NAMES
 
 
 def _symbol_assumptions(spec: DerivationTaskSpec) -> dict[str, dict[str, bool]]:

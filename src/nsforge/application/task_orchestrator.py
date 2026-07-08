@@ -23,6 +23,7 @@ from typing import Any
 
 from nsforge.domain.codegen import render_python_function
 from nsforge.domain.entities import Expression
+from nsforge.domain.safe_parse import SYMPY_RESERVED_NAMES
 from nsforge.domain.services import SymbolicEngine, Verifier
 from nsforge.domain.task_spec import (
     AcceptanceCheck,
@@ -33,31 +34,7 @@ from nsforge.domain.task_spec import (
 from nsforge.domain.value_objects import MathContext, VerificationStatus
 
 # Names that must NOT be declared as symbols (SymPy functions / constants).
-_FUNCTION_NAMES = frozenset(
-    {
-        "exp",
-        "log",
-        "ln",
-        "sqrt",
-        "Abs",
-        "sin",
-        "cos",
-        "tan",
-        "cot",
-        "sec",
-        "csc",
-        "asin",
-        "acos",
-        "atan",
-        "sinh",
-        "cosh",
-        "tanh",
-        "pi",
-        "E",
-        "I",
-        "oo",
-    }
-)
+_FUNCTION_NAMES = SYMPY_RESERVED_NAMES
 
 
 def _verdict(ok: bool) -> str:

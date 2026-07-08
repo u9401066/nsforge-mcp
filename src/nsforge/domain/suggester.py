@@ -13,10 +13,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from nsforge.domain.safe_parse import SYMPY_RESERVED_NAMES
+
 # SymPy functions / constants that are not derivation symbols.
-_NON_SYMBOLS = frozenset(
-    {"exp", "log", "ln", "sqrt", "Abs", "sin", "cos", "tan", "pi", "E", "I", "oo"}
-)
+_NON_SYMBOLS = SYMPY_RESERVED_NAMES
 _IDENT = re.compile(r"[A-Za-z_]\w*")
 _WORD = re.compile(r"[a-z0-9]+")
 
