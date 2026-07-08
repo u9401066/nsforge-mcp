@@ -69,6 +69,21 @@ DEFAULT_ORDER = [
     "diff",
 ]
 
+# Human/agent-readable description of what each gate verifies. Kept next to GATES
+# so the manifest (docs/agent/capabilities.json) can advertise the live gate list.
+GATE_DOC: dict[str, str] = {
+    "lint": "ruff lint across src/, tests/, scripts/",
+    "format": "ruff format --check (style is enforced, not merely suggested)",
+    "type": "mypy strict on src/",
+    "import": "the MCP server imports cleanly",
+    "manifest": "docs/agent/capabilities.json is in sync with the @mcp.tool set",
+    "test": "the pytest suite passes",
+    "bench": "known derivations reproduce correctly (benchmarks/*.json)",
+    "generic": "unseen, randomly-composed formulas derive correctly (a calculus, not a library)",
+    "provenance": "every benchmark derivation carries a complete tool-provenance ledger",
+    "diff": "no whitespace errors or leftover conflict markers",
+}
+
 
 def run_gate(name: str) -> dict:
     cmd = _wrap(GATES[name])

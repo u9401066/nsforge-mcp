@@ -1,5 +1,7 @@
 {
-  "schema": "nsforge.capabilities/v1",
+  "schema": "nsforge.capabilities/v2",
+  "version": "0.2.4",
+  "north_star": "Every symbol, equation, value, and line of code in a result has a tool call as its birth certificate; the AI hand-derives nothing.",
   "tool_count": 89,
   "modules": [
     "calculate",
@@ -13,6 +15,78 @@
     "task",
     "verify"
   ],
+  "module_summaries": {
+    "calculate": "Limits, series, sums, inequalities, probability, numerics",
+    "codegen": "Python function, LaTeX, report, standalone script",
+    "derivation": "Stateful derivation sessions: compose, step, track, store",
+    "expression": "Parse, validate, extract symbols",
+    "formula": "Formula search: Wikidata, BioModels, SciPy constants",
+    "music": "Symbolic tones to waveform, spectrum, WAV",
+    "simplify": "Advanced algebra (expand/factor/apart) plus Laplace/Fourier transforms",
+    "suggest": "Retrieval-augmented next-step ranking",
+    "task": "Declarative task spec to reification-ladder run/explore (L2/L3)",
+    "verify": "Equality, derivative, integral, solution, dimensions"
+  },
+  "harness": [
+    {
+      "gate": "lint",
+      "verifies": "ruff lint across src/, tests/, scripts/",
+      "command": "ruff check ."
+    },
+    {
+      "gate": "format",
+      "verifies": "ruff format --check (style is enforced, not merely suggested)",
+      "command": "ruff format --check ."
+    },
+    {
+      "gate": "type",
+      "verifies": "mypy strict on src/",
+      "command": "mypy src --ignore-missing-imports"
+    },
+    {
+      "gate": "import",
+      "verifies": "the MCP server imports cleanly",
+      "command": "python -c import nsforge_mcp.server; print('server import ok')"
+    },
+    {
+      "gate": "manifest",
+      "verifies": "docs/agent/capabilities.json is in sync with the @mcp.tool set",
+      "command": "python scripts/gen_capabilities.py --check"
+    },
+    {
+      "gate": "test",
+      "verifies": "the pytest suite passes",
+      "command": "pytest -q"
+    },
+    {
+      "gate": "bench",
+      "verifies": "known derivations reproduce correctly (benchmarks/*.json)",
+      "command": "python scripts/bench.py"
+    },
+    {
+      "gate": "generic",
+      "verifies": "unseen, randomly-composed formulas derive correctly (a calculus, not a library)",
+      "command": "python scripts/genericity.py"
+    },
+    {
+      "gate": "provenance",
+      "verifies": "every benchmark derivation carries a complete tool-provenance ledger",
+      "command": "python scripts/provenance.py"
+    },
+    {
+      "gate": "diff",
+      "verifies": "no whitespace errors or leftover conflict markers",
+      "command": "git diff --check"
+    }
+  ],
+  "commands": {
+    "verify": "python scripts/check.py",
+    "verify_json": "python scripts/check.py --json",
+    "verify_subset": "python scripts/check.py --gates lint,type,test",
+    "regen_manifest": "python scripts/gen_capabilities.py",
+    "test": "uv run pytest",
+    "serve": "uv run nsforge-mcp"
+  },
   "tools": [
     {
       "name": "calculate_limit",

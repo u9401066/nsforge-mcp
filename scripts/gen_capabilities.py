@@ -20,11 +20,50 @@ import argparse
 import ast
 import json
 import sys
+import tomllib
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 TOOLS_DIR = REPO / "src" / "nsforge_mcp" / "tools"
 OUT = REPO / "docs" / "agent" / "capabilities.json"
+
+# check.py is the single source of truth for the harness gate list; import it so
+# the manifest always advertises the live gates (scripts/ is not a package).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import check  # noqa: E402
+
+NORTH_STAR = (
+    "Every symbol, equation, value, and line of code in a result has a tool call "
+    "as its birth certificate; the AI hand-derives nothing."
+)
+
+COMMANDS = {
+    "verify": "python scripts/check.py",
+    "verify_json": "python scripts/check.py --json",
+    "verify_subset": "python scripts/check.py --gates lint,type,test",
+    "regen_manifest": "python scripts/gen_capabilities.py",
+    "test": "uv run pytest",
+    "serve": "uv run nsforge-mcp",
+}
+
+MODULE_SUMMARIES = {
+    "derivation": "Stateful derivation sessions: compose, step, track, store",
+    "task": "Declarative task spec to reification-ladder run/explore (L2/L3)",
+    "suggest": "Retrieval-augmented next-step ranking",
+    "calculate": "Limits, series, sums, inequalities, probability, numerics",
+    "simplify": "Advanced algebra (expand/factor/apart) plus Laplace/Fourier transforms",
+    "verify": "Equality, derivative, integral, solution, dimensions",
+    "expression": "Parse, validate, extract symbols",
+    "codegen": "Python function, LaTeX, report, standalone script",
+    "formula": "Formula search: Wikidata, BioModels, SciPy constants",
+    "music": "Symbolic tones to waveform, spectrum, WAV",
+    "meta": "Runtime self-description: health, manifest",
+}
+
+
+def _project_version() -> str:
+    data = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
+    return str(data["project"]["version"])
 
 
 def _is_mcp_tool(dec: ast.expr) -> bool:
@@ -72,10 +111,23 @@ def collect() -> list[dict]:
 
 def build() -> dict:
     tools = collect()
+    modules = sorted({t["module"] for t in tools})
     return {
-        "schema": "nsforge.capabilities/v1",
+        "schema": "nsforge.capabilities/v2",
+        "version": _project_version(),
+        "north_star": NORTH_STAR,
         "tool_count": len(tools),
-        "modules": sorted({t["module"] for t in tools}),
+        "modules": modules,
+        "module_summaries": {m: MODULE_SUMMARIES.get(m, "") for m in modules},
+        "harness": [
+            {
+                "gate": g,
+                "verifies": check.GATE_DOC.get(g, ""),
+                "command": " ".join(check.GATES[g]),
+            }
+            for g in check.DEFAULT_ORDER
+        ],
+        "commands": COMMANDS,
         "tools": tools,
     }
 
