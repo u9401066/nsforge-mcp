@@ -64,12 +64,10 @@
 
   <!-- badges strip -->
   <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="600">
-    <rect x="790" y="150" width="336" height="44" rx="22" fill="#0e1830" stroke="#334155"/>
-    <text x="812" y="178" fill="#c4b5fd">89 MCP tools</text>
-    <circle cx="946" cy="172" r="2.5" fill="#64748b"/>
-    <text x="960" y="178" fill="#93c5fd">10-gate harness</text>
-    <circle cx="1086" cy="172" r="2.5" fill="#64748b"/>
-    <text x="1006" y="178" fill="#86efac" font-size="13">provenance-first</text>
+    <rect x="762" y="108" width="330" height="40" rx="20" fill="#0e1830" stroke="#334155"/>
+    <text x="786" y="134" fill="#c4b5fd">89 MCP tools</text>
+    <circle cx="904" cy="128" r="2.5" fill="#64748b"/>
+    <text x="920" y="134" fill="#93c5fd">10-gate harness</text>
   </g>
 
   <defs>

@@ -132,7 +132,7 @@ The golden rule: **compute & verify with SymPy-MCP, then record with NSForge** (
 
 ```mermaid
 flowchart LR
-    A["🤖 LLM<br/>understand &amp; plan"] --> B["🔢 SymPy-MCP<br/>compute &amp; verify"]
+    A["🤖 LLM<br/>understand + plan"] --> B["🔢 SymPy-MCP<br/>compute + verify"]
     B --> C["🔨 NSForge<br/>record step + provenance"]
     C --> D{"more<br/>steps?"}
     D -->|"yes"| B
@@ -160,7 +160,7 @@ flowchart TD
     BASE --> V["verify · acceptance oracles · provenance"]
     ALT1 --> V
     ALT2 --> V
-    V --> RANK["🏆 ranked candidates<br/>verified &gt; oracles passed &gt; simpler"]
+    V --> RANK["🏆 ranked candidates<br/>verified · oracles passed · simpler"]
 ```
 
 - `task_plan` — reify a DTS into an ordered, provenance-tagged plan
@@ -182,7 +182,7 @@ stateDiagram-v2
     deriving --> deriving: get_step / update_step / insert_note
     deriving --> earlier: rollback
     earlier --> deriving: re-derive a new path
-    deriving --> [*]: complete &amp; save
+    deriving --> [*]: complete + save
 ```
 
 `derivation_get_step` · `derivation_update_step` · `derivation_rollback` · `derivation_insert_note` · `derivation_delete_step` — see the [tool reference](docs/tools-reference.md#-derivation-engine-31).

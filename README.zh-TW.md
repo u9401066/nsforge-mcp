@@ -160,7 +160,7 @@ flowchart TD
     BASE --> V["驗證 · acceptance 神諭 · 溯源"]
     ALT1 --> V
     ALT2 --> V
-    V --> RANK["🏆 排序候選<br/>已驗證 &gt; 通過神諭數 &gt; 較簡潔"]
+    V --> RANK["🏆 排序候選<br/>已驗證 · 通過神諭數 · 較簡潔"]
 ```
 
 - `task_plan` — 把 DTS 實體化為帶溯源的有序計畫
@@ -178,11 +178,13 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     direction LR
-    [*] --> 推導中
-    推導中 --> 推導中: get_step / update_step / insert_note
-    推導中 --> 較早步驟: rollback
-    較早步驟 --> 推導中: 重新推導新路徑
-    推導中 --> [*]: 完成並存檔
+    state "推導中" as deriving
+    state "較早步驟" as earlier
+    [*] --> deriving
+    deriving --> deriving: get_step / update_step / insert_note
+    deriving --> earlier: rollback
+    earlier --> deriving: 重新推導新路徑
+    deriving --> [*]: 完成並存檔
 ```
 
 `derivation_get_step` · `derivation_update_step` · `derivation_rollback` · `derivation_insert_note` · `derivation_delete_step`——詳見[工具參考](docs/tools-reference.md#-derivation-engine-31)。
