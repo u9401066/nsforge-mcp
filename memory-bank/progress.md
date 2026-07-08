@@ -1,7 +1,11 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
-### 🛡️ 多 agent 服務化硬化：安全 parse + 會話原子/並發 + matplotlib (2026-07-08)
+### � 階段 4：自我修正環（critic-retry） (2026-07-08)
+- ✅ `run()` 成重試迴圈：base 推導未通過 acceptance → 依 DTS `alternatives` 逐一組合重試 → 取第一個通過者
+- ✅ DTS 加 `alternatives: list[Modification]`；`TaskRunResult` 加 `attempts`（label/derived/verified）；`task_run` 輸出 attempts
+- ✅ tests/test_self_correction.py（base→gain_2 失敗→gain_5 通過）；harness 9/9；至此階段 1-4 全部落地、探索迴圈閉環
+### �🛡️ 多 agent 服務化硬化：安全 parse + 會話原子/並發 + matplotlib (2026-07-08)
 - ✅ 用 Explore subagent 盤點爆炸半徑：31 個 derivation 工具依賴 `_current_session` 全域、3 個全域單例、sympify 無 DoS 防護、src 無 exec/eval、music.py matplotlib 全域狀態
 - ✅ **安全 parse 護欄**（`domain/safe_parse.py`）：拒 power tower/超長/深巢/巨大字面量；接進 `SymPyEngine.parse` + `verify._parse_safe` + `derivation._preprocess_for_sympify`（commit e0030d6）
 - ✅ **會話原子/並發**：`DerivationSession.save()` temp+os.replace 原子寫入；`SessionManager` RLock + `get_session_manager` 雙重檢查鎖（commit 8cb58e8）

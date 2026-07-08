@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**多 agent 服務化硬化（安全+並發）第一批完成。** 從 local MCP 轉共享服務的最大風險是「單機假設寫進全域變數」。已用 Explore subagent 盤點爆炸半徑，並 YOLO 三塊純程式碼硬化（各 harness 9/9、已推送）：(1) 安全 parse 護欄擋 sympify DoS（`domain/safe_parse.py`，接進引擎/verify/derivation）；(2) 會話原子寫入 + `SessionManager` 並發鎖（`domain/derivation_session.py`）；(3) `music.py` matplotlib 改物件式 `Figure` 去全域狀態。剩餘為 infra 耦合項（DI 組合根、全量 `session_id` 化+租戶隔離、process-pool timeout、HTTP+auth、DB 後端、快取、observability、分散式鎖）——需 infra 決策，設計已記 decisionLog，逐項確認再上。（泛公式路線圖階段 4 自我修正環仍待做。）
+**泛公式探討路線圖 — 階段 4（自我修正環）完成，探索迴圈閉環。** `task_run` 的 `run()` 成 critic-retry：先跑 base 推導 + acceptance 神諭；未通過則依 DTS 新增的 `alternatives`（候選修正）逐一重跑，取第一個通過者，全程記於 `TaskRunResult.attempts`。至此「探索→提出→實體化→驗證→自我修正」閉環（階段 1-4 全部落地）。harness 9/9。下一步：階段 5（provenance ledger 強制——每符號/步驟帶出生證明、codegen 拒無溯源產物）。另有多 agent 服務化的 infra 剩餘項待決策（見 decisionLog）。
 
 ## ✅ 本次完成 (2026-07-07)
 

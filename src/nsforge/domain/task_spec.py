@@ -80,6 +80,7 @@ class DerivationTaskSpec:
     assumptions: list[str] = field(default_factory=list)  # e.g. "k>0", "T>0"
     base_formulas: list[str] = field(default_factory=list)  # ids or expressions
     modifications: list[Modification] = field(default_factory=list)
+    alternatives: list[Modification] = field(default_factory=list)  # tried on acceptance failure
     acceptance: list[AcceptanceCheck] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -111,6 +112,7 @@ class DerivationTaskSpec:
             assumptions=[str(a) for a in data.get("assumptions", [])],
             base_formulas=[str(b) for b in data.get("base_formulas", [])],
             modifications=[Modification.from_dict(m) for m in data.get("modifications", [])],
+            alternatives=[Modification.from_dict(m) for m in data.get("alternatives", [])],
             acceptance=[AcceptanceCheck.from_dict(a) for a in data.get("acceptance", [])],
             metadata=dict(data.get("metadata", {})),
         )

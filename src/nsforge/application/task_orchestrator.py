@@ -24,7 +24,12 @@ from typing import Any
 from nsforge.domain.codegen import render_python_function
 from nsforge.domain.entities import Expression
 from nsforge.domain.services import SymbolicEngine, Verifier
-from nsforge.domain.task_spec import AcceptanceCheck, AcceptanceKind, DerivationTaskSpec
+from nsforge.domain.task_spec import (
+    AcceptanceCheck,
+    AcceptanceKind,
+    DerivationTaskSpec,
+    Modification,
+)
 from nsforge.domain.value_objects import MathContext, VerificationStatus
 
 # Names that must NOT be declared as symbols (SymPy functions / constants).
@@ -104,6 +109,16 @@ class AcceptanceOutcome:
 
 
 @dataclass(frozen=True)
+class AttemptOutcome:
+    """One self-correction attempt: a derivation path and whether it verified."""
+
+    label: str  # "base" or "alternative:<id>"
+    derived: str
+    verified: bool
+    detail: str = ""
+
+
+@dataclass(frozen=True)
 class TaskRunResult:
     spec_name: str
     ok: bool
@@ -112,6 +127,7 @@ class TaskRunResult:
     generated_code: str = ""  # set when the ALGORITHM rung reifies code
     acceptance: list[AcceptanceOutcome] = field(default_factory=list)
     verified: bool = True  # False if any acceptance oracle did not pass
+    attempts: list[AttemptOutcome] = field(default_factory=list)  # self-correction log
 
     @property
     def plan(self) -> list[PlannedStep]:
@@ -231,10 +247,29 @@ class TaskOrchestrator:
             )
         )
 
-        # DERIVATION: execute deterministically if an engine is wired; else plan.
+        # DERIVATION + VERIFY with self-correction: try the base derivation, then
+        # each alternative candidate, stopping at the first that passes acceptance.
         derived_expression = ""
+        acceptance: list[AcceptanceOutcome] = []
+        verified = True
+        attempts: list[AttemptOutcome] = []
         if self.engine is not None:
-            derivation_result, derived_expression = self._execute_derivation()
+            candidates: list[Modification | None] = [None, *self.spec.alternatives]
+            derivation_result: PhaseResult | None = None
+            for candidate in candidates:
+                extra = [candidate] if candidate is not None else []
+                phase, derived = self._execute_derivation(extra)
+                oracles = (
+                    self._execute_acceptance(derived) if derived and self.spec.acceptance else []
+                )
+                ok = all(o.status == "verified" for o in oracles) if oracles else True
+                label = "base" if candidate is None else f"alternative:{candidate.id}"
+                attempts.append(AttemptOutcome(label, derived, ok, phase.detail))
+                derivation_result = phase
+                derived_expression, acceptance, verified = derived, oracles, ok
+                if ok:
+                    break
+            assert derivation_result is not None  # candidates always has the base
             phases.append(derivation_result)
         else:
             derivation_steps = [s for s in plan if s.phase is LadderPhase.DERIVATION]
@@ -248,12 +283,7 @@ class TaskOrchestrator:
                 )
             )
 
-        # VERIFY: run the acceptance oracles against the derived result.
-        acceptance: list[AcceptanceOutcome] = []
-        if derived_expression and self.engine is not None and self.spec.acceptance:
-            acceptance = self._execute_acceptance(derived_expression)
-
-        # ALGORITHM: reify the verified derivation into code when we have one.
+        # ALGORITHM: reify the best (verified) derivation into code when we have one.
         generated_code = ""
         if derived_expression and self.engine is not None:
             algo_result, generated_code = self._execute_algorithm(derived_expression)
@@ -269,7 +299,6 @@ class TaskOrchestrator:
                 )
             )
 
-        verified = all(o.status == "verified" for o in acceptance) if acceptance else True
         return TaskRunResult(
             self.spec.name,
             ok=True,
@@ -278,9 +307,12 @@ class TaskOrchestrator:
             generated_code=generated_code,
             acceptance=acceptance,
             verified=verified,
+            attempts=attempts,
         )
 
-    def _execute_derivation(self) -> tuple[PhaseResult, str]:
+    def _execute_derivation(
+        self, extra_mods: list[Modification] | None = None
+    ) -> tuple[PhaseResult, str]:
         """Compose the base formulas via substitution using the injected engine.
 
         Deterministically resolves "lhs = rhs" base formulas into a single derived
@@ -333,7 +365,7 @@ class TaskOrchestrator:
         for i, (lhs, rhs) in enumerate(defs):
             if i != target_idx and lhs:
                 rules.append((lhs, rhs, "base_formula"))
-        for mod in self.spec.modifications:
+        for mod in [*self.spec.modifications, *(extra_mods or [])]:
             if mod.target and mod.expression:
                 rules.append((mod.target, mod.expression, f"modification:{mod.id}"))
 
@@ -389,7 +421,11 @@ class TaskOrchestrator:
         pharmacokinetic notation (C0, V1, k10, ...).
         """
         names = set(self.spec.given) | set(self.spec.unknowns)
-        texts = [*self.spec.base_formulas, *(m.expression for m in self.spec.modifications)]
+        texts = [
+            *self.spec.base_formulas,
+            *(m.expression for m in self.spec.modifications),
+            *(m.expression for m in self.spec.alternatives),
+        ]
         for text in texts:
             for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
                 if token not in _FUNCTION_NAMES:

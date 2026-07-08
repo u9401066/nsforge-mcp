@@ -84,6 +84,10 @@ def register_task_tools(mcp: Any) -> None:
             "derived_expression": result.derived_expression,
             "generated_code": result.generated_code,
             "verified": result.verified,
+            "attempts": [
+                {"label": a.label, "derived": a.derived, "verified": a.verified}
+                for a in result.attempts
+            ],
             "acceptance": [
                 {"kind": o.kind, "status": o.status, "detail": o.detail} for o in result.acceptance
             ],

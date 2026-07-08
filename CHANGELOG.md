@@ -9,6 +9,7 @@
 
 ### Added
 
+- 🔁 **自我修正環（roadmap 階段 4）** — `task_run` 的 `run()` 成 critic-retry 迴圈：base 推導未通過 acceptance 時，依 DTS 新增的 `alternatives`（候選修正）逐一重試、重跑神諭，取第一個通過者；全程記於 `TaskRunResult.attempts`。閉環「探索→驗證→修正→再驗證」。
 - � **接完推導階梯（roadmap A）** — `task_run` 現在跑完 concept → symbol → derivation → **verify** → **code**：新增 `solve_for`（`engine.solve` 隳離未知數，如 `d=v*t`→`t=d/v`）、**ALGORITHM 產碼**（純 `domain/codegen.py` 把已驗證推導組成 Python 函數，回傳 `generated_code`）、**acceptance 神諭執行**（equivalence/boundary/limit 走引擎、dimensional 走 domain Verifier；回傳每項結果與單一 `verified` 信任旗標）；DTS 的 `assumptions`（如 `k>0`）接入符號上下文使極限正確。新增 `engine.limit`。
 - 🧭 **檢索增強推薦器（roadmap C）** — `derivation_suggest_next(goal, current_expression, candidates)`（`domain/suggester.py` 純排序 + `tools/suggest.py`）：依「候選是否定義現況符號＋目標詞重疊」排序開放來源候選（retrieve-then-rank，學自 ReProver）。工具 87→88。
 - �🧪 **通用性 gate（`generic`）** — `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案交叉比對（40/40）。結構性證明 NSForge 是通用推導演算法、非手建公式庫。harness 8 → 9 gate。（roadmap 階段 2 延伸）
