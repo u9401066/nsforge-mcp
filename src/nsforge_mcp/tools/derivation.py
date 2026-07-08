@@ -20,6 +20,7 @@ from nsforge.domain.derivation_session import (
     get_session_manager,
 )
 from nsforge.domain.formula import FormulaSource
+from nsforge.domain.safe_parse import check_expression_safety
 from nsforge.infrastructure.derivation_repository import (
     DerivationResult,
     get_repository,
@@ -157,6 +158,10 @@ def _preprocess_for_sympify(expr_str: str) -> str:
         "R = R_0 * E * exp(β * h) * V"  →  "R = R_0 * E * exp(beta * h) * V"
         "dose⁻¹"                          →  "dose-1"
     """
+    unsafe = check_expression_safety(expr_str)
+    if unsafe:
+        raise ValueError(f"unsafe expression rejected: {unsafe}")
+
     result = expr_str
 
     # 1. 先處理上標數字（如 ⁰ → 0）

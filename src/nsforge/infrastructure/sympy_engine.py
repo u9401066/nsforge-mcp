@@ -15,6 +15,7 @@ from sympy.parsing.sympy_parser import (
 )
 
 from nsforge.domain.entities import Expression, ExpressionType
+from nsforge.domain.safe_parse import check_expression_safety
 from nsforge.domain.services import SymbolicEngine
 from nsforge.domain.value_objects import MathContext, SimplificationLevel
 
@@ -31,6 +32,11 @@ class SymPyEngine(SymbolicEngine):
 
     def parse(self, expr_str: str, context: MathContext | None = None) -> Expression:
         """Parse a string into an Expression using SymPy."""
+        unsafe = check_expression_safety(expr_str)
+        if unsafe:
+            return Expression(
+                raw=expr_str, latex="", sympy_expr=None, expr_type=ExpressionType.UNKNOWN
+            )
         try:
             # Get symbols with assumptions if provided
             local_dict = self._get_local_dict(context)

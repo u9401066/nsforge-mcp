@@ -17,6 +17,8 @@ from sympy.parsing.sympy_parser import (
     standard_transformations,
 )
 
+from nsforge.domain.safe_parse import check_expression_safety
+
 TRANSFORMATIONS = standard_transformations + (
     implicit_multiplication_application,
     convert_xor,
@@ -24,7 +26,10 @@ TRANSFORMATIONS = standard_transformations + (
 
 
 def _parse_safe(expression: str) -> tuple[Any, str | None]:
-    """Safely parse expression."""
+    """Safely parse expression (with an untrusted-input complexity guard)."""
+    unsafe = check_expression_safety(expression)
+    if unsafe:
+        return None, unsafe
     try:
         expr_clean = expression.replace("^", "**")
         return parse_expr(expr_clean, transformations=TRANSFORMATIONS), None
