@@ -485,10 +485,8 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             → Oscilloscope view of A4 tone showing ~2 cycles
         """
         try:
-            import matplotlib
-
-            matplotlib.use("Agg")
-            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_agg import FigureCanvasAgg
+            from matplotlib.figure import Figure
 
             expr_clean = expression.replace("^", "**")
             t = sp.Symbol("t")
@@ -502,7 +500,10 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             if waveform.ndim == 0:
                 waveform = np.full(num_samples, float(waveform))
 
-            fig, ax = plt.subplots(figsize=(10, 4))
+            # Object-oriented Agg figure -- no pyplot global state (thread-safe).
+            fig = Figure(figsize=(10, 4))
+            FigureCanvasAgg(fig)
+            ax = fig.subplots()
             ax.plot(t_array * 1000, waveform, linewidth=0.5, color="#2196F3")
             ax.set_xlabel("Time (ms)")
             ax.set_ylabel("Amplitude")
@@ -513,7 +514,6 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
 
             if output_path:
                 fig.savefig(output_path, dpi=150, bbox_inches="tight")
-                plt.close(fig)
                 return {
                     "success": True,
                     "file_path": output_path,
@@ -523,7 +523,6 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             else:
                 buf = io.BytesIO()
                 fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-                plt.close(fig)
                 buf.seek(0)
                 img_base64 = base64.b64encode(buf.read()).decode("utf-8")
                 return {
@@ -566,10 +565,8 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             → Shows peaks at 440 Hz (fundamental) and 880 Hz (harmonic)
         """
         try:
-            import matplotlib
-
-            matplotlib.use("Agg")
-            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_agg import FigureCanvasAgg
+            from matplotlib.figure import Figure
 
             expr_clean = expression.replace("^", "**")
             t = sp.Symbol("t")
@@ -608,7 +605,9 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
 
             # Plot
             freq_mask = fft_freqs <= max_freq
-            fig, ax = plt.subplots(figsize=(10, 4))
+            fig = Figure(figsize=(10, 4))
+            FigureCanvasAgg(fig)
+            ax = fig.subplots()
             ax.plot(
                 fft_freqs[freq_mask],
                 fft_magnitude[freq_mask],
@@ -623,7 +622,6 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
 
             if output_path:
                 fig.savefig(output_path, dpi=150, bbox_inches="tight")
-                plt.close(fig)
                 return {
                     "success": True,
                     "file_path": output_path,
@@ -634,7 +632,6 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             else:
                 buf = io.BytesIO()
                 fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-                plt.close(fig)
                 buf.seek(0)
                 img_base64 = base64.b64encode(buf.read()).decode("utf-8")
                 return {
