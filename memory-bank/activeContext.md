@@ -4,7 +4,7 @@
 
 ## 🎯 當前焦點
 
-**泛公式探討路線圖 — 階段 5（provenance ledger 強制）完成，北極星落地為架構。** 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（harness 9→10）驗證每 benchmark 推導可溯源——把「AI 不徒手生」從約定升級成可強制的架構不變量。至此路線圖階段 1-5 全部落地。下一步：階段 6（explore mode——分支推導樹的泛探索完全體），或 (3) 全量 session_id 化（多 agent 租戶隔離銖路）。
+**泛公式探討路線圖 — 階段 5（provenance ledger 強制）完成，北極星落地為架構。** 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（harness 9→10）驗證每 benchmark 推導可溯源——把「AI 不徒手生」從約定升級成可強制的架構不變量。至此路線圖階段 1-5 全部落地，且 (3) 全量 session_id 化亦完成（22 個有狀態 derivation 工具皆可帶 `session_id`、多 agent 安全）。下一步：階段 6（explore mode——分支推導樹的泛探索完全體）。
 
 ## ✅ 本次完成 (2026-07-07)
 

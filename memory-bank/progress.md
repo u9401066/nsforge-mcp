@@ -1,6 +1,10 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 🔑 (3) 全量 session_id 化（多 agent Tier 0） (2026-07-08)
+- ✅ 22 個有狀態 derivation 工具皆加 `session_id: str = ""`（向後相容）+ `_resolve_session(session_id)` helper（給 id 查該會話、否則退回 current）
+- ✅ complete/abort 只在完成者正是 current 時才清 current（不清別 agent 的）；manifest 重生
+- ✅ tests/test_session_id.py（B 為 current 時用 id 操作 A 互不干擾）；harness 10/10。配合先前 SessionManager 並發鎖，為租戶隔離銖路（owner 身分需 transport/auth 層）
 ### 🧬 階段 5：provenance ledger 強制 (2026-07-08)
 - ✅ `domain/provenance.py`（ProvenanceEntry/ProvenanceLedger，純）：每推導帶「出生證明」帳本（base 公式=input、每步=工具、最終=engine）
 - ✅ orchestrator `_build_ledger` + 強制：codegen **只在 provenance 完整時才產碼**，否則 ALGORITHM PLANNED「refused: 無溯源」；`task_run` 輸出 provenance
