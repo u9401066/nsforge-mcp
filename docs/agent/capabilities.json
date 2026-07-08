@@ -2,13 +2,14 @@
   "schema": "nsforge.capabilities/v2",
   "version": "0.2.4",
   "north_star": "Every symbol, equation, value, and line of code in a result has a tool call as its birth certificate; the AI hand-derives nothing.",
-  "tool_count": 89,
+  "tool_count": 91,
   "modules": [
     "calculate",
     "codegen",
     "derivation",
     "expression",
     "formula",
+    "meta",
     "music",
     "simplify",
     "suggest",
@@ -21,6 +22,7 @@
     "derivation": "Stateful derivation sessions: compose, step, track, store",
     "expression": "Parse, validate, extract symbols",
     "formula": "Formula search: Wikidata, BioModels, SciPy constants",
+    "meta": "Runtime self-description: health, manifest",
     "music": "Symbolic tones to waveform, spectrum, WAV",
     "simplify": "Advanced algebra (expand/factor/apart) plus Laplace/Fourier transforms",
     "suggest": "Retrieval-augmented next-step ranking",
@@ -1305,6 +1307,20 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "搜尋公式（跨多個來源）"
+    },
+    {
+      "name": "nsforge_health",
+      "module": "meta",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "Liveness + inventory: server name, version, tool count, engine versions."
+    },
+    {
+      "name": "nsforge_manifest",
+      "module": "meta",
+      "params": [],
+      "returns": "dict[str, Any]",
+      "summary": "Return the full capability manifest (tools, gates, commands, north star)."
     },
     {
       "name": "music_compose_chord",

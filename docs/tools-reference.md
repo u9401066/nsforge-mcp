@@ -1,6 +1,6 @@
 # 🛠️ NSForge Tool Reference
 
-Complete reference for all **89 MCP tools** across **10 modules**.
+Complete reference for all **91 MCP tools** across **11 modules**.
 
 > This page is the single source of truth for the tool surface, linked from both
 > [README (English)](../README.md) and [README (繁體中文)](../README.zh-TW.md).
@@ -18,6 +18,7 @@ Complete reference for all **89 MCP tools** across **10 modules**.
 | [💻 Code generation](#-code-generation-4) | 4 | Python function, LaTeX, report, standalone script |
 | [🌐 Formula search](#-formula-search-6) | 6 | Wikidata, BioModels, SciPy constants |
 | [🎵 Music](#-music-9) | 9 | Symbolic tones → waveform, spectrum, WAV |
+| [🧩 Runtime self-description](#-runtime-self-description-meta-2) | 2 | Live server introspection: health, manifest |
 
 ---
 
@@ -211,6 +212,17 @@ Music as symbolic functions of time — a fun demonstration of the symbolic core
 | `music_plot_waveform` | Plot the time-domain waveform |
 | `music_plot_spectrum` | Plot the frequency spectrum (FFT) |
 | `music_generate_wav` | Generate a WAV file from a function |
+
+---
+
+## 🧩 Runtime self-description (meta) (2)
+
+The MCP side of the agent harness — a connected agent introspects the live server without touching the repo.
+
+| Tool | Purpose |
+| ---- | ------- |
+| `nsforge_health` | Liveness + inventory: name, version, tool count, engine versions |
+| `nsforge_manifest` | The full capability manifest (tools, gates, commands, north star) |
 
 ---
 

@@ -10,7 +10,7 @@ NSForge is an [MCP](https://modelcontextprotocol.io/) server that *forges* new f
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
-[![Tools](https://img.shields.io/badge/MCP%20tools-89-8b5cf6.svg)](docs/tools-reference.md)
+[![Tools](https://img.shields.io/badge/MCP%20tools-91-8b5cf6.svg)](docs/tools-reference.md)
 [![Harness](https://img.shields.io/badge/verification-10%20gates-brightgreen.svg)](#-verification-harness)
 
 🌐 **English** | [繁體中文](README.zh-TW.md)
@@ -72,7 +72,7 @@ flowchart TB
         SY1["Base formulas: F=ma, PV=nRT, Arrhenius"]
         SY2["Constants · ODE / PDE / matrices"]
     end
-    subgraph NS["🔨 nsforge-mcp · 89 tools — YOU ARE HERE"]
+    subgraph NS["🔨 nsforge-mcp · 91 tools — YOU ARE HERE"]
         direction LR
         NS1["Derivation framework<br/>compose · verify · code"]
         NS2["Provenance repository"]
@@ -189,7 +189,7 @@ stateDiagram-v2
 
 ---
 
-## 🛠️ Tools at a glance — 89 tools, 10 modules
+## 🛠️ Tools at a glance — 91 tools, 11 modules
 
 | Module | # | What it does |
 | ------ | :-: | ------------ |
@@ -203,6 +203,7 @@ stateDiagram-v2
 | 🧭 Task orchestration | 3 | `task_plan` / `task_run` / `task_explore` |
 | 🧭 Suggester | 1 | Retrieval-augmented next-step ranking |
 | 🎵 Music | 9 | Symbolic tones → waveform, spectrum, WAV |
+| 🧩 Runtime self-description | 2 | `nsforge_health` · `nsforge_manifest` (agent harness) |
 
 > 📖 **Full list with every tool:** [Tool Reference](docs/tools-reference.md) · machine-readable [`capabilities.json`](docs/agent/capabilities.json)
 

@@ -10,7 +10,7 @@ NSForge 是一個 [MCP](https://modelcontextprotocol.io/) 伺服器，透過確�
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
-[![Tools](https://img.shields.io/badge/MCP%20tools-89-8b5cf6.svg)](docs/tools-reference.md)
+[![Tools](https://img.shields.io/badge/MCP%20tools-91-8b5cf6.svg)](docs/tools-reference.md)
 [![Harness](https://img.shields.io/badge/verification-10%20gates-brightgreen.svg)](#-驗證-harness)
 
 🌐 [English](README.md) | **繁體中文**
@@ -72,7 +72,7 @@ flowchart TB
         SY1["基礎公式：F=ma、PV=nRT、Arrhenius"]
         SY2["常數 · ODE / PDE / 矩陣"]
     end
-    subgraph NS["🔨 nsforge-mcp · 89 工具 — 你在這裡"]
+    subgraph NS["🔨 nsforge-mcp · 91 工具 — 你在這裡"]
         direction LR
         NS1["推導框架<br/>組合 · 驗證 · 產碼"]
         NS2["溯源成果庫"]
@@ -191,7 +191,7 @@ stateDiagram-v2
 
 ---
 
-## 🛠️ 工具總覽 — 89 工具、10 模組
+## 🛠️ 工具總覽 — 91 工具、11 模組
 
 | 模組 | 數 | 說明 |
 | ---- | :-: | ---- |
@@ -205,6 +205,7 @@ stateDiagram-v2
 | 🧭 任務編排 | 3 | `task_plan` / `task_run` / `task_explore` |
 | 🧭 推薦器 | 1 | 檢索增強的下一步排序 |
 | 🎵 音樂 | 9 | 符號音調 → 波形、頻譜、WAV |
+| 🧩 Runtime 自述 | 2 | `nsforge_health` · `nsforge_manifest`（agent harness） |
 
 > 📖 **含每個工具的完整清單：** [工具參考](docs/tools-reference.md) · 機器可讀 [`capabilities.json`](docs/agent/capabilities.json)
 
