@@ -1,6 +1,11 @@
 # Progress (Updated: 2026-07-08)
 
 ## Done
+### 🧩 infra 層純程式碼收尾：DI 組合根 + process-pool timeout (2026-07-08)
+- ✅ `nsforge_mcp/composition.py`：組合根（frozen `Services`：engine/verifier/session_manager/repository）+ `build_services()` + `get_services()` 雙重檢查鎖，object graph「建一次、注入」的單一組裝點
+- ✅ `task.py` 改用 `get_services()`（不再每次 `SymPyEngine()`/`BasicVerifier()`）；`derivation.py` 的 `_get_manager` + 新 `_get_repository` 全走組合根，消除自有 `_manager` 全域與 7 處重複 `Path("formulas")`
+- ✅ `infrastructure/timeout.py` `run_with_timeout`（spawn 子行程硬牆鐘逾時，超時 terminate→`ComputationTimeout`；PEP 695 泛型）；`task_run`/`task_explore` 加 opt-in `timeout_s`（子行程執行、可真殺失控推導）
+- ✅ tests/test_composition.py（單例/埠/共用 store 身分）+ tests/test_timeout.py（回值/殺超時/WorkerError/非正逾時）；Explore 子代理複審：無孤兒、無重造輪；harness 10/10
 ### 🌳 階段 6：explore mode (2026-07-08)
 - ✅ `application/explorer.py` `Explorer` + `task_explore` 工具：DTS 的 `alternatives` 視為分支，對 base＋每分支各跑完整 L3 迴圈，回傳全部候選
 - ✅ 依「verified > 通過神諭數 > 較簡潔」排序，每候選帶 acceptance＋provenance；工具 88→89、manifest 重生
@@ -27,7 +32,8 @@
 - ✅ **安全 parse 護欄**（`domain/safe_parse.py`）：拒 power tower/超長/深巢/巨大字面量；接進 `SymPyEngine.parse` + `verify._parse_safe` + `derivation._preprocess_for_sympify`（commit e0030d6）
 - ✅ **會話原子/並發**：`DerivationSession.save()` temp+os.replace 原子寫入；`SessionManager` RLock + `get_session_manager` 雙重檢查鎖（commit 8cb58e8）
 - ✅ **matplotlib 並發**：`music.py` 改物件式 `Figure`+`FigureCanvasAgg`，去 pyplot 全域狀態（commit c64293b）
-- 🔜 infra 層（需決策/相依，設計見 decisionLog）：DI 組合根、explicit `session_id`×31 工具+租戶隔離、process-pool timeout、Streamable HTTP+auth、DB 後端、context-aware 快取、observability、分散式鎖
+- ✅ **DI 組合根 + process-pool timeout** 純程式碼部分已收尾（見上）；`session_id`×22 亦完成
+- 🔜 infra 層剩餘（需 infra 決策/相依）：租戶隔離、Streamable HTTP+auth、DB 後端、context-aware 快取、observability、分散式鎖
 ### 🪜 階段 A/B/C：接完階梯 + 維度下沉 + 推薦器 (2026-07-07)
 - ✅ **A**：`task_run` 跑完 concept→symbol→derivation→verify→code。solve_for（engine.solve）、ALGORITHM 產碼（domain/codegen.py→generated_code）、acceptance 神諭執行（equivalence/boundary/limit/dimensional + verified 旗標）、DTS assumptions（k>0）接入、新增 engine.limit
 - ✅ **B**：維度分析下沉 `infrastructure/dimensional.py`（單一真相，化約基本維度 N/kg==m/s**2），`BasicVerifier.check_dimensions` 真實作消除 stub，MCP 工具 DRY

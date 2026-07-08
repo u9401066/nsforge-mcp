@@ -31,18 +31,21 @@ class _FakeMCP:
 
 
 @pytest.fixture
-def tools(tmp_path: Path) -> Iterator[dict[str, Callable[..., Any]]]:
-    saved_manager = derivation._manager
+def tools(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[dict[str, Callable[..., Any]]]:
+    # Inject a temp-dir session manager at the seam the tools call (_get_manager),
+    # isolating the test from the real composition-root singleton.
+    manager = SessionManager(sessions_dir=tmp_path)
+    monkeypatch.setattr(derivation, "_get_manager", lambda: manager)
     saved_current = derivation._current_session
-    derivation._manager = SessionManager(sessions_dir=tmp_path)
     derivation._set_current_session(None)
     mcp = _FakeMCP()
     register_derivation_tools(mcp)
     try:
         yield mcp.tools
     finally:
-        derivation._manager = saved_manager
-        derivation._current_session = saved_current
+        derivation._set_current_session(saved_current)
 
 
 def test_session_id_targets_its_own_session(tools: dict[str, Callable[..., Any]]) -> None:

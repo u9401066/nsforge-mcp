@@ -11,31 +11,30 @@ Derivation Tools - 推導引擎 MCP 工具
 The "Forge" in NSForge means we CREATE new formulas through derivation.
 """
 
-from pathlib import Path
 from typing import Any
 
 from nsforge.domain.derivation_session import (
     DerivationSession,
     SessionManager,
-    get_session_manager,
 )
 from nsforge.domain.formula import FormulaSource
 from nsforge.domain.safe_parse import check_expression_safety
 from nsforge.infrastructure.derivation_repository import (
+    DerivationRepository,
     DerivationResult,
-    get_repository,
 )
-
-# 全域會話管理器（延遲初始化）
-_manager: SessionManager | None = None
+from nsforge_mcp.composition import get_services
 
 
+# 全域會話管理器與推導庫：一律取自組合根（單一組裝點）
 def _get_manager() -> SessionManager:
-    global _manager
-    if _manager is None:
-        # 預設存在專案目錄下
-        _manager = get_session_manager(Path("derivation_sessions"))
-    return _manager
+    """Return the shared session manager from the composition root."""
+    return get_services().session_manager
+
+
+def _get_repository() -> DerivationRepository:
+    """Return the shared derivation repository from the composition root."""
+    return get_services().repository
 
 
 # 當前活躍會話
@@ -1293,7 +1292,7 @@ def register_derivation_tools(mcp: Any) -> None:
         saved_path = None
         if auto_save:
             try:
-                repo = get_repository(Path("formulas"))
+                repo = _get_repository()
 
                 # 建立 DerivationResult
                 derivation_result = DerivationResult(
@@ -1388,7 +1387,7 @@ def register_derivation_tools(mcp: Any) -> None:
             → {"success": True, "results": ["temp_corrected_elimination", ...], "count": 5}
         """
         try:
-            repo = get_repository(Path("formulas"))
+            repo = _get_repository()
             result_ids = repo.list_all(category=category)
 
             return {
@@ -1425,7 +1424,7 @@ def register_derivation_tools(mcp: Any) -> None:
             → {"success": True, "name": "...", "expression": "...", ...}
         """
         try:
-            repo = get_repository(Path("formulas"))
+            repo = _get_repository()
             result = repo.get(result_id)
 
             if result is None:
@@ -1465,7 +1464,7 @@ def register_derivation_tools(mcp: Any) -> None:
             → {"success": True, "results": [{"id": "...", "name": "...", ...}], "count": 2}
         """
         try:
-            repo = get_repository(Path("formulas"))
+            repo = _get_repository()
             results = repo.search(query)
 
             return {
@@ -1497,7 +1496,7 @@ def register_derivation_tools(mcp: Any) -> None:
             → {"total": 10, "verified": 5, "categories": {"pk": 3, "pd": 2, ...}}
         """
         try:
-            repo = get_repository(Path("formulas"))
+            repo = _get_repository()
             stats = repo.stats()
 
             return {
@@ -1556,7 +1555,7 @@ def register_derivation_tools(mcp: Any) -> None:
             )
         """
         try:
-            repo = get_repository(Path("formulas"))
+            repo = _get_repository()
 
             # 準備更新資料
             updates: dict[str, Any] = {}
@@ -1644,7 +1643,7 @@ def register_derivation_tools(mcp: Any) -> None:
             }
 
         try:
-            repo = get_repository(Path("formulas"))
+            repo = _get_repository()
 
             # 先取得詳情（用於確認訊息）
             result = repo.get(result_id)

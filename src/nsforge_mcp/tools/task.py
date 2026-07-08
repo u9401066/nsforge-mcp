@@ -13,8 +13,85 @@ from typing import Any
 from nsforge.application.explorer import Explorer
 from nsforge.application.task_orchestrator import TaskOrchestrator
 from nsforge.domain.task_spec import DerivationTaskSpec
-from nsforge.infrastructure.sympy_engine import SymPyEngine
-from nsforge.infrastructure.verifier import BasicVerifier
+from nsforge.infrastructure.timeout import ComputationTimeout, run_with_timeout
+from nsforge_mcp.composition import get_services
+
+
+def _execute_task_run(spec: dict[str, Any]) -> dict[str, Any]:
+    """Reify + run a DTS through the reification ladder (see ``task_run``).
+
+    Module-level (not a closure) so :func:`run_with_timeout` can ship it to a
+    worker process under ``spawn``.
+    """
+    try:
+        dts = DerivationTaskSpec.from_dict(spec)
+    except (KeyError, ValueError) as exc:
+        return {"success": False, "error": f"invalid spec: {exc}"}
+
+    services = get_services()
+    result = TaskOrchestrator(dts, engine=services.engine, verifier=services.verifier).run()
+    return {
+        "success": result.ok,
+        "spec": result.spec_name,
+        "derived_expression": result.derived_expression,
+        "generated_code": result.generated_code,
+        "verified": result.verified,
+        "attempts": [
+            {"label": a.label, "derived": a.derived, "verified": a.verified}
+            for a in result.attempts
+        ],
+        "provenance": {
+            "complete": result.provenance.is_complete,
+            "entries": [
+                {"entity": e.entity, "tool": e.tool, "source": e.source}
+                for e in result.provenance.entries
+            ],
+        },
+        "acceptance": [
+            {"kind": o.kind, "status": o.status, "detail": o.detail} for o in result.acceptance
+        ],
+        "phases": [
+            {
+                "phase": phase.phase.value,
+                "status": phase.status.value,
+                "detail": phase.detail,
+                "steps": [
+                    {"phase": s.phase.value, "tool": s.tool, "purpose": s.purpose}
+                    for s in phase.steps
+                ],
+            }
+            for phase in result.phases
+        ],
+    }
+
+
+def _execute_task_explore(spec: dict[str, Any]) -> dict[str, Any]:
+    """Reify + explore a branching DTS (see ``task_explore``).
+
+    Module-level for the same worker-process reason as :func:`_execute_task_run`.
+    """
+    try:
+        dts = DerivationTaskSpec.from_dict(spec)
+    except (KeyError, ValueError) as exc:
+        return {"success": False, "error": f"invalid spec: {exc}"}
+
+    services = get_services()
+    result = Explorer(dts, engine=services.engine, verifier=services.verifier).explore()
+    return {
+        "success": True,
+        "concept": result.concept,
+        "candidates": [
+            {
+                "label": c.label,
+                "derived_expression": c.derived,
+                "verified": c.verified,
+                "provenance_complete": c.provenance_complete,
+                "oracles": f"{c.oracles_passed}/{c.oracles_total}",
+                "generated_code": c.generated_code,
+            }
+            for c in result.candidates
+        ],
+    }
 
 
 def register_task_tools(mcp: Any) -> None:
@@ -57,7 +134,7 @@ def register_task_tools(mcp: Any) -> None:
         }
 
     @mcp.tool()
-    def task_run(spec: dict[str, Any]) -> dict[str, Any]:
+    def task_run(spec: dict[str, Any], timeout_s: float | None = None) -> dict[str, Any]:
         """
         Run the DTS through the reification ladder.
 
@@ -69,52 +146,22 @@ def register_task_tools(mcp: Any) -> None:
 
         Args:
             spec: A DTS dict (see task_plan).
+            timeout_s: Optional hard wall-clock cap (seconds). When set, the
+                derivation runs in a separate process and is killed if it
+                overruns, returning {"success": False, "timed_out": True}.
 
         Returns:
             {"success", "spec", "derived_expression", "generated_code", "phases"}.
         """
+        if timeout_s is None:
+            return _execute_task_run(spec)
         try:
-            dts = DerivationTaskSpec.from_dict(spec)
-        except (KeyError, ValueError) as exc:
-            return {"success": False, "error": f"invalid spec: {exc}"}
-
-        result = TaskOrchestrator(dts, engine=SymPyEngine(), verifier=BasicVerifier()).run()
-        return {
-            "success": result.ok,
-            "spec": result.spec_name,
-            "derived_expression": result.derived_expression,
-            "generated_code": result.generated_code,
-            "verified": result.verified,
-            "attempts": [
-                {"label": a.label, "derived": a.derived, "verified": a.verified}
-                for a in result.attempts
-            ],
-            "provenance": {
-                "complete": result.provenance.is_complete,
-                "entries": [
-                    {"entity": e.entity, "tool": e.tool, "source": e.source}
-                    for e in result.provenance.entries
-                ],
-            },
-            "acceptance": [
-                {"kind": o.kind, "status": o.status, "detail": o.detail} for o in result.acceptance
-            ],
-            "phases": [
-                {
-                    "phase": phase.phase.value,
-                    "status": phase.status.value,
-                    "detail": phase.detail,
-                    "steps": [
-                        {"phase": s.phase.value, "tool": s.tool, "purpose": s.purpose}
-                        for s in phase.steps
-                    ],
-                }
-                for phase in result.phases
-            ],
-        }
+            return run_with_timeout(_execute_task_run, spec, timeout=timeout_s)
+        except ComputationTimeout as exc:
+            return {"success": False, "error": str(exc), "timed_out": True}
 
     @mcp.tool()
-    def task_explore(spec: dict[str, Any]) -> dict[str, Any]:
+    def task_explore(spec: dict[str, Any], timeout_s: float | None = None) -> dict[str, Any]:
         """
         Explore a branching derivation tree from a DTS.
 
@@ -126,28 +173,16 @@ def register_task_tools(mcp: Any) -> None:
 
         Args:
             spec: A DTS dict (see task_plan); ``alternatives`` are the branches.
+            timeout_s: Optional hard wall-clock cap (seconds). When set, the
+                exploration runs in a separate process and is killed if it
+                overruns, returning {"success": False, "timed_out": True}.
 
         Returns:
             {"success", "concept", "candidates": [...]} ranked best-first.
         """
+        if timeout_s is None:
+            return _execute_task_explore(spec)
         try:
-            dts = DerivationTaskSpec.from_dict(spec)
-        except (KeyError, ValueError) as exc:
-            return {"success": False, "error": f"invalid spec: {exc}"}
-
-        result = Explorer(dts, engine=SymPyEngine(), verifier=BasicVerifier()).explore()
-        return {
-            "success": True,
-            "concept": result.concept,
-            "candidates": [
-                {
-                    "label": c.label,
-                    "derived_expression": c.derived,
-                    "verified": c.verified,
-                    "provenance_complete": c.provenance_complete,
-                    "oracles": f"{c.oracles_passed}/{c.oracles_total}",
-                    "generated_code": c.generated_code,
-                }
-                for c in result.candidates
-            ],
-        }
+            return run_with_timeout(_execute_task_explore, spec, timeout=timeout_s)
+        except ComputationTimeout as exc:
+            return {"success": False, "error": str(exc), "timed_out": True}

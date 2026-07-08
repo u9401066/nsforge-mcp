@@ -1751,6 +1751,10 @@
         {
           "name": "spec",
           "type": "dict[str, Any]"
+        },
+        {
+          "name": "timeout_s",
+          "type": "float | None"
         }
       ],
       "returns": "dict[str, Any]",
@@ -1775,6 +1779,10 @@
         {
           "name": "spec",
           "type": "dict[str, Any]"
+        },
+        {
+          "name": "timeout_s",
+          "type": "float | None"
         }
       ],
       "returns": "dict[str, Any]",
