@@ -1,0 +1,67 @@
+<svg width="1000" height="440" viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The reification ladder: concept to symbol to derivation to algorithm, each rung recorded in a provenance ledger">
+  <defs>
+    <linearGradient id="rbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#231447"/>
+    </linearGradient>
+    <linearGradient id="c1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#334155"/><stop offset="1" stop-color="#1e293b"/></linearGradient>
+    <linearGradient id="c2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4338ca"/><stop offset="1" stop-color="#312e81"/></linearGradient>
+    <linearGradient id="c3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c3aed"/><stop offset="1" stop-color="#5b21b6"/></linearGradient>
+    <linearGradient id="c4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+    <marker id="arw" markerWidth="12" markerHeight="12" refX="8" refY="5" orient="auto"><path d="M0 0 L11 5 L0 10 z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1000" height="440" rx="20" fill="url(#rbg)"/>
+  <rect x="1" y="1" width="998" height="438" rx="19" fill="none" stroke="#3b326b" stroke-width="2"/>
+
+  <text x="40" y="52" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" font-weight="800" fill="#f8fafc">The Reification Ladder</text>
+  <text x="40" y="80" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" fill="#94a3b8">The AI orchestrates; deterministic tools reify. Nothing is hand-derived.</text>
+
+  <!-- ascending cards -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <!-- 1 concept -->
+    <g transform="translate(40,270)">
+      <rect width="210" height="92" rx="12" fill="url(#c1)" stroke="#475569" stroke-width="1.5"/>
+      <circle cx="30" cy="30" r="15" fill="#0b1020"/><text x="30" y="35" font-size="15" font-weight="800" fill="#cbd5e1" text-anchor="middle">1</text>
+      <text x="56" y="35" font-size="19" font-weight="800" fill="#e2e8f0">CONCEPT</text>
+      <text x="20" y="66" font-size="14" fill="#94a3b8">a question / a goal</text>
+    </g>
+    <path d="M256 300 L292 268" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arw)"/>
+    <!-- 2 symbol -->
+    <g transform="translate(300,210)">
+      <rect width="210" height="92" rx="12" fill="url(#c2)"/>
+      <circle cx="30" cy="30" r="15" fill="#0b1020"/><text x="30" y="35" font-size="15" font-weight="800" fill="#c7d2fe" text-anchor="middle">2</text>
+      <text x="56" y="35" font-size="19" font-weight="800" fill="#eef2ff">SYMBOL</text>
+      <text x="20" y="66" font-size="14" fill="#c7d2fe">typed symbols + units</text>
+    </g>
+    <path d="M516 240 L552 208" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arw)"/>
+    <!-- 3 derivation -->
+    <g transform="translate(560,150)">
+      <rect width="210" height="92" rx="12" fill="url(#c3)"/>
+      <circle cx="30" cy="30" r="15" fill="#0b1020"/><text x="30" y="35" font-size="15" font-weight="800" fill="#ddd6fe" text-anchor="middle">3</text>
+      <text x="56" y="35" font-size="19" font-weight="800" fill="#f5f3ff">DERIVATION</text>
+      <text x="20" y="66" font-size="14" fill="#ddd6fe">composed &amp; verified</text>
+    </g>
+    <path d="M776 180 L812 148" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arw)"/>
+    <!-- 4 algorithm -->
+    <g transform="translate(760,90)">
+      <rect width="210" height="92" rx="12" fill="url(#c4)"/>
+      <circle cx="30" cy="30" r="15" fill="#0b1020"/><text x="30" y="35" font-size="15" font-weight="800" fill="#fde68a" text-anchor="middle">4</text>
+      <text x="56" y="35" font-size="19" font-weight="800" fill="#fffbeb">ALGORITHM</text>
+      <text x="20" y="66" font-size="14" fill="#fef3c7">provenance-bound code</text>
+    </g>
+  </g>
+
+  <!-- dotted drops to ledger -->
+  <g stroke="#475569" stroke-width="1.5" stroke-dasharray="3 4">
+    <line x1="145" y1="362" x2="145" y2="392"/>
+    <line x1="405" y1="302" x2="405" y2="392"/>
+    <line x1="665" y1="242" x2="665" y2="392"/>
+    <line x1="865" y1="182" x2="865" y2="392"/>
+  </g>
+
+  <!-- provenance ledger -->
+  <rect x="40" y="392" width="930" height="34" rx="17" fill="#0e1830" stroke="#3f3f6b" stroke-width="1.5"/>
+  <text x="60" y="414" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#86efac">PROVENANCE LEDGER</text>
+  <text x="215" y="414" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" fill="#94a3b8">every rung = a tool call &#8212; its &#8220;birth certificate&#8221;. Code is emitted only when the ledger is complete.</text>
+</svg>

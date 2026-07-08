@@ -20,6 +20,7 @@
 
 ### Changed
 
+- 📖 **README 大改版（雙語 + 視覺化）** — 以自含式 SVG（hero、實體化階梯）＋ Mermaid 流程圖（生態系、SymPy-first 工作流、explore、步進控制）取代 ASCII art；龐大工具表移至 `docs/tools-reference.md`（89 工具、10 模組的單一真相）；工具數校正（75/87→89）、補上 task／suggest／music 模組與實體化階梯敘事；中英文對照同步。GitHub 描述更新、新增 16 個 topics。
 - ♻️ **維度分析下沉 domain（roadmap B）** — SI 維度邏輯集中到 `infrastructure/dimensional.py`（單一真相，化約成基本維度使 `N/kg`==`m/s**2`），`domain` 的 `BasicVerifier.check_dimensions` 真正實作（消除 "not yet implemented" stub），MCP `check_dimensions` 工具委派同一 helper（DRY）。
 
 ## [0.2.4] - 2026-01-21
