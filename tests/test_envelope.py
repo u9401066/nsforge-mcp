@@ -29,10 +29,10 @@ def test_success_passes_through_unchanged() -> None:
 
 def test_unhandled_exception_becomes_structured_error() -> None:
     @with_error_envelope
-    def boom(x: int) -> dict[str, Any]:
+    def boom() -> dict[str, Any]:
         raise ValueError("nope")
 
-    result = boom(1)
+    result = boom()
     assert result["success"] is False
     assert result["error"]["type"] == "ValueError"
     assert result["error"]["message"] == "nope"
@@ -41,7 +41,7 @@ def test_unhandled_exception_becomes_structured_error() -> None:
 
 def test_envelope_preserves_name_and_signature() -> None:
     def sample(expression: str, variable: str = "x") -> dict[str, Any]:
-        return {}
+        return {"expression": expression, "variable": variable}
 
     wrapped = with_error_envelope(sample)
     assert wrapped.__name__ == "sample"
