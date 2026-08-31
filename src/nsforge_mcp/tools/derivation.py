@@ -11,6 +11,7 @@ Derivation Tools - 推導引擎 MCP 工具
 The "Forge" in NSForge means we CREATE new formulas through derivation.
 """
 
+import threading
 from typing import Any
 
 from nsforge.domain.derivation_session import (
@@ -39,15 +40,26 @@ def _get_repository() -> DerivationRepository:
 
 # 當前活躍會話
 _current_session: DerivationSession | None = None
+_current_session_lock = threading.RLock()
 
 
 def _get_current_session() -> DerivationSession | None:
-    return _current_session
+    with _current_session_lock:
+        return _current_session
 
 
 def _set_current_session(session: DerivationSession | None) -> None:
     global _current_session
-    _current_session = session
+    with _current_session_lock:
+        _current_session = session
+
+
+def _clear_current_session_if(session: DerivationSession) -> None:
+    """Atomically clear the legacy fallback only if it still targets session."""
+    global _current_session
+    with _current_session_lock:
+        if _current_session is session:
+            _current_session = None
 
 
 def _resolve_session(session_id: str = "") -> DerivationSession | None:
@@ -232,14 +244,17 @@ def register_derivation_tools(mcp: Any) -> None:
             auto_persist=True,
         )
         _set_current_session(session)
+        with session.transaction():
+            snapshot = session.to_dict()
+            persist_path = str(session._persist_path) if session._persist_path else None
 
         return {
             "success": True,
-            "session_id": session.session_id,
-            "name": session.name,
-            "status": session.status.value,
+            "session_id": snapshot["session_id"],
+            "name": snapshot["name"],
+            "status": snapshot["status"],
             "message": f"Derivation session '{name}' started. Use derivation_load_formula to add formulas.",
-            "persist_path": str(session._persist_path) if session._persist_path else None,
+            "persist_path": persist_path,
         }
 
     @mcp.tool()
@@ -266,17 +281,16 @@ def register_derivation_tools(mcp: Any) -> None:
             }
 
         _set_current_session(session)
+        snapshot = session.to_dict()
 
         return {
             "success": True,
-            "session_id": session.session_id,
-            "name": session.name,
-            "status": session.status.value,
-            "step_count": session.step_count,
-            "formulas_loaded": session.formula_ids,
-            "current_expression": str(session.current_expression)
-            if session.current_expression
-            else None,
+            "session_id": snapshot["session_id"],
+            "name": snapshot["name"],
+            "status": snapshot["status"],
+            "step_count": len(snapshot["steps"]),
+            "formulas_loaded": list(snapshot["formulas"]),
+            "current_expression": snapshot["current_expression"],
             "message": "Session resumed. Continue with derivation operations.",
         }
 
@@ -355,7 +369,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 "display_text": "📊 **drug_elimination** (Step 3)\\n\\n$$C_{0} e^{- k t}$$"
               }
         """
-        from sympy import latex
+        from sympy import latex, sympify
 
         session = _resolve_session(session_id)
         if session is None:
@@ -365,24 +379,27 @@ def register_derivation_tools(mcp: Any) -> None:
                 "display_text": "❌ 沒有活躍的推導會話。請先使用 `derivation_start()` 開始新推導。",
             }
 
-        expr = session.current_expression
-        if expr is None:
+        snapshot = session.to_dict()
+        expression = snapshot["current_expression"]
+        steps = snapshot["steps"]
+        if expression is None:
             return {
                 "success": True,
-                "session_name": session.name,
-                "step_count": len(session.steps),
-                "status": session.status.value,
+                "session_name": snapshot["name"],
+                "step_count": len(steps),
+                "status": snapshot["status"],
                 "latex": "",
                 "sympy": "",
-                "display_text": f"📊 **{session.name}** (Step {len(session.steps)})\n\n_尚未載入公式_",
+                "display_text": f"📊 **{snapshot['name']}** (Step {len(steps)})\n\n_尚未載入公式_",
             }
 
+        expr = sympify(expression)
         latex_str = latex(expr)
         sympy_str = str(expr)
 
         # 構建顯示文字
         display_lines = [
-            f"📊 **{session.name}** (Step {len(session.steps)}, {session.status.value})",
+            f"📊 **{snapshot['name']}** (Step {len(steps)}, {snapshot['status']})",
             "",
             "$$",
             f"{latex_str}",
@@ -390,33 +407,34 @@ def register_derivation_tools(mcp: Any) -> None:
         ]
 
         if format == "summary":
-            display_text = f"Step {len(session.steps)}: ${latex_str}$"
+            display_text = f"Step {len(steps)}: ${latex_str}$"
         else:
             display_text = "\n".join(display_lines)
 
         result = {
             "success": True,
-            "session_name": session.name,
-            "session_id": session.session_id,
-            "step_count": len(session.steps),
-            "status": session.status.value,
+            "session_name": snapshot["name"],
+            "session_id": snapshot["session_id"],
+            "step_count": len(steps),
+            "status": snapshot["status"],
             "latex": latex_str,
             "sympy": sympy_str,
             "display_text": display_text,
         }
 
         # 可選：顯示步驟歷史
-        if show_steps and session.steps:
+        if show_steps and steps:
             steps_summary = []
-            for step in session.steps:
-                step_latex = step.output_latex or step.output_expression
+            for step in steps:
+                step_latex = step["output_latex"] or step["output_expression"]
+                description = str(step["description"])
                 steps_summary.append(
                     {
-                        "step": step.step_number,
-                        "operation": step.operation.value,
-                        "description": step.description[:50] + "..."
-                        if len(step.description) > 50
-                        else step.description,
+                        "step": step["step_number"],
+                        "operation": step["operation"],
+                        "description": description[:50] + "..."
+                        if len(description) > 50
+                        else description,
                         "latex": step_latex,
                     }
                 )
@@ -838,19 +856,15 @@ def register_derivation_tools(mcp: Any) -> None:
         if notes:
             full_description = f"{description}\n\n📝 Notes: {notes}"
 
-        # 新增步驟
-        step = session._add_step(
+        step = session.record_external_step(
             operation=op_type,
             description=full_description,
             input_expressions={"source": source, "notes": notes or ""},
             output_expr=expr,
             sympy_command=f"# From {source}: {expression[:50]}...",
             status=StepStatus.SUCCESS,
+            set_as_current=set_as_current,
         )
-
-        # 更新當前表達式
-        if set_as_current:
-            session.current_expression = expr
 
         return {
             "success": True,
@@ -951,21 +965,21 @@ def register_derivation_tools(mcp: Any) -> None:
         # 用 CUSTOM 操作類型記錄
         from nsforge.domain.derivation_session import OperationType, StepStatus
 
-        # 建立一個虛擬表達式（用於記錄）
-        note_expr = sp.Symbol(f"NOTE_{len(session.steps) + 1}")
-
-        step = session._add_step(
-            operation=OperationType.CUSTOM,
-            description=formatted_note,
-            input_expressions={
-                "note_type": note_type,
-                "related_variables": str(related_variables or []),
-                "related_step": str(related_step or ""),
-            },
-            output_expr=session.current_expression or note_expr,  # 保持當前表達式
-            sympy_command="# Note (no computation)",
-            status=StepStatus.SUCCESS,
-        )
+        with session.transaction():
+            # Sequence number, current expression, and append form one snapshot.
+            note_expr = sp.Symbol(f"NOTE_{len(session.steps) + 1}")
+            step = session._add_step(
+                operation=OperationType.CUSTOM,
+                description=formatted_note,
+                input_expressions={
+                    "note_type": note_type,
+                    "related_variables": str(related_variables or []),
+                    "related_step": str(related_step or ""),
+                },
+                output_expr=session.current_expression or note_expr,
+                sympy_command="# Note (no computation)",
+                status=StepStatus.SUCCESS,
+            )
 
         return {
             "success": True,
@@ -1001,12 +1015,13 @@ def register_derivation_tools(mcp: Any) -> None:
                 "error": "No active session.",
             }
 
+        snapshot = session.to_dict()
         return {
             "success": True,
-            "session_id": session.session_id,
-            "name": session.name,
-            "step_count": session.step_count,
-            "steps": session.get_steps(),
+            "session_id": snapshot["session_id"],
+            "name": snapshot["name"],
+            "step_count": len(snapshot["steps"]),
+            "steps": snapshot["steps"],
         }
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -1292,22 +1307,23 @@ def register_derivation_tools(mcp: Any) -> None:
         saved_path = None
         if auto_save:
             try:
-                repo = _get_repository()
+                import sympy as sp
 
-                # 建立 DerivationResult
+                repo = _get_repository()
+                final_expression = str(result["final_expression"])
+                final_symbols = sp.sympify(final_expression).free_symbols
+
+                # Build only from the locked, detached completion snapshot.
+                # A later legacy mutation of this session cannot change what
+                # this completion returns or persists.
                 derivation_result = DerivationResult(
-                    id=session.session_id,
-                    name=session.name,
-                    expression=str(session.current_expression),
+                    id=str(result["session_id"]),
+                    name=str(result["name"]),
+                    expression=final_expression,
                     variables={
-                        str(s): {"description": "", "unit": ""}
-                        for s in (
-                            session.current_expression.free_symbols
-                            if session.current_expression
-                            else []
-                        )
+                        str(symbol): {"description": "", "unit": ""} for symbol in final_symbols
                     },
-                    derived_from=list(session.formulas.keys()),
+                    derived_from=list(result["formulas_used"]),
                     derivation_steps=[step["description"] for step in result["steps"]],
                     assumptions=assumptions or [],
                     verified=False,  # 需要手動驗證
@@ -1316,20 +1332,20 @@ def register_derivation_tools(mcp: Any) -> None:
                     limitations=limitations or [],
                     references=references or [],
                     tags=tags or [],
-                    author=session.author,
+                    author=str(result["provenance"]["author"]),
                     category="derived",
                 )
 
-                # 註冊並存檔
-                repo.register(derivation_result)
-                saved_path = repo.save(session.session_id)
+                # Register + persistence are one repository transaction.
+                with repo.transaction():
+                    repo.register(derivation_result)
+                    saved_path = repo.save(str(result["session_id"]))
 
             except Exception as e:
                 result["save_warning"] = f"Completed but save failed: {e}"
 
         # 清除當前會話（僅當它正是 current 時，避免影響其他 agent）
-        if session is _get_current_session():
-            _set_current_session(None)
+        _clear_current_session_if(session)
 
         if saved_path:
             result["saved_to"] = str(saved_path)
@@ -1356,8 +1372,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
         session_id = session.session_id
         session.save()  # 確保保存
-        if session is _get_current_session():
-            _set_current_session(None)
+        _clear_current_session_if(session)
 
         return {
             "success": True,
@@ -1425,7 +1440,7 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         try:
             repo = _get_repository()
-            result = repo.get(result_id)
+            result = repo.snapshot(result_id)
 
             if result is None:
                 return {
@@ -1436,7 +1451,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
             return {
                 "success": True,
-                **result.to_dict(),
+                **result,
             }
         except Exception as e:
             return {
@@ -1465,11 +1480,11 @@ def register_derivation_tools(mcp: Any) -> None:
         """
         try:
             repo = _get_repository()
-            results = repo.search(query)
+            results = repo.search_snapshots(query)
 
             return {
                 "success": True,
-                "results": [r.to_dict() for r in results],
+                "results": results,
                 "count": len(results),
                 "query": query,
             }
@@ -1589,11 +1604,10 @@ def register_derivation_tools(mcp: Any) -> None:
                     "error": "No updates provided",
                 }
 
-            # 執行更新
-            repo.update(result_id, **updates)
-
-            # 重新存檔
-            saved_path = repo.save(result_id)
+            # Update + persistence are atomic relative to repository callers.
+            with repo.transaction():
+                repo.update(result_id, **updates)
+                saved_path = repo.save(result_id)
 
             return {
                 "success": True,
@@ -1645,19 +1659,19 @@ def register_derivation_tools(mcp: Any) -> None:
         try:
             repo = _get_repository()
 
-            # 先取得詳情（用於確認訊息）
-            result = repo.get(result_id)
-            if result is None:
-                return {
-                    "success": False,
-                    "error": f"Derivation result '{result_id}' not found",
-                    "available_results": repo.list_all(),
-                }
+            with repo.transaction():
+                # Snapshot + deletion are one transaction, so the reported
+                # identity cannot race another update/delete worker.
+                result = repo.snapshot(result_id)
+                if result is None:
+                    return {
+                        "success": False,
+                        "error": f"Derivation result '{result_id}' not found",
+                        "available_results": repo.list_all(),
+                    }
 
-            result_name = result.name
-
-            # 執行刪除
-            deleted = repo.delete(result_id, delete_file=True)
+                result_name = str(result["name"])
+                deleted = repo.delete(result_id, delete_file=True)
 
             if deleted:
                 return {
@@ -1730,16 +1744,19 @@ def register_derivation_tools(mcp: Any) -> None:
                 "success": False,
                 "error": "No active session. Nothing to export.",
             }
+        snapshot = session.to_dict()
+        expression = snapshot["current_expression"]
+        expr = sp.sympify(expression) if expression is not None else None
 
         result: dict[str, Any] = {
             "success": True,
-            "session_id": session.session_id,
-            "session_name": session.name,
+            "session_id": snapshot["session_id"],
+            "session_name": snapshot["name"],
         }
 
         # 收集變數（從當前表達式的 free_symbols）
-        if include_variables and session.current_expression is not None:
-            vars_list = [str(s) for s in session.current_expression.free_symbols]
+        if include_variables and expr is not None:
+            vars_list = [str(s) for s in expr.free_symbols]
             # 假設是 real positive（常見情況）
             result["variables"] = vars_list
             result["intro_many_command"] = f"intro_many({vars_list!r}, 'real positive')"
@@ -1748,10 +1765,10 @@ def register_derivation_tools(mcp: Any) -> None:
             )
 
         # 當前表達式
-        if include_current_expression and session.current_expression is not None:
-            expr_str = str(session.current_expression)
+        if include_current_expression and expr is not None:
+            expr_str = str(expr)
             result["current_expression"] = expr_str
-            result["current_expression_latex"] = sp.latex(session.current_expression)
+            result["current_expression_latex"] = sp.latex(expr)
             result["introduce_expression_command"] = (
                 f'introduce_expression("{expr_str}", "current")'
             )
@@ -1875,7 +1892,7 @@ def register_derivation_tools(mcp: Any) -> None:
         # 新增步驟（使用 custom 類型）
         from nsforge.domain.derivation_session import OperationType, StepStatus
 
-        step = session._add_step(
+        step = session.record_external_step(
             operation=OperationType.CUSTOM,
             description=description,
             input_expressions={
@@ -1889,10 +1906,8 @@ def register_derivation_tools(mcp: Any) -> None:
             notes=notes or "",
             assumptions=assumptions_used or [],
             limitations=limitations or [],
+            set_as_current=True,
         )
-
-        # 更新當前表達式
-        session.current_expression = expr
 
         return {
             "success": True,
@@ -1927,6 +1942,8 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             Handoff 狀態和建議
         """
+        import sympy as sp
+
         session = _resolve_session(session_id)
 
         nsforge_capabilities = {
@@ -1958,19 +1975,18 @@ def register_derivation_tools(mcp: Any) -> None:
                 "message": "No active session. Use derivation_start() to begin.",
                 "nsforge_capabilities": nsforge_capabilities,
             }
+        snapshot = session.to_dict()
+        expression = snapshot["current_expression"]
+        expr = sp.sympify(expression) if expression is not None else None
 
         return {
             "has_active_session": True,
-            "session_id": session.session_id,
-            "session_name": session.name,
-            "current_step": len(session.steps),
-            "has_current_expression": session.current_expression is not None,
-            "current_expression": str(session.current_expression)
-            if session.current_expression
-            else None,
-            "variables_defined": [str(s) for s in session.current_expression.free_symbols]
-            if session.current_expression
-            else [],
+            "session_id": snapshot["session_id"],
+            "session_name": snapshot["name"],
+            "current_step": len(snapshot["steps"]),
+            "has_current_expression": expr is not None,
+            "current_expression": str(expr) if expr is not None else None,
+            "variables_defined": [str(s) for s in expr.free_symbols] if expr is not None else [],
             "nsforge_capabilities": nsforge_capabilities,
             "handoff_tools": {
                 "to_sympy": "derivation_export_for_sympy() - 導出給 SymPy-MCP",
@@ -2036,17 +2052,19 @@ def register_derivation_tools(mcp: Any) -> None:
                 "error": "No active derivation session",
                 "message": "Use derivation_start() first",
             }
+        snapshot = session.to_dict()
+        expression = snapshot["current_expression"]
 
-        if session.current_expression is None:
+        if expression is None:
             return {
                 "success": False,
                 "error": "No expression in current session",
                 "message": "Complete a derivation first before preparing for optimization",
             }
 
-        from sympy import latex
+        from sympy import latex, sympify
 
-        expr = session.current_expression
+        expr = sympify(expression)
         free_vars = sorted(expr.free_symbols, key=lambda x: str(x))
 
         # 分類變數：可優化變數 vs 參數
@@ -2063,9 +2081,8 @@ def register_derivation_tools(mcp: Any) -> None:
                 # 參數（數值已從步驟中確定）
                 # 嘗試從推導步驟中提取數值
                 param_value: str | float = "unknown"
-                for step in session.steps:
-                    # DerivationStep 是 dataclass，使用屬性存取
-                    notes = getattr(step, "notes", "") or ""
+                for step in snapshot["steps"]:
+                    notes = str(step.get("notes", "") or "")
                     if sym_str in notes:
                         # 嘗試提取數值
                         import re
@@ -2125,8 +2142,8 @@ Use usolver to optimize the following problem:
 
         return {
             "success": True,
-            "session_id": session.session_id,
-            "session_name": session.name,
+            "session_id": snapshot["session_id"],
+            "session_name": snapshot["name"],
             "function_str": function_str,
             "function_latex": latex_str,
             "variables": optimization_vars,

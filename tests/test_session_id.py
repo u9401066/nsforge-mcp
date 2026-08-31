@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from threading import Barrier, Thread
 from typing import Any
 
 import pytest
@@ -67,3 +68,30 @@ def test_omitted_session_id_falls_back_to_current(tools: dict[str, Callable[...,
     tools["derivation_load_formula"]("y + 2")  # no session_id -> current
     shown = tools["derivation_show"]()  # no session_id -> current
     assert "y" in shown.get("sympy", "")
+
+
+def test_parallel_explicit_sessions_do_not_cross_talk(
+    tools: dict[str, Callable[..., Any]],
+) -> None:
+    alpha = tools["derivation_start"](name="parallel-alpha")["session_id"]
+    beta = tools["derivation_start"](name="parallel-beta")["session_id"]
+    barrier = Barrier(2)
+    failures: list[object] = []
+
+    def load(session_id: str, expression: str) -> None:
+        barrier.wait(timeout=2)
+        result = tools["derivation_load_formula"](expression, session_id=session_id)
+        if result.get("success") is not True:
+            failures.append(result)
+
+    first = Thread(target=load, args=(alpha, "alpha_symbol + 1"))
+    second = Thread(target=load, args=(beta, "beta_symbol + 2"))
+    first.start()
+    second.start()
+    first.join(timeout=3)
+    second.join(timeout=3)
+
+    assert not first.is_alive() and not second.is_alive()
+    assert not failures
+    assert tools["derivation_show"](session_id=alpha)["sympy"] == "alpha_symbol + 1"
+    assert tools["derivation_show"](session_id=beta)["sympy"] == "beta_symbol + 2"

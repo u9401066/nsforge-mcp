@@ -20,6 +20,12 @@ What does NOT belong here:
 The "Forge" in NSForge means we CREATE new formulas through derivation.
 """
 
+import contextlib
+import copy
+import os
+import tempfile
+import threading
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -119,69 +125,108 @@ class DerivationRepository:
     def __init__(self, formulas_dir: Path | None = None):
         self._results: dict[str, DerivationResult] = {}
         self._formulas_dir = formulas_dir
+        self._lock = threading.RLock()
 
         if formulas_dir and formulas_dir.exists():
             self._load_from_directory(formulas_dir)
 
+    @contextlib.contextmanager
+    def transaction(self) -> Iterator[None]:
+        """Hold the repository lock across a compound tool-layer operation."""
+        with self._lock:
+            yield
+
     def _load_from_directory(self, directory: Path) -> None:
         """Load derivation results from YAML files."""
-        for yaml_file in directory.rglob("*.yaml"):
-            try:
-                with open(yaml_file, encoding="utf-8") as f:
-                    data = yaml.safe_load(f)
-                    if data and "id" in data:
-                        result = DerivationResult.from_dict(data)
-                        self._results[result.id] = result
-            except Exception:
-                pass  # Skip invalid files
+        with self._lock:
+            for yaml_file in directory.rglob("*.yaml"):
+                try:
+                    with open(yaml_file, encoding="utf-8") as f:
+                        data = yaml.safe_load(f)
+                        if data and "id" in data:
+                            result = DerivationResult.from_dict(data)
+                            self._results[result.id] = result
+                except Exception:
+                    pass  # Skip invalid files
 
     def register(self, result: DerivationResult) -> None:
         """Register a new derivation result."""
-        self._results[result.id] = result
+        with self._lock:
+            self._results[result.id] = result
 
     def get(self, result_id: str) -> DerivationResult | None:
         """Get a derivation result by ID."""
-        return self._results.get(result_id)
+        with self._lock:
+            return self._results.get(result_id)
+
+    def snapshot(self, result_id: str) -> dict[str, Any] | None:
+        """Return a detached result snapshot safe for concurrent serialization."""
+        with self._lock:
+            result = self._results.get(result_id)
+            return copy.deepcopy(result.to_dict()) if result is not None else None
 
     def list_all(self, category: str | None = None) -> list[str]:
         """List all derivation result IDs."""
-        if category is None:
-            return list(self._results.keys())
-        return [rid for rid, r in self._results.items() if r.category == category]
+        with self._lock:
+            if category is None:
+                return list(self._results.keys())
+            return [rid for rid, r in self._results.items() if r.category == category]
 
     def search(self, query: str) -> list[DerivationResult]:
         """Search derivation results by keyword."""
-        results = []
-        query_lower = query.lower()
-        for result in self._results.values():
-            if (
-                query_lower in result.name.lower()
-                or query_lower in result.description.lower()
-                or any(query_lower in tag.lower() for tag in result.tags)
-            ):
-                results.append(result)
-        return results
+        with self._lock:
+            results = []
+            query_lower = query.lower()
+            for result in self._results.values():
+                if (
+                    query_lower in result.name.lower()
+                    or query_lower in result.description.lower()
+                    or any(query_lower in tag.lower() for tag in result.tags)
+                ):
+                    results.append(result)
+            return results
+
+    def search_snapshots(self, query: str) -> list[dict[str, Any]]:
+        """Search and detach matching results under one repository lock."""
+        with self._lock:
+            return [copy.deepcopy(result.to_dict()) for result in self.search(query)]
 
     def save(self, result_id: str, directory: Path | None = None) -> Path:
         """Save a derivation result to YAML file."""
-        result = self._results.get(result_id)
-        if result is None:
-            raise ValueError(f"Derivation result '{result_id}' not found")
+        with self._lock:
+            result = self._results.get(result_id)
+            if result is None:
+                raise ValueError(f"Derivation result '{result_id}' not found")
 
-        save_dir = directory or self._formulas_dir
-        if save_dir is None:
-            raise ValueError("No directory specified for saving")
+            save_dir = directory or self._formulas_dir
+            if save_dir is None:
+                raise ValueError("No directory specified for saving")
 
-        # Create category subdirectory
-        category_dir = save_dir / result.category if result.category else save_dir
-        category_dir.mkdir(parents=True, exist_ok=True)
+            # Create category subdirectory
+            category_dir = save_dir / result.category if result.category else save_dir
+            category_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save as YAML
-        file_path = category_dir / f"{result.id}.yaml"
-        with open(file_path, "w", encoding="utf-8") as f:
-            yaml.dump(result.to_dict(), f, default_flow_style=False, allow_unicode=True)
+            # Atomic write: the temporary file must share the destination directory
+            # so os.replace is atomic on the target filesystem.
+            file_path = category_dir / f"{result.id}.yaml"
+            tmp_fd, tmp_name = tempfile.mkstemp(
+                dir=str(category_dir), prefix=f".{result.id}_", suffix=".tmp"
+            )
+            try:
+                with open(tmp_fd, "w", encoding="utf-8") as f:
+                    yaml.dump(
+                        result.to_dict(),
+                        f,
+                        default_flow_style=False,
+                        allow_unicode=True,
+                    )
+                os.replace(tmp_name, file_path)
+            except BaseException:
+                with contextlib.suppress(OSError):
+                    os.unlink(tmp_name)
+                raise
 
-        return file_path
+            return file_path
 
     def update(
         self,
@@ -201,31 +246,32 @@ class DerivationRepository:
         Raises:
             ValueError: If result_id not found
         """
-        result = self._results.get(result_id)
-        if result is None:
-            raise ValueError(f"Derivation result '{result_id}' not found")
+        with self._lock:
+            result = self._results.get(result_id)
+            if result is None:
+                raise ValueError(f"Derivation result '{result_id}' not found")
 
-        # Update allowed fields
-        allowed_fields = {
-            "name",
-            "description",
-            "clinical_context",
-            "assumptions",
-            "limitations",
-            "references",
-            "tags",
-            "category",
-            "version",
-            "verified",
-            "verification_method",
-            "verified_at",
-        }
+            # Update allowed fields
+            allowed_fields = {
+                "name",
+                "description",
+                "clinical_context",
+                "assumptions",
+                "limitations",
+                "references",
+                "tags",
+                "category",
+                "version",
+                "verified",
+                "verification_method",
+                "verified_at",
+            }
 
-        for key, value in updates.items():
-            if key in allowed_fields and hasattr(result, key):
-                setattr(result, key, value)
+            for key, value in updates.items():
+                if key in allowed_fields and hasattr(result, key):
+                    setattr(result, key, value)
 
-        return result
+            return result
 
     def delete(self, result_id: str, delete_file: bool = True) -> bool:
         """
@@ -238,50 +284,55 @@ class DerivationRepository:
         Returns:
             True if deleted, False if not found
         """
-        result = self._results.get(result_id)
-        if result is None:
-            return False
+        with self._lock:
+            result = self._results.get(result_id)
+            if result is None:
+                return False
 
-        # Delete from memory
-        del self._results[result_id]
+            # Delete from memory
+            del self._results[result_id]
 
-        # Delete file if requested
-        if delete_file and self._formulas_dir:
-            category_dir = (
-                self._formulas_dir / result.category if result.category else self._formulas_dir
-            )
-            file_path = category_dir / f"{result_id}.yaml"
-            if file_path.exists():
-                file_path.unlink()
+            # Delete file if requested
+            if delete_file and self._formulas_dir:
+                category_dir = (
+                    self._formulas_dir / result.category if result.category else self._formulas_dir
+                )
+                file_path = category_dir / f"{result_id}.yaml"
+                if file_path.exists():
+                    file_path.unlink()
 
-        return True
+            return True
 
     def stats(self) -> dict[str, Any]:
         """Get repository statistics."""
-        categories: dict[str, int] = {}
-        verified_count = 0
+        with self._lock:
+            categories: dict[str, int] = {}
+            verified_count = 0
 
-        for result in self._results.values():
-            cat = result.category or "uncategorized"
-            categories[cat] = categories.get(cat, 0) + 1
-            if result.verified:
-                verified_count += 1
+            for result in self._results.values():
+                cat = result.category or "uncategorized"
+                categories[cat] = categories.get(cat, 0) + 1
+                if result.verified:
+                    verified_count += 1
 
-        return {
-            "total": len(self._results),
-            "verified": verified_count,
-            "unverified": len(self._results) - verified_count,
-            "categories": categories,
-        }
+            return {
+                "total": len(self._results),
+                "verified": verified_count,
+                "unverified": len(self._results) - verified_count,
+                "categories": categories,
+            }
 
 
 # Global repository instance
 _repository: DerivationRepository | None = None
+_repository_lock = threading.Lock()
 
 
 def get_repository(formulas_dir: Path | None = None) -> DerivationRepository:
     """Get the global derivation repository instance."""
     global _repository
     if _repository is None:
-        _repository = DerivationRepository(formulas_dir)
+        with _repository_lock:
+            if _repository is None:
+                _repository = DerivationRepository(formulas_dir)
     return _repository

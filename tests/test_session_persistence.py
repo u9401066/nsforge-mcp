@@ -11,7 +11,9 @@ import json
 import threading
 from pathlib import Path
 
-from nsforge.domain.derivation_session import SessionManager
+import pytest
+
+from nsforge.domain.derivation_session import DerivationSession, SessionManager, SessionStatus
 
 
 def test_atomic_save_writes_complete_json(tmp_path: Path) -> None:
@@ -22,7 +24,24 @@ def test_atomic_save_writes_complete_json(tmp_path: Path) -> None:
     assert files, "session file should be persisted"
     data = json.loads(files[0].read_text(encoding="utf-8"))  # complete, parseable JSON
     assert data["session_id"] == session.session_id
+    assert data["status"] == session.status.value
     assert not list(tmp_path.glob(".*.tmp")), "no leftover temp files after atomic replace"
+
+
+def test_temp_allocation_failure_does_not_change_session_status(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = DerivationSession(session_id="no-temp", name="Allocation failure")
+
+    def fail_mkstemp(**kwargs: object) -> tuple[int, str]:
+        raise OSError(f"cannot allocate temp file: {kwargs}")
+
+    monkeypatch.setattr("nsforge.domain.derivation_session.tempfile.mkstemp", fail_mkstemp)
+    with pytest.raises(OSError, match="cannot allocate"):
+        session.save(tmp_path / "session_no-temp.json")
+
+    assert session.status is SessionStatus.ACTIVE
 
 
 def test_concurrent_creates_are_thread_safe(tmp_path: Path) -> None:

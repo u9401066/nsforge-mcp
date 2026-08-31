@@ -13,20 +13,45 @@ The "Forge" in NSForge means we CREATE new formulas through derivation.
 from __future__ import annotations
 
 import contextlib
+import copy
 import json
 import os
 import tempfile
 import threading
 import uuid
+from _thread import RLock
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from functools import wraps
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, cast
 
 import sympy as sp
 
 from nsforge.domain.formula import Formula, FormulaParser, FormulaSource, ParseError
+
+
+class _Lockable(Protocol):
+    """Structural type used by the synchronized-method decorator."""
+
+    _lock: RLock
+
+
+def _synchronized[Method: Callable[..., Any]](method: Method) -> Method:
+    """Serialize one object's state access while allowing nested method calls."""
+
+    @wraps(method)
+    def locked(
+        self: _Lockable,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return cast(Method, locked)
 
 
 class OperationType(Enum):
@@ -86,23 +111,25 @@ class DerivationStep:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "step_number": self.step_number,
-            "operation": self.operation.value,
-            "description": self.description,
-            "input_expressions": self.input_expressions,
-            "output_expression": self.output_expression,
-            "output_latex": self.output_latex,
-            "sympy_command": self.sympy_command,
-            # 🆕 人類知識
-            "notes": self.notes,
-            "assumptions": self.assumptions,
-            "limitations": self.limitations,
-            # 驗證
-            "status": self.status.value,
-            "verification_result": self.verification_result,
-            "timestamp": self.timestamp,
-        }
+        return copy.deepcopy(
+            {
+                "step_number": self.step_number,
+                "operation": self.operation.value,
+                "description": self.description,
+                "input_expressions": self.input_expressions,
+                "output_expression": self.output_expression,
+                "output_latex": self.output_latex,
+                "sympy_command": self.sympy_command,
+                # 🆕 人類知識
+                "notes": self.notes,
+                "assumptions": self.assumptions,
+                "limitations": self.limitations,
+                # 驗證
+                "status": self.status.value,
+                "verification_result": self.verification_result,
+                "timestamp": self.timestamp,
+            }
+        )
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DerivationStep:
@@ -164,22 +191,33 @@ class DerivationSession:
 
     # 持久化路徑
     _persist_path: Path | None = None
+    _lock: RLock = field(default_factory=RLock, init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if not self.session_id:
             self.session_id = str(uuid.uuid4())[:8]
 
+    @contextlib.contextmanager
+    def transaction(self) -> Iterator[None]:
+        """Hold this session lock across a multi-step tool-layer operation."""
+        with self._lock:
+            yield
+
     @property
+    @_synchronized
     def step_count(self) -> int:
         return len(self.steps)
 
     @property
+    @_synchronized
     def formula_ids(self) -> list[str]:
         return list(self.formulas.keys())
 
+    @_synchronized
     def _update_timestamp(self) -> None:
         self.updated_at = datetime.now().isoformat()
 
+    @_synchronized
     def _add_step(
         self,
         operation: OperationType,
@@ -192,6 +230,7 @@ class DerivationSession:
         notes: str = "",
         assumptions: list[str] | None = None,
         limitations: list[str] | None = None,
+        persist: bool = True,
     ) -> DerivationStep:
         """新增步驟記錄（含人類知識）"""
         step = DerivationStep(
@@ -211,15 +250,67 @@ class DerivationSession:
         self._update_timestamp()
 
         # 自動持久化
-        if self._persist_path:
+        if persist and self._persist_path:
             self.save()
 
         return step
+
+    @_synchronized
+    def record_external_step(
+        self,
+        *,
+        operation: OperationType,
+        description: str,
+        input_expressions: dict[str, str],
+        output_expr: sp.Basic,
+        sympy_command: str,
+        status: StepStatus = StepStatus.SUCCESS,
+        notes: str = "",
+        assumptions: list[str] | None = None,
+        limitations: list[str] | None = None,
+        set_as_current: bool = True,
+    ) -> DerivationStep:
+        """Append an externally computed step and persist one coherent snapshot.
+
+        Tool-layer record/import calls used to let ``_add_step`` auto-save before
+        updating ``current_expression``, then save a second time.  This operation
+        makes append + current update + persistence one transaction and restores
+        in-memory state if the atomic write fails.
+        """
+        previous_step_count = len(self.steps)
+        previous_expression = self.current_expression
+        previous_status = self.status
+        previous_updated_at = self.updated_at
+        try:
+            step = self._add_step(
+                operation=operation,
+                description=description,
+                input_expressions=input_expressions,
+                output_expr=output_expr,
+                sympy_command=sympy_command,
+                status=status,
+                notes=notes,
+                assumptions=assumptions,
+                limitations=limitations,
+                persist=False,
+            )
+            if set_as_current:
+                self.current_expression = output_expr
+            if self._persist_path:
+                self.save()
+        except BaseException:
+            del self.steps[previous_step_count:]
+            self.current_expression = previous_expression
+            self.status = previous_status
+            self.updated_at = previous_updated_at
+            raise
+        return copy.deepcopy(step)
 
     # ═══════════════════════════════════════════════════════════════════════
     # 核心操作
     # ═══════════════════════════════════════════════════════════════════════
 
+    @_synchronized
     def load_formula(
         self,
         formula_input: str | dict[str, Any],
@@ -285,6 +376,7 @@ class DerivationSession:
             "step_number": self.step_count,
         }
 
+    @_synchronized
     def substitute(
         self,
         target_var: str,
@@ -389,6 +481,7 @@ class DerivationSession:
             "limitations": limitations or [],
         }
 
+    @_synchronized
     def simplify(
         self,
         method: str = "auto",
@@ -465,6 +558,7 @@ class DerivationSession:
             "limitations": limitations or [],
         }
 
+    @_synchronized
     def solve_for(
         self,
         variable: str,
@@ -548,6 +642,7 @@ class DerivationSession:
             "limitations": limitations or [],
         }
 
+    @_synchronized
     def differentiate(
         self,
         variable: str,
@@ -604,6 +699,7 @@ class DerivationSession:
             "limitations": limitations or [],
         }
 
+    @_synchronized
     def integrate(
         self,
         variable: str,
@@ -673,6 +769,7 @@ class DerivationSession:
     # 會話管理
     # ═══════════════════════════════════════════════════════════════════════
 
+    @_synchronized
     def get_steps(self) -> list[dict[str, Any]]:
         """取得所有步驟"""
         return [s.to_dict() for s in self.steps]
@@ -681,6 +778,7 @@ class DerivationSession:
     # 步驟 CRUD 操作
     # ═══════════════════════════════════════════════════════════════════════
 
+    @_synchronized
     def get_step(self, step_number: int) -> dict[str, Any]:
         """
         取得單一步驟詳情
@@ -703,6 +801,7 @@ class DerivationSession:
             "step": step.to_dict(),
         }
 
+    @_synchronized
     def update_step(
         self,
         step_number: int,
@@ -763,6 +862,7 @@ class DerivationSession:
             "message": f"Step {step_number} updated: {', '.join(updated_fields)}",
         }
 
+    @_synchronized
     def delete_step(self, step_number: int) -> dict[str, Any]:
         """
         刪除單一步驟（只能刪除最後一步，否則會破壞連續性）
@@ -807,6 +907,7 @@ class DerivationSession:
             "message": f"Step {step_number} deleted.",
         }
 
+    @_synchronized
     def rollback_to_step(self, step_number: int) -> dict[str, Any]:
         """
         回滾到指定步驟（刪除該步驟之後的所有步驟）
@@ -862,6 +963,7 @@ class DerivationSession:
             "message": f"Rolled back to step {step_number}. Deleted {deleted_count} step(s).",
         }
 
+    @_synchronized
     def insert_note_after_step(
         self,
         after_step: int,
@@ -937,6 +1039,7 @@ class DerivationSession:
             "message": f"Note inserted at step {after_step + 1}. Steps renumbered.",
         }
 
+    @_synchronized
     def get_current(self) -> dict[str, Any]:
         """取得當前狀態"""
         return {
@@ -949,6 +1052,7 @@ class DerivationSession:
             "formulas_loaded": self.formula_ids,
         }
 
+    @_synchronized
     def complete(self) -> dict[str, Any]:
         """完成推導"""
         if self.current_expression is None:
@@ -981,29 +1085,35 @@ class DerivationSession:
         if self._persist_path:
             self.save()
 
-        return result
+        return copy.deepcopy(result)
 
     # ═══════════════════════════════════════════════════════════════════════
     # 持久化
     # ═══════════════════════════════════════════════════════════════════════
 
+    @_synchronized
     def to_dict(self) -> dict[str, Any]:
         """序列化為字典"""
-        return {
-            "session_id": self.session_id,
-            "name": self.name,
-            "description": self.description,
-            "status": self.status.value,
-            "formulas": {fid: f.to_dict() for fid, f in self.formulas.items()},
-            "current_expression": str(self.current_expression) if self.current_expression else None,
-            "current_formula_id": self.current_formula_id,
-            "steps": [s.to_dict() for s in self.steps],
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-            "author": self.author,
-            "tags": self.tags,
-        }
+        return copy.deepcopy(
+            {
+                "session_id": self.session_id,
+                "name": self.name,
+                "description": self.description,
+                "status": self.status.value,
+                "formulas": {fid: f.to_dict() for fid, f in self.formulas.items()},
+                "current_expression": (
+                    str(self.current_expression) if self.current_expression else None
+                ),
+                "current_formula_id": self.current_formula_id,
+                "steps": [s.to_dict() for s in self.steps],
+                "created_at": self.created_at,
+                "updated_at": self.updated_at,
+                "author": self.author,
+                "tags": self.tags,
+            }
+        )
 
+    @_synchronized
     def save(self, path: Path | None = None) -> Path:
         """
         保存會話到檔案
@@ -1025,17 +1135,24 @@ class DerivationSession:
         tmp_fd, tmp_name = tempfile.mkstemp(
             dir=str(save_path.parent), prefix=f".{save_path.stem}_", suffix=".tmp"
         )
+        previous_status = self.status
+        if self.status == SessionStatus.ACTIVE:
+            # Preserve the historical "save pauses an active session" behavior,
+            # but serialize the post-save status instead of writing ACTIVE and
+            # then leaving memory PAUSED.  Do this only after mkstemp succeeds so
+            # an allocation failure cannot mutate the session.
+            self.status = SessionStatus.PAUSED
         try:
             with open(tmp_fd, "w", encoding="utf-8") as f:
                 json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
             os.replace(tmp_name, save_path)
         except BaseException:
+            self.status = previous_status
             with contextlib.suppress(OSError):
                 os.unlink(tmp_name)
             raise
 
         self._persist_path = save_path
-        self.status = SessionStatus.PAUSED if self.status == SessionStatus.ACTIVE else self.status
 
         return save_path
 
@@ -1154,17 +1271,20 @@ class SessionManager:
         """列出所有會話"""
         with self._lock:
             sessions = list(self.sessions.values())
-        return [
-            {
-                "session_id": s.session_id,
-                "name": s.name,
-                "status": s.status.value,
-                "step_count": s.step_count,
-                "created_at": s.created_at,
-                "updated_at": s.updated_at,
-            }
-            for s in sessions
-        ]
+        summaries = []
+        for session in sessions:
+            with session._lock:
+                summaries.append(
+                    {
+                        "session_id": session.session_id,
+                        "name": session.name,
+                        "status": session.status.value,
+                        "step_count": session.step_count,
+                        "created_at": session.created_at,
+                        "updated_at": session.updated_at,
+                    }
+                )
+        return summaries
 
     def delete(self, session_id: str) -> bool:
         """刪除會話"""
@@ -1172,8 +1292,9 @@ class SessionManager:
             session = self.sessions.pop(session_id, None)
         if session is None:
             return False
-        if session._persist_path and session._persist_path.exists():
-            session._persist_path.unlink()
+        with session._lock:
+            if session._persist_path and session._persist_path.exists():
+                session._persist_path.unlink()
 
         return True
 
