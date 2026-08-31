@@ -31,7 +31,7 @@ REPO = Path(__file__).resolve().parent.parent
 
 # Prefer `uv run` if uv is available (repo convention); else run bare.
 _UV = shutil.which("uv")
-_WRAPPABLE = {"ruff", "mypy", "pytest", "python"}
+_WRAPPABLE = {"ruff", "mypy", "pytest", "python", "bandit"}
 
 
 def _wrap(cmd: list[str]) -> list[str]:
@@ -46,6 +46,7 @@ GATES: dict[str, list[str]] = {
     "lint": ["ruff", "check", "."],
     "format": ["ruff", "format", "--check", "."],
     "type": ["mypy", "src", "--ignore-missing-imports"],
+    "security": ["bandit", "-r", "src", "-q", "-lll"],
     "import": ["python", "-c", "import nsforge_mcp.server; print('server import ok')"],
     "manifest": ["python", "scripts/gen_capabilities.py", "--check"],
     "mcp": ["python", "scripts/mcp_contract.py"],
@@ -53,6 +54,7 @@ GATES: dict[str, list[str]] = {
     "bench": ["python", "scripts/bench.py"],
     "generic": ["python", "scripts/genericity.py"],
     "provenance": ["python", "scripts/provenance.py"],
+    "package": ["python", "scripts/package_smoke.py"],
     "harness": ["python", "scripts/harness_selfcheck.py"],
     "diff": ["git", "diff", "--check"],
 }
@@ -62,6 +64,7 @@ DEFAULT_ORDER = [
     "lint",
     "format",
     "type",
+    "security",
     "import",
     "manifest",
     "mcp",
@@ -69,6 +72,7 @@ DEFAULT_ORDER = [
     "bench",
     "generic",
     "provenance",
+    "package",
     "harness",
     "diff",
 ]
@@ -79,6 +83,7 @@ GATE_DOC: dict[str, str] = {
     "lint": "ruff lint across src/, tests/, scripts/",
     "format": "ruff format --check (style is enforced, not merely suggested)",
     "type": "mypy strict on src/",
+    "security": "Bandit reports no high-severity issue in the executable source tree",
     "import": "the MCP server imports cleanly",
     "manifest": "docs/agent/capabilities.json is in sync with the @mcp.tool set",
     "mcp": "MCP 2.1.1 discovery, schemas, metadata, payloads, resources, and prompts remain compatible",
@@ -86,6 +91,7 @@ GATE_DOC: dict[str, str] = {
     "bench": "known derivations reproduce correctly (benchmarks/*.json)",
     "generic": "unseen, randomly-composed formulas derive correctly (a calculus, not a library)",
     "provenance": "every benchmark derivation carries a complete tool-provenance ledger",
+    "package": "sdist and wheel build, contain runtime assets, install in isolation, and serve MCP",
     "harness": "the harness guards its own invariants (version, self-description, gate/doc parity)",
     "diff": "no whitespace errors or leftover conflict markers",
 }

@@ -1,10 +1,10 @@
 {
-  "schema": "nsforge.capabilities/v3",
-  "version": "0.3.0",
+  "schema": "nsforge.capabilities/v4",
+  "version": "0.4.0",
   "north_star": "Every symbol, equation, value, and line of code in a result has a tool call as its birth certificate; the AI hand-derives nothing.",
   "mcp": {
     "protocol_revision": "2026-07-28",
-    "sdk_requirement": ">=2.1.1,<3",
+    "sdk_requirement": "==2.1.1",
     "transports": [
       "stdio",
       "streamable-http"
@@ -13,7 +13,11 @@
       "nsforge://manifest",
       "nsforge://health",
       "nsforge://north-star",
-      "nsforge://derivations/{result_id}"
+      "nsforge://derivations/{result_id}",
+      "nsforge://sessions/{session_id}",
+      "nsforge://runs/{run_id}",
+      "nsforge://runs/{run_id}/events",
+      "nsforge://artifacts/{sha256}"
     ],
     "prompts": [
       "forge_verified_derivation"
@@ -26,8 +30,312 @@
       "resource_templates",
       "prompts",
       "progress_notifications",
-      "legacy_client_mode"
+      "legacy_client_mode",
+      "tool_profiles",
+      "strict_input_validation",
+      "resource_links",
+      "resource_subscriptions",
+      "resolve_injection",
+      "immutable_run_artifact_resources",
+      "opentelemetry_correlation"
     ]
+  },
+  "profiles": {
+    "legacy": {
+      "tool_count": 82,
+      "tools": [
+        "apart_expression",
+        "calculate_limit",
+        "calculate_series",
+        "calculate_summation",
+        "cancel_expression",
+        "check_dimensions",
+        "collect_expression",
+        "combsimp_expression",
+        "define_distribution",
+        "derivation_abort",
+        "derivation_add_note",
+        "derivation_complete",
+        "derivation_delete_saved",
+        "derivation_delete_step",
+        "derivation_differentiate",
+        "derivation_export_for_sympy",
+        "derivation_get_saved",
+        "derivation_get_step",
+        "derivation_get_steps",
+        "derivation_handoff_status",
+        "derivation_import_from_sympy",
+        "derivation_insert_note",
+        "derivation_integrate",
+        "derivation_list_saved",
+        "derivation_list_sessions",
+        "derivation_load_formula",
+        "derivation_prepare_for_optimization",
+        "derivation_record_step",
+        "derivation_repository_stats",
+        "derivation_resume",
+        "derivation_rollback",
+        "derivation_search_saved",
+        "derivation_show",
+        "derivation_simplify",
+        "derivation_solve_for",
+        "derivation_start",
+        "derivation_status",
+        "derivation_substitute",
+        "derivation_suggest_next",
+        "derivation_update_saved",
+        "derivation_update_step",
+        "distribution_probability",
+        "distribution_stats",
+        "evaluate_numeric",
+        "expand_expression",
+        "extract_symbols",
+        "factor_expression",
+        "formula_categories",
+        "formula_constants",
+        "formula_get",
+        "formula_kinetic_laws",
+        "formula_pk_models",
+        "formula_search",
+        "fourier_transform_expression",
+        "generate_derivation_report",
+        "generate_latex_derivation",
+        "generate_python_function",
+        "generate_sympy_script",
+        "inverse_fourier_transform_expression",
+        "inverse_laplace_transform_expression",
+        "laplace_transform_expression",
+        "nsforge_health",
+        "nsforge_manifest",
+        "parse_expression",
+        "powsimp_expression",
+        "query_assumptions",
+        "radsimp_expression",
+        "refine_expression",
+        "reverse_verify",
+        "solve_inequality",
+        "solve_inequality_system",
+        "symbolic_equal",
+        "task_explore",
+        "task_plan",
+        "task_run",
+        "together_expression",
+        "trigsimp_expression",
+        "validate_expression",
+        "verify_derivative",
+        "verify_equality",
+        "verify_integral",
+        "verify_solution"
+      ],
+      "strict_inputs": false,
+      "resource_first": false
+    },
+    "workflow": {
+      "tool_count": 17,
+      "tools": [
+        "calculate_limit",
+        "check_dimensions",
+        "derivation_abort",
+        "derivation_complete",
+        "derivation_differentiate",
+        "derivation_integrate",
+        "derivation_load_formula",
+        "derivation_record_step",
+        "derivation_simplify",
+        "derivation_solve_for",
+        "derivation_start",
+        "derivation_substitute",
+        "parse_expression",
+        "task_explore",
+        "task_plan",
+        "task_run",
+        "verify_equality"
+      ],
+      "strict_inputs": true,
+      "resource_first": true
+    },
+    "scientific": {
+      "tool_count": 35,
+      "tools": [
+        "apart_expression",
+        "calculate_limit",
+        "calculate_series",
+        "calculate_summation",
+        "cancel_expression",
+        "check_dimensions",
+        "collect_expression",
+        "combsimp_expression",
+        "define_distribution",
+        "distribution_probability",
+        "distribution_stats",
+        "evaluate_numeric",
+        "expand_expression",
+        "extract_symbols",
+        "factor_expression",
+        "fourier_transform_expression",
+        "inverse_fourier_transform_expression",
+        "inverse_laplace_transform_expression",
+        "laplace_transform_expression",
+        "parse_expression",
+        "powsimp_expression",
+        "query_assumptions",
+        "radsimp_expression",
+        "refine_expression",
+        "reverse_verify",
+        "solve_inequality",
+        "solve_inequality_system",
+        "symbolic_equal",
+        "together_expression",
+        "trigsimp_expression",
+        "validate_expression",
+        "verify_derivative",
+        "verify_equality",
+        "verify_integral",
+        "verify_solution"
+      ],
+      "strict_inputs": true,
+      "resource_first": true
+    },
+    "interactive": {
+      "tool_count": 35,
+      "tools": [
+        "calculate_limit",
+        "check_dimensions",
+        "derivation_abort",
+        "derivation_add_note",
+        "derivation_complete",
+        "derivation_delete_saved",
+        "derivation_delete_step",
+        "derivation_differentiate",
+        "derivation_export_for_sympy",
+        "derivation_import_from_sympy",
+        "derivation_insert_note",
+        "derivation_integrate",
+        "derivation_load_formula",
+        "derivation_prepare_for_optimization",
+        "derivation_record_step",
+        "derivation_resume",
+        "derivation_rollback",
+        "derivation_simplify",
+        "derivation_solve_for",
+        "derivation_start",
+        "derivation_substitute",
+        "derivation_suggest_next",
+        "derivation_update_saved",
+        "derivation_update_step",
+        "extract_symbols",
+        "parse_expression",
+        "reverse_verify",
+        "task_explore",
+        "task_plan",
+        "task_run",
+        "validate_expression",
+        "verify_derivative",
+        "verify_equality",
+        "verify_integral",
+        "verify_solution"
+      ],
+      "strict_inputs": true,
+      "resource_first": true
+    },
+    "full": {
+      "tool_count": 91,
+      "tools": [
+        "apart_expression",
+        "calculate_limit",
+        "calculate_series",
+        "calculate_summation",
+        "cancel_expression",
+        "check_dimensions",
+        "collect_expression",
+        "combsimp_expression",
+        "define_distribution",
+        "derivation_abort",
+        "derivation_add_note",
+        "derivation_complete",
+        "derivation_delete_saved",
+        "derivation_delete_step",
+        "derivation_differentiate",
+        "derivation_export_for_sympy",
+        "derivation_get_saved",
+        "derivation_get_step",
+        "derivation_get_steps",
+        "derivation_handoff_status",
+        "derivation_import_from_sympy",
+        "derivation_insert_note",
+        "derivation_integrate",
+        "derivation_list_saved",
+        "derivation_list_sessions",
+        "derivation_load_formula",
+        "derivation_prepare_for_optimization",
+        "derivation_record_step",
+        "derivation_repository_stats",
+        "derivation_resume",
+        "derivation_rollback",
+        "derivation_search_saved",
+        "derivation_show",
+        "derivation_simplify",
+        "derivation_solve_for",
+        "derivation_start",
+        "derivation_status",
+        "derivation_substitute",
+        "derivation_suggest_next",
+        "derivation_update_saved",
+        "derivation_update_step",
+        "distribution_probability",
+        "distribution_stats",
+        "evaluate_numeric",
+        "expand_expression",
+        "extract_symbols",
+        "factor_expression",
+        "formula_categories",
+        "formula_constants",
+        "formula_get",
+        "formula_kinetic_laws",
+        "formula_pk_models",
+        "formula_search",
+        "fourier_transform_expression",
+        "generate_derivation_report",
+        "generate_latex_derivation",
+        "generate_python_function",
+        "generate_sympy_script",
+        "inverse_fourier_transform_expression",
+        "inverse_laplace_transform_expression",
+        "laplace_transform_expression",
+        "music_compose_chord",
+        "music_compose_sequence",
+        "music_compose_tone",
+        "music_function_info",
+        "music_function_to_waveform",
+        "music_generate_wav",
+        "music_note_to_frequency",
+        "music_plot_spectrum",
+        "music_plot_waveform",
+        "nsforge_health",
+        "nsforge_manifest",
+        "parse_expression",
+        "powsimp_expression",
+        "query_assumptions",
+        "radsimp_expression",
+        "refine_expression",
+        "reverse_verify",
+        "solve_inequality",
+        "solve_inequality_system",
+        "symbolic_equal",
+        "task_explore",
+        "task_plan",
+        "task_run",
+        "together_expression",
+        "trigsimp_expression",
+        "validate_expression",
+        "verify_derivative",
+        "verify_equality",
+        "verify_integral",
+        "verify_solution"
+      ],
+      "strict_inputs": false,
+      "resource_first": false
+    }
   },
   "tool_count": 91,
   "default_tool_count": 82,
@@ -77,6 +385,11 @@
       "command": "mypy src --ignore-missing-imports"
     },
     {
+      "gate": "security",
+      "verifies": "Bandit reports no high-severity issue in the executable source tree",
+      "command": "bandit -r src -q -lll"
+    },
+    {
       "gate": "import",
       "verifies": "the MCP server imports cleanly",
       "command": "python -c import nsforge_mcp.server; print('server import ok')"
@@ -110,6 +423,11 @@
       "gate": "provenance",
       "verifies": "every benchmark derivation carries a complete tool-provenance ledger",
       "command": "python scripts/provenance.py"
+    },
+    {
+      "gate": "package",
+      "verifies": "sdist and wheel build, contain runtime assets, install in isolation, and serve MCP",
+      "command": "python scripts/package_smoke.py"
     },
     {
       "gate": "harness",
@@ -155,6 +473,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Calculate the limit of an expression.",
+      "compact_description": "Calculate Limit deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Calculate Limit",
         "readOnlyHint": true,
@@ -162,6 +481,26 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "direction": [
+          "+-",
+          "",
+          "+",
+          "-"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -197,6 +536,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Calculate series expansion of an expression.",
+      "compact_description": "Calculate Series deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Calculate Series",
         "readOnlyHint": true,
@@ -204,6 +544,29 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "series_type": [
+          "taylor",
+          "laurent",
+          "fourier"
+        ]
+      },
+      "strict_numeric": [
+        {
+          "field": "order",
+          "minimum": 1,
+          "maximum": 100
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -235,6 +598,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Calculate symbolic summation.",
+      "compact_description": "Calculate Summation deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Calculate Summation",
         "readOnlyHint": true,
@@ -242,6 +606,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -269,6 +644,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Define a probability distribution.",
+      "compact_description": "Define Distribution deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Define Distribution",
         "readOnlyHint": true,
@@ -276,6 +652,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -303,6 +690,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Calculate probability P(condition).",
+      "compact_description": "Distribution Probability deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Distribution Probability",
         "readOnlyHint": true,
@@ -310,6 +698,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -337,6 +736,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Compute statistics of a distribution.",
+      "compact_description": "Distribution Stats deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Distribution Stats",
         "readOnlyHint": true,
@@ -344,6 +744,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -371,6 +782,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Evaluate expression numerically.",
+      "compact_description": "Evaluate Numeric deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Evaluate Numeric",
         "readOnlyHint": true,
@@ -378,6 +790,23 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "precision",
+          "minimum": 1,
+          "maximum": 100
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -405,6 +834,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Query properties of an expression based on assumptions.",
+      "compact_description": "Query Assumptions deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Query Assumptions",
         "readOnlyHint": true,
@@ -412,6 +842,37 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "query": [
+          "positive",
+          "negative",
+          "nonnegative",
+          "nonpositive",
+          "real",
+          "imaginary",
+          "complex",
+          "integer",
+          "rational",
+          "irrational",
+          "even",
+          "odd",
+          "prime",
+          "finite",
+          "infinite",
+          "zero",
+          "nonzero"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -435,6 +896,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Simplify expression using assumptions.",
+      "compact_description": "Refine Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Refine Expression",
         "readOnlyHint": true,
@@ -442,6 +904,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -469,6 +942,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Solve a single inequality.",
+      "compact_description": "Solve Inequality deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Solve Inequality",
         "readOnlyHint": true,
@@ -476,6 +950,23 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "domain": [
+          "real",
+          "positive",
+          "integer"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -499,6 +990,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Solve a system of inequalities (find the intersection).",
+      "compact_description": "Solve Inequality System deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Solve Inequality System",
         "readOnlyHint": true,
@@ -506,6 +998,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -529,6 +1032,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Check if two expressions are symbolically equivalent.",
+      "compact_description": "Symbolic Equal deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Symbolic Equal",
         "readOnlyHint": true,
@@ -536,6 +1040,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": true,
+      "replacement": "verify_equality",
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "calculate",
@@ -571,6 +1086,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Generate a complete derivation report in Markdown.",
+      "compact_description": "Legacy caller-attested Generate Derivation Report; prefer verified artifact-based code generation.",
       "annotations": {
         "title": "Generate Derivation Report",
         "readOnlyHint": true,
@@ -578,6 +1094,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "caller-attested",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "codegen",
@@ -605,6 +1131,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Generate LaTeX documentation for a derivation.",
+      "compact_description": "Legacy caller-attested Generate LaTeX Derivation; prefer verified artifact-based code generation.",
       "annotations": {
         "title": "Generate LaTeX Derivation",
         "readOnlyHint": true,
@@ -612,6 +1139,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "caller-attested",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "codegen",
@@ -647,6 +1184,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Generate a Python function from VERIFIED derivation steps.",
+      "compact_description": "Legacy caller-attested Generate Python Function; prefer verified artifact-based code generation.",
       "annotations": {
         "title": "Generate Python Function",
         "readOnlyHint": true,
@@ -654,6 +1192,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "caller-attested",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "codegen",
@@ -677,6 +1225,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Generate a standalone SymPy script for a computation.",
+      "compact_description": "Legacy caller-attested Generate SymPy Script; prefer verified artifact-based code generation.",
       "annotations": {
         "title": "Generate SymPy Script",
         "readOnlyHint": true,
@@ -684,6 +1233,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "caller-attested",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "codegen",
@@ -703,6 +1262,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "放棄當前推導",
+      "compact_description": "Derivation Abort on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Abort",
         "readOnlyHint": false,
@@ -710,6 +1270,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -745,6 +1317,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "在推導中加入說明（不是計算步驟）",
+      "compact_description": "Derivation Add Note on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Add Note",
         "readOnlyHint": false,
@@ -752,6 +1325,31 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "note_type": [
+          "assumption",
+          "limitation",
+          "observation",
+          "correction",
+          "clinical",
+          "physical"
+        ]
+      },
+      "strict_numeric": [
+        {
+          "field": "related_step",
+          "minimum": 1
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -799,6 +1397,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "完成推導並自動存檔",
+      "compact_description": "Derivation Complete on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Complete",
         "readOnlyHint": false,
@@ -806,6 +1405,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -829,6 +1440,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "刪除已存檔的推導結果",
+      "compact_description": "Derivation Delete Saved on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Delete Saved",
         "readOnlyHint": false,
@@ -836,6 +1448,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -859,6 +1482,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "刪除單一步驟",
+      "compact_description": "Derivation Delete Step on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Delete Step",
         "readOnlyHint": false,
@@ -866,6 +1490,22 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "step_number",
+          "minimum": 1
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -909,6 +1549,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "對當前表達式微分（帶人類知識記錄）",
+      "compact_description": "Derivation Differentiate on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Differentiate",
         "readOnlyHint": false,
@@ -916,6 +1557,24 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "order",
+          "minimum": 1,
+          "maximum": 100
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -943,6 +1602,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "導出當前推導狀態給 SymPy-MCP",
+      "compact_description": "Derivation Export For SymPy on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Export For SymPy",
         "readOnlyHint": true,
@@ -950,6 +1610,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -969,6 +1640,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "取得已存檔的推導結果詳情",
+      "compact_description": "Derivation Get Saved on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Get Saved",
         "readOnlyHint": true,
@@ -976,6 +1648,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -999,6 +1681,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "取得單一步驟的詳細資訊",
+      "compact_description": "Derivation Get Step on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Get Step",
         "readOnlyHint": true,
@@ -1006,6 +1689,21 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "step_number",
+          "minimum": 1
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1025,6 +1723,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "取得所有推導步驟",
+      "compact_description": "Derivation Get Steps on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Get Steps",
         "readOnlyHint": true,
@@ -1032,6 +1731,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1051,6 +1760,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "顯示 Handoff 狀態和可用選項",
+      "compact_description": "Derivation Handoff Status on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Handoff Status",
         "readOnlyHint": true,
@@ -1058,6 +1768,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1105,6 +1825,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "從 SymPy-MCP 導入結果回 NSForge",
+      "compact_description": "Derivation Import From SymPy on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Import From SymPy",
         "readOnlyHint": false,
@@ -1112,6 +1833,17 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1147,6 +1879,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "在指定位置插入說明",
+      "compact_description": "Derivation Insert Note on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Insert Note",
         "readOnlyHint": false,
@@ -1154,6 +1887,22 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "after_step",
+          "minimum": 0
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1201,6 +1950,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "對當前表達式積分（帶人類知識記錄）",
+      "compact_description": "Derivation Integrate on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Integrate",
         "readOnlyHint": false,
@@ -1208,6 +1958,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1227,6 +1989,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "列出所有已存檔的推導結果",
+      "compact_description": "Derivation List Saved on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation List Saved",
         "readOnlyHint": true,
@@ -1234,6 +1997,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1248,6 +2021,7 @@
       "params": [],
       "returns": "dict[str, Any]",
       "summary": "列出所有推導會話",
+      "compact_description": "Derivation List Sessions on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation List Sessions",
         "readOnlyHint": true,
@@ -1255,6 +2029,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1298,6 +2082,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "載入公式到當前會話",
+      "compact_description": "Derivation Load Formula on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Load Formula",
         "readOnlyHint": false,
@@ -1305,6 +2090,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1324,6 +2121,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "準備推導結果給優化求解器（如 USolver）",
+      "compact_description": "Derivation Prepare For Optimization on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Prepare For Optimization",
         "readOnlyHint": true,
@@ -1331,6 +2129,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1378,6 +2187,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "記錄一個推導步驟（從 SymPy-MCP 或手動）",
+      "compact_description": "Derivation Record Step on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Record Step",
         "readOnlyHint": false,
@@ -1385,6 +2195,32 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "source": [
+          "sympy_mcp",
+          "manual",
+          "literature"
+        ],
+        "operation_type": [
+          "substitute",
+          "simplify",
+          "solve",
+          "differentiate",
+          "integrate",
+          "custom"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1399,6 +2235,7 @@
       "params": [],
       "returns": "dict[str, Any]",
       "summary": "取得推導庫統計資訊",
+      "compact_description": "Derivation Repository Stats on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Repository Stats",
         "readOnlyHint": true,
@@ -1406,6 +2243,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1425,6 +2272,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "恢復暫停的推導會話",
+      "compact_description": "Derivation Resume on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Resume",
         "readOnlyHint": false,
@@ -1432,6 +2280,17 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1455,6 +2314,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "回滾到指定步驟",
+      "compact_description": "Derivation Rollback on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Rollback",
         "readOnlyHint": false,
@@ -1462,6 +2322,22 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "to_step",
+          "minimum": 0
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1481,6 +2357,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "搜尋已存檔的推導結果",
+      "compact_description": "Derivation Search Saved on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Search Saved",
         "readOnlyHint": true,
@@ -1488,6 +2365,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1515,6 +2402,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "顯示當前推導狀態和公式（類似 SymPy-MCP 的 print_latex_expression）",
+      "compact_description": "Derivation Show on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Show",
         "readOnlyHint": true,
@@ -1522,6 +2410,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1561,6 +2459,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "簡化當前表達式（帶人類知識記錄）",
+      "compact_description": "Derivation Simplify on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Simplify",
         "readOnlyHint": false,
@@ -1568,6 +2467,25 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "method": [
+          "auto",
+          "trig",
+          "radical",
+          "expand_then_simplify"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1607,6 +2525,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "求解變數（帶人類知識記錄）",
+      "compact_description": "Derivation Solve For on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Solve For",
         "readOnlyHint": false,
@@ -1614,6 +2533,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1641,6 +2572,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "開始新的推導會話",
+      "compact_description": "Derivation Start on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Start",
         "readOnlyHint": false,
@@ -1648,6 +2580,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1667,6 +2611,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "取得當前會話狀態",
+      "compact_description": "Derivation Status on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Status",
         "readOnlyHint": true,
@@ -1674,6 +2619,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1721,6 +2676,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "代入操作（帶人類知識記錄）",
+      "compact_description": "Derivation Substitute on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Substitute",
         "readOnlyHint": false,
@@ -1728,6 +2684,18 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1787,6 +2755,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "更新已存檔推導的元資料",
+      "compact_description": "Derivation Update Saved on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Update Saved",
         "readOnlyHint": false,
@@ -1794,6 +2763,17 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1833,6 +2813,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "更新步驟的元資料",
+      "compact_description": "Derivation Update Step on a stateful derivation; pass session_id for multi-client use.",
       "annotations": {
         "title": "Derivation Update Step",
         "readOnlyHint": false,
@@ -1840,6 +2821,22 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "session-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "step_number",
+          "minimum": 1
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "derivation",
@@ -1863,6 +2860,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Extract symbols from an expression with inferred metadata.",
+      "compact_description": "Extract Symbols deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Extract Symbols",
         "readOnlyHint": true,
@@ -1870,6 +2868,18 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "expression",
@@ -1897,6 +2907,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Parse a mathematical expression into SymPy-computable form.",
+      "compact_description": "Parse Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Parse Expression",
         "readOnlyHint": true,
@@ -1904,6 +2915,19 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "expression",
@@ -1935,6 +2959,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Validate a mathematical expression for correctness.",
+      "compact_description": "Validate Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Validate Expression",
         "readOnlyHint": true,
@@ -1942,6 +2967,18 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "expression",
@@ -1961,6 +2998,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "列出可用的公式分類",
+      "compact_description": "Formula Categories from declared scientific sources; retrieved formulas still require verification.",
       "annotations": {
         "title": "Formula Categories",
         "readOnlyHint": true,
@@ -1968,6 +3006,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "external-source",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "formula",
@@ -1991,6 +3039,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "列出物理常數",
+      "compact_description": "Formula Constants from declared scientific sources; retrieved formulas still require verification.",
       "annotations": {
         "title": "Formula Constants",
         "readOnlyHint": true,
@@ -1998,6 +3047,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "external-source",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "formula",
@@ -2021,6 +3080,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "獲取公式詳細資訊",
+      "compact_description": "Formula Get from declared scientific sources; retrieved formulas still require verification.",
       "annotations": {
         "title": "Formula Get",
         "readOnlyHint": true,
@@ -2028,6 +3088,16 @@
         "idempotentHint": true,
         "openWorldHint": true
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "external-source",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "formula",
@@ -2047,6 +3117,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "獲取 BioModels 模型的動力學公式",
+      "compact_description": "Formula Kinetic Laws from declared scientific sources; retrieved formulas still require verification.",
       "annotations": {
         "title": "Formula Kinetic Laws",
         "readOnlyHint": true,
@@ -2054,6 +3125,16 @@
         "idempotentHint": true,
         "openWorldHint": true
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "external-source",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "formula",
@@ -2081,6 +3162,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "搜尋藥動學 (PK) 模型",
+      "compact_description": "Formula PK Models from declared scientific sources; retrieved formulas still require verification.",
       "annotations": {
         "title": "Formula PK Models",
         "readOnlyHint": true,
@@ -2088,6 +3170,22 @@
         "idempotentHint": true,
         "openWorldHint": true
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "external-source",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "limit",
+          "minimum": 1,
+          "maximum": 100
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "formula",
@@ -2119,6 +3217,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "搜尋公式（跨多個來源）",
+      "compact_description": "Formula Search from declared scientific sources; retrieved formulas still require verification.",
       "annotations": {
         "title": "Formula Search",
         "readOnlyHint": true,
@@ -2126,6 +3225,22 @@
         "idempotentHint": true,
         "openWorldHint": true
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "external-source",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "limit",
+          "minimum": 1,
+          "maximum": 100
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "formula",
@@ -2140,6 +3255,7 @@
       "params": [],
       "returns": "dict[str, Any]",
       "summary": "Liveness + inventory: server name, version, tool count, engine versions.",
+      "compact_description": "NSForge Health runtime compatibility alias; compact profiles prefer MCP resources.",
       "annotations": {
         "title": "NSForge Health",
         "readOnlyHint": true,
@@ -2147,6 +3263,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "runtime",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "meta",
@@ -2161,6 +3287,7 @@
       "params": [],
       "returns": "dict[str, Any]",
       "summary": "Return the full capability manifest (tools, gates, commands, north star).",
+      "compact_description": "NSForge Manifest runtime compatibility alias; compact profiles prefer MCP resources.",
       "annotations": {
         "title": "NSForge Manifest",
         "readOnlyHint": true,
@@ -2168,6 +3295,16 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "runtime",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "meta",
@@ -2191,6 +3328,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Combine multiple tones into a chord (sum of sinusoids).",
+      "compact_description": "Music Compose Chord using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Compose Chord",
         "readOnlyHint": true,
@@ -2198,6 +3336,15 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2221,6 +3368,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Compose a melody as a piecewise function of tones over time.",
+      "compact_description": "Music Compose Sequence using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Compose Sequence",
         "readOnlyHint": true,
@@ -2228,6 +3376,21 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "default_duration",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2263,6 +3426,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Create a symbolic tone function: A·sin(2πft + φ).",
+      "compact_description": "Music Compose Tone using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Compose Tone",
         "readOnlyHint": true,
@@ -2270,6 +3434,31 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "frequency",
+          "exclusiveMinimum": 0,
+          "maximum": 200000
+        },
+        {
+          "field": "amplitude",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "field": "duration",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2289,6 +3478,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Analyze a music function and return its symbolic properties.",
+      "compact_description": "Music Function Info using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Function Info",
         "readOnlyHint": true,
@@ -2296,6 +3486,15 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2323,6 +3522,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Numerically evaluate a music function to produce waveform data.",
+      "compact_description": "Music Function To Waveform using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Function To Waveform",
         "readOnlyHint": true,
@@ -2330,6 +3530,26 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "duration",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        {
+          "field": "sample_rate",
+          "minimum": 1000,
+          "maximum": 384000
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2365,6 +3585,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Generate a WAV audio file from a mathematical function.",
+      "compact_description": "Music Generate WAV using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Generate WAV",
         "readOnlyHint": false,
@@ -2372,6 +3593,31 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "duration",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        {
+          "field": "sample_rate",
+          "minimum": 1000,
+          "maximum": 384000
+        },
+        {
+          "field": "amplitude_scale",
+          "minimum": 0,
+          "maximum": 1
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2395,6 +3641,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Convert a musical note name to its frequency in Hz.",
+      "compact_description": "Music Note To Frequency using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Note To Frequency",
         "readOnlyHint": true,
@@ -2402,6 +3649,21 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "a4_freq",
+          "exclusiveMinimum": 0,
+          "maximum": 200000
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2441,6 +3703,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Plot the frequency spectrum (FFT) of a music function.",
+      "compact_description": "Music Plot Spectrum using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Plot Spectrum",
         "readOnlyHint": false,
@@ -2448,6 +3711,31 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "duration",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        {
+          "field": "sample_rate",
+          "minimum": 1000,
+          "maximum": 384000
+        },
+        {
+          "field": "max_freq",
+          "exclusiveMinimum": 0,
+          "maximum": 200000
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2483,6 +3771,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Plot the time-domain waveform of a music function.",
+      "compact_description": "Music Plot Waveform using the optional symbolic-audio tool set.",
       "annotations": {
         "title": "Music Plot Waveform",
         "readOnlyHint": false,
@@ -2490,6 +3779,26 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": false,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "duration",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        {
+          "field": "sample_rate",
+          "minimum": 1000,
+          "maximum": 384000
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "music",
@@ -2517,6 +3826,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Partial fraction decomposition.",
+      "compact_description": "Apart Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Apart Expression",
         "readOnlyHint": true,
@@ -2524,6 +3834,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2543,6 +3864,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Cancel common factors in rational expression.",
+      "compact_description": "Cancel Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Cancel Expression",
         "readOnlyHint": true,
@@ -2550,6 +3872,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2581,6 +3914,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Collect terms by specified variable(s).",
+      "compact_description": "Collect Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Collect Expression",
         "readOnlyHint": true,
@@ -2588,6 +3922,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2607,6 +3952,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Simplify combinatorial expressions (factorials, binomials).",
+      "compact_description": "Combsimp Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Combsimp Expression",
         "readOnlyHint": true,
@@ -2614,6 +3960,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2665,6 +4022,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Expand algebraic expression.",
+      "compact_description": "Expand Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Expand Expression",
         "readOnlyHint": true,
@@ -2672,6 +4030,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2699,6 +4068,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Factorize algebraic expression.",
+      "compact_description": "Factor Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Factor Expression",
         "readOnlyHint": true,
@@ -2706,6 +4076,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2733,6 +4114,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Fourier transform: f(x) → F(k).",
+      "compact_description": "Fourier Transform Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Fourier Transform Expression",
         "readOnlyHint": true,
@@ -2740,6 +4122,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2767,6 +4160,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Inverse Fourier transform: F(k) → f(x).",
+      "compact_description": "Inverse Fourier Transform Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Inverse Fourier Transform Expression",
         "readOnlyHint": true,
@@ -2774,6 +4168,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2801,6 +4206,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Inverse Laplace transform: F(s) → f(t).",
+      "compact_description": "Inverse Laplace Transform Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Inverse Laplace Transform Expression",
         "readOnlyHint": true,
@@ -2808,6 +4214,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2835,6 +4252,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Laplace transform: f(t) → F(s).",
+      "compact_description": "Laplace Transform Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Laplace Transform Expression",
         "readOnlyHint": true,
@@ -2842,6 +4260,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2873,6 +4302,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Simplify powers and exponentials.",
+      "compact_description": "Powsimp Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Powsimp Expression",
         "readOnlyHint": true,
@@ -2880,6 +4310,23 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "combine": [
+          "all",
+          "base",
+          "exp"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2907,6 +4354,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Simplify radicals (square roots, cube roots, etc.).",
+      "compact_description": "Radsimp Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Radsimp Expression",
         "readOnlyHint": true,
@@ -2914,6 +4362,23 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "max_terms",
+          "minimum": 1,
+          "maximum": 100
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2937,6 +4402,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Combine rational expressions over a common denominator.",
+      "compact_description": "Together Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Together Expression",
         "readOnlyHint": true,
@@ -2944,6 +4410,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -2975,6 +4452,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Simplify trigonometric expressions.",
+      "compact_description": "Trigsimp Expression deterministically without mutating derivation-session state.",
       "annotations": {
         "title": "Trigsimp Expression",
         "readOnlyHint": true,
@@ -2982,6 +4460,23 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "method": [
+          "matching",
+          "groebner",
+          "combined"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "simplify",
@@ -3009,6 +4504,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Rank candidate next steps for a derivation by relevance.",
+      "compact_description": "Rank caller-supplied next-step candidates without promoting them to trusted evidence.",
       "annotations": {
         "title": "Derivation Suggest Next",
         "readOnlyHint": true,
@@ -3016,6 +4512,17 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "suggest",
@@ -3039,6 +4546,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Explore a branching derivation tree from a DTS.",
+      "compact_description": "Task Explore through the provenance-tracked reification workflow.",
       "annotations": {
         "title": "Task Explore",
         "readOnlyHint": true,
@@ -3046,6 +4554,24 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "timeout_s",
+          "exclusiveMinimum": 0,
+          "maximum": 86400
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "task",
@@ -3065,6 +4591,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Reify a Derivation Task Spec (DTS) into an ordered plan of tool calls.",
+      "compact_description": "Task Plan through the provenance-tracked reification workflow.",
       "annotations": {
         "title": "Task Plan",
         "readOnlyHint": true,
@@ -3072,6 +4599,18 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "task",
@@ -3095,6 +4634,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Run the DTS through the reification ladder.",
+      "compact_description": "Task Run through the provenance-tracked reification workflow.",
       "annotations": {
         "title": "Task Run",
         "readOnlyHint": true,
@@ -3102,6 +4642,24 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic-ledger",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [
+        {
+          "field": "timeout_s",
+          "exclusiveMinimum": 0,
+          "maximum": 86400
+        }
+      ],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "task",
@@ -3125,6 +4683,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Check dimensional consistency of an expression.",
+      "compact_description": "Check Dimensions deterministically; a negative mathematical result is not an execution error.",
       "annotations": {
         "title": "Check Dimensions",
         "readOnlyHint": true,
@@ -3132,6 +4691,19 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "verify",
@@ -3163,6 +4735,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Verify a result by applying the reverse operation.",
+      "compact_description": "Reverse Verify deterministically; a negative mathematical result is not an execution error.",
       "annotations": {
         "title": "Reverse Verify",
         "readOnlyHint": true,
@@ -3170,6 +4743,24 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {
+        "operation": [
+          "differentiate",
+          "integrate",
+          "solve"
+        ]
+      },
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "verify",
@@ -3197,6 +4788,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Verify a derivative by computing and comparing.",
+      "compact_description": "Verify Derivative deterministically; a negative mathematical result is not an execution error.",
       "annotations": {
         "title": "Verify Derivative",
         "readOnlyHint": true,
@@ -3204,6 +4796,18 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "verify",
@@ -3227,6 +4831,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Verify that two expressions are symbolically equal.",
+      "compact_description": "Verify Equality deterministically; a negative mathematical result is not an execution error.",
       "annotations": {
         "title": "Verify Equality",
         "readOnlyHint": true,
@@ -3234,6 +4839,19 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific",
+        "workflow"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "verify",
@@ -3261,6 +4879,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Verify an integral by differentiating the result.",
+      "compact_description": "Verify Integral deterministically; a negative mathematical result is not an execution error.",
       "annotations": {
         "title": "Verify Integral",
         "readOnlyHint": true,
@@ -3268,6 +4887,18 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "verify",
@@ -3295,6 +4926,7 @@
       ],
       "returns": "dict[str, Any]",
       "summary": "Verify that a value satisfies an equation.",
+      "compact_description": "Verify Solution deterministically; a negative mathematical result is not an execution error.",
       "annotations": {
         "title": "Verify Solution",
         "readOnlyHint": true,
@@ -3302,6 +4934,18 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
+      "profiles": [
+        "full",
+        "interactive",
+        "legacy",
+        "scientific"
+      ],
+      "deprecated": false,
+      "replacement": null,
+      "provenance_mode": "deterministic",
+      "strict_unknown_fields": true,
+      "strict_enums": {},
+      "strict_numeric": [],
       "structured_output": true,
       "meta": {
         "org.nsforge/module": "verify",

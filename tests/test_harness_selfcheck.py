@@ -1,4 +1,4 @@
-"""Focused tests for the capability manifest and 12-gate harness contract."""
+"""Focused tests for the capability manifest and 14-gate harness contract."""
 
 from __future__ import annotations
 
@@ -24,11 +24,17 @@ class Registry:
 mcp = Registry()
 
 @mcp.tool()
-async def task_run(spec: dict[str, object], ctx: Context, timeout: float = 1.0) -> dict:
+async def task_run(
+    spec: dict[str, object],
+    ctx: Context,
+    scope: Annotated[ExecutionScope, Resolve(resolve_scope)],
+    timeout: float = 1.0,
+) -> dict:
     """Run an asynchronous MCP task."""
 '''
     (tmp_path / "task.py").write_text(tool_source, encoding="utf-8")
     monkeypatch.setattr(gen_capabilities, "TOOLS_DIR", tmp_path)
+    monkeypatch.setattr(gen_capabilities, "KNOWN_TOOL_NAMES", frozenset({"task_run"}))
 
     tools = gen_capabilities.collect()
 
@@ -41,17 +47,17 @@ async def task_run(spec: dict[str, object], ctx: Context, timeout: float = 1.0) 
     assert tools[0]["annotations"]["title"] == "Task Run"
 
 
-def test_capability_v3_advertises_the_live_mcp_and_harness_contract() -> None:
+def test_capability_v4_advertises_the_live_mcp_and_harness_contract() -> None:
     manifest = gen_capabilities.build()
 
-    assert manifest["schema"] == "nsforge.capabilities/v3"
+    assert manifest["schema"] == "nsforge.capabilities/v4"
     assert manifest["mcp"]["protocol_revision"] == "2026-07-28"
-    assert manifest["mcp"]["sdk_requirement"] == ">=2.1.1,<3"
+    assert manifest["mcp"]["sdk_requirement"] == "==2.1.1"
     assert manifest["mcp"]["transports"] == ["stdio", "streamable-http"]
     assert manifest["mcp"]["resources"]
     assert manifest["mcp"]["prompts"]
     assert [gate["gate"] for gate in manifest["harness"]] == check.DEFAULT_ORDER
-    assert len(check.DEFAULT_ORDER) == 12
+    assert len(check.DEFAULT_ORDER) == 14
     assert all(tool["title"] for tool in manifest["tools"])
     assert all(tool["annotations"] for tool in manifest["tools"])
     assert all(tool["structured_output"] is True for tool in manifest["tools"])

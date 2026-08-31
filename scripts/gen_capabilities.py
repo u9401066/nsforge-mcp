@@ -36,12 +36,14 @@ import check  # noqa: E402
 # share the same metadata as the runtime without importing or starting the server.
 sys.path.insert(0, str(REPO / "src"))
 from nsforge_mcp.tool_contract import (  # noqa: E402
+    KNOWN_TOOL_NAMES,
     MCP_PROTOCOL_REVISION,
     MCP_SDK_REQUIREMENT,
     MCP_TRANSPORTS,
     PROMPT_NAMES,
     RESOURCE_URIS,
-    contract_for,
+    profile_manifest,
+    spec_for,
     tool_meta,
 )
 
@@ -124,12 +126,31 @@ def _annotation_name(annotation: ast.expr | None) -> str:
     return ""
 
 
+def _is_injected_parameter(annotation: ast.expr | None) -> bool:
+    """Recognize MCP Context and ``Annotated[..., Resolve(...)]`` injection."""
+    if _annotation_name(annotation) == "Context":
+        return True
+    if (
+        not isinstance(annotation, ast.Subscript)
+        or _annotation_name(annotation.value) != "Annotated"
+    ):
+        return False
+    elements = (
+        annotation.slice.elts if isinstance(annotation.slice, ast.Tuple) else [annotation.slice]
+    )
+    for metadata in elements[1:]:
+        target = metadata.func if isinstance(metadata, ast.Call) else metadata
+        if _annotation_name(target) == "Resolve":
+            return True
+    return False
+
+
 def _params(fn: FunctionNode) -> list[dict[str, str | None]]:
     """Collect public tool inputs, excluding MCP's injected ``Context``."""
     out = []
     arguments = [*fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs]
     for arg in arguments:
-        if arg.arg in {"self", "cls"} or _annotation_name(arg.annotation) == "Context":
+        if arg.arg in {"self", "cls"} or _is_injected_parameter(arg.annotation):
             continue
         out.append(
             {
@@ -150,7 +171,8 @@ def collect() -> list[dict]:
             ):
                 doc = ast.get_docstring(node) or ""
                 summary = next((ln.strip() for ln in doc.splitlines() if ln.strip()), "")
-                contract = contract_for(node.name, path.stem)
+                spec = spec_for(node.name, path.stem)
+                contract = spec.contract
                 tools.append(
                     {
                         "name": node.name,
@@ -159,12 +181,29 @@ def collect() -> list[dict]:
                         "params": _params(node),
                         "returns": ast.unparse(node.returns) if node.returns else None,
                         "summary": summary,
+                        "compact_description": spec.description,
                         "annotations": contract.annotations_dict(),
+                        "profiles": sorted(spec.profiles),
+                        "deprecated": spec.deprecated,
+                        "replacement": spec.replacement,
+                        "provenance_mode": spec.provenance_mode,
+                        "strict_unknown_fields": bool(
+                            spec.profiles & {"workflow", "scientific", "interactive"}
+                        ),
+                        "strict_enums": {name: list(values) for name, values in spec.strict_enums},
+                        "strict_numeric": [rule.manifest_dict() for rule in spec.strict_numeric],
                         "structured_output": True,
                         "meta": tool_meta(path.stem),
                     }
                 )
     tools.sort(key=lambda t: (t["module"], t["name"]))
+    discovered = {str(tool["name"]) for tool in tools}
+    if discovered != KNOWN_TOOL_NAMES:
+        raise RuntimeError(
+            "ToolSpec/AST catalog drift: "
+            f"missing={sorted(KNOWN_TOOL_NAMES - discovered)}, "
+            f"extra={sorted(discovered - KNOWN_TOOL_NAMES)}"
+        )
     return tools
 
 
@@ -174,7 +213,7 @@ def build() -> dict:
     optional = _optional_modules()
     default_tools = [t for t in tools if t["module"] not in optional]
     return {
-        "schema": "nsforge.capabilities/v3",
+        "schema": "nsforge.capabilities/v4",
         "version": _project_version(),
         "north_star": NORTH_STAR,
         "mcp": {
@@ -192,8 +231,16 @@ def build() -> dict:
                 "prompts",
                 "progress_notifications",
                 "legacy_client_mode",
+                "tool_profiles",
+                "strict_input_validation",
+                "resource_links",
+                "resource_subscriptions",
+                "resolve_injection",
+                "immutable_run_artifact_resources",
+                "opentelemetry_correlation",
             ],
         },
+        "profiles": profile_manifest(),
         "tool_count": len(tools),
         "default_tool_count": len(default_tools),
         "modules": modules,

@@ -30,13 +30,18 @@ from nsforge_mcp.tool_contract import (
     MCP_PROTOCOL_REVISION,
     PROMPT_NAMES,
     RESOURCE_URIS,
+    TOOL_PROFILES,
     contract_for,
+    profile_tool_names,
+    spec_for,
     tool_meta,
 )
 
 REPO = Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "docs" / "agent" / "capabilities.json"
 MUSIC_ENV = "NSFORGE_ENABLE_MUSIC"
+PROFILE_ENV = "NSFORGE_TOOL_PROFILE"
+RUN_DB_ENV = "NSFORGE_RUN_DB"
 EXPECTED_MCP_SDK = "2.1.1"
 EXPECTED_DEFAULT_COUNT = 82
 EXPECTED_FULL_COUNT = 91
@@ -115,13 +120,31 @@ def _music_setting(enabled: bool) -> Any:
             os.environ[MUSIC_ENV] = previous
 
 
-def _create_server(*, music: bool) -> Any:
+def _create_server(*, music: bool, profile: str | None = None) -> Any:
     # Import lazily while the deterministic environment override is active: the
     # module also constructs its backwards-compatible global ``mcp`` instance.
-    with _music_setting(music):
-        from nsforge_mcp.server import create_server
+    previous_profile = os.environ.get(PROFILE_ENV)
+    previous_run_db = os.environ.get(RUN_DB_ENV)
+    if profile is None:
+        os.environ.pop(PROFILE_ENV, None)
+    else:
+        os.environ[PROFILE_ENV] = profile
+    # Contract probes must never leave a runtime database in the checkout.
+    os.environ[RUN_DB_ENV] = ":memory:"
+    try:
+        with _music_setting(music):
+            from nsforge_mcp.server import create_server
 
-        return create_server()
+            return create_server()
+    finally:
+        if previous_profile is None:
+            os.environ.pop(PROFILE_ENV, None)
+        else:
+            os.environ[PROFILE_ENV] = previous_profile
+        if previous_run_db is None:
+            os.environ.pop(RUN_DB_ENV, None)
+        else:
+            os.environ[RUN_DB_ENV] = previous_run_db
 
 
 def _expected_names(
@@ -352,6 +375,13 @@ async def _validate_result_payloads(client: Client[Any], problems: list[str]) ->
         f"task progress notifications missing or malformed: {progress_events}",
         problems,
     )
+    task_links = [item for item in task.content if getattr(item, "type", None) == "resource_link"]
+    _require(bool(task_links), "task result omitted additive MCP ResourceLinks", problems)
+    _require(
+        "_resource_links" not in (task.structured_content or {}),
+        "task result leaked its internal ResourceLink sentinel",
+        problems,
+    )
 
 
 async def _validate_primitives(client: Client[Any], problems: list[str]) -> None:
@@ -399,8 +429,8 @@ async def _validate_primitives(client: Client[Any], problems: list[str]) -> None
     except json.JSONDecodeError:
         resource_manifest = {}
     _require(
-        resource_manifest.get("schema") == "nsforge.capabilities/v3",
-        "manifest resource is not capability schema v3",
+        resource_manifest.get("schema") == "nsforge.capabilities/v4",
+        "manifest resource is not capability schema v4",
         problems,
     )
 
@@ -421,6 +451,7 @@ async def _verify_modern_server(
     *,
     surface: str,
     music: bool,
+    profile: str,
     expected_count: int,
     check_primitives: bool,
     problems: list[str],
@@ -463,6 +494,16 @@ async def _verify_modern_server(
         _require(
             health.get("active_tool_count") == len(listed.tools),
             f"{surface}: health active-tool count differs from tools/list",
+            problems,
+        )
+        _require(
+            health.get("tool_profile") == profile,
+            f"{surface}: health profile {health.get('tool_profile')!r} != {profile!r}",
+            problems,
+        )
+        _require(
+            health.get("active_tool_names") == sorted(tool.name for tool in listed.tools),
+            f"{surface}: health active names differ from tools/list",
             problems,
         )
         _require(
@@ -511,11 +552,197 @@ async def _verify_legacy_client(server: Any, problems: list[str]) -> None:
         )
 
 
+async def _verify_profile_surfaces(problems: list[str]) -> None:
+    """Verify exact compact discovery and strict input behavior."""
+    for profile in TOOL_PROFILES:
+        if profile in {"legacy", "full"}:
+            continue
+        server = _create_server(music=False, profile=profile)
+        async with Client(server, mode=MCP_PROTOCOL_REVISION, raise_exceptions=True) as client:
+            listed = await client.list_tools()
+            actual = {tool.name for tool in listed.tools}
+            expected = set(profile_tool_names(profile))
+            _require(
+                actual == expected,
+                f"profile/{profile}: exact names differ "
+                f"(missing={sorted(expected - actual)}, extra={sorted(actual - expected)})",
+                problems,
+            )
+            _require(
+                all(
+                    tool.input_schema.get("additionalProperties") is False for tool in listed.tools
+                ),
+                f"profile/{profile}: strict schemas do not forbid unknown fields",
+                problems,
+            )
+            _require(
+                all(tool.description == spec_for(tool.name).description for tool in listed.tools),
+                f"profile/{profile}: concise ToolSpec descriptions differ",
+                problems,
+            )
+            _require(
+                all(
+                    isinstance(schema.get("description"), str)
+                    and bool(schema["description"].strip())
+                    for tool in listed.tools
+                    for schema in tool.input_schema.get("properties", {}).values()
+                ),
+                f"profile/{profile}: input property description missing",
+                problems,
+            )
+            common_outcomes = {
+                "success",
+                "execution_status",
+                "verification_status",
+                "run_id",
+                "correlation_id",
+                "resources",
+                "error",
+            }
+            _require(
+                all(
+                    tool.output_schema is not None
+                    and tool.output_schema.get("additionalProperties") is True
+                    and common_outcomes <= set(tool.output_schema.get("properties", {}))
+                    for tool in listed.tools
+                ),
+                f"profile/{profile}: common outcome schema missing",
+                problems,
+            )
+            _require(
+                all(
+                    (tool.meta or {}).get("org.nsforge/profile") == profile for tool in listed.tools
+                ),
+                f"profile/{profile}: runtime profile metadata differs",
+                problems,
+            )
+            _require(
+                not {"nsforge_health", "nsforge_manifest", "derivation_get_saved"} & actual,
+                f"profile/{profile}: compact surface duplicated resource-first read aliases",
+                problems,
+            )
+            health_result = await client.read_resource("nsforge://health")
+            health_text = getattr(health_result.contents[0], "text", "")
+            try:
+                health = json.loads(health_text)
+            except json.JSONDecodeError:
+                health = {}
+            _require(
+                health.get("tool_profile") == profile,
+                f"profile/{profile}: health profile differs",
+                problems,
+            )
+            _require(
+                health.get("active_tool_names") == sorted(expected),
+                f"profile/{profile}: health names differ",
+                problems,
+            )
+            _require(
+                health.get("tenant_scope_mode") == "local"
+                and "tenant_id" not in health
+                and "tenant" not in health,
+                f"profile/{profile}: health leaked tenant identity or omitted scope mode",
+                problems,
+            )
+
+            if profile == "workflow":
+                task_run = next(tool for tool in listed.tools if tool.name == "task_run")
+                spec_schema = task_run.input_schema.get("properties", {}).get("spec", {})
+                nested = spec_schema.get("properties", {})
+                _require(
+                    spec_schema.get("additionalProperties") is False
+                    and {
+                        "name",
+                        "goal",
+                        "unknowns",
+                        "base_formulas",
+                        "modifications",
+                        "alternatives",
+                        "acceptance",
+                    }
+                    <= set(nested),
+                    "profile/workflow: strict nested DTS schema missing",
+                    problems,
+                )
+                unknown = await client.call_tool(
+                    "calculate_limit",
+                    {
+                        "expression": "x",
+                        "variable": "x",
+                        "point": "0",
+                        "unexpected": True,
+                    },
+                )
+                _require(
+                    unknown.is_error is True
+                    and isinstance(unknown.structured_content, dict)
+                    and unknown.structured_content.get("error_code") == "validation",
+                    "profile/workflow: unknown input field was not rejected",
+                    problems,
+                )
+                invalid_enum = await client.call_tool(
+                    "calculate_limit",
+                    {
+                        "expression": "x",
+                        "variable": "x",
+                        "point": "0",
+                        "direction": "sideways",
+                    },
+                )
+                _require(
+                    invalid_enum.is_error is True
+                    and isinstance(invalid_enum.structured_content, dict)
+                    and invalid_enum.structured_content.get("error_code") == "validation",
+                    "profile/workflow: invalid enum was not rejected",
+                    problems,
+                )
+                invalid_numeric = await client.call_tool(
+                    "task_run",
+                    {
+                        "spec": {
+                            "name": "invalid-timeout",
+                            "goal": "derive an identity",
+                            "unknowns": ["y"],
+                            "base_formulas": ["y = x"],
+                        },
+                        "timeout_s": 0,
+                    },
+                )
+                _require(
+                    invalid_numeric.is_error is True
+                    and isinstance(invalid_numeric.structured_content, dict)
+                    and invalid_numeric.structured_content.get("error_code") == "validation",
+                    "profile/workflow: invalid numeric range was not rejected",
+                    problems,
+                )
+                invalid_nested = await client.call_tool(
+                    "task_plan",
+                    {
+                        "spec": {
+                            "name": "invalid-nested",
+                            "goal": "derive an identity",
+                            "unknowns": ["y"],
+                            "base_formulas": ["y = x"],
+                            "modifications": [{"id": "m1", "unexpected": True}],
+                        }
+                    },
+                )
+                _require(
+                    invalid_nested.is_error is True
+                    and isinstance(invalid_nested.structured_content, dict)
+                    and invalid_nested.structured_content.get("error_code") == "validation",
+                    "profile/workflow: unknown nested DTS field was not rejected",
+                    problems,
+                )
+
+
 async def _verify_stdio_subprocess(problems: list[str]) -> None:
     """Exercise real JSON-RPC framing and prove stdout stays protocol-clean."""
     stdio_env = dict(os.environ)
     stdio_env.pop(MUSIC_ENV, None)
+    stdio_env.pop(PROFILE_ENV, None)
     stdio_env["NSFORGE_MCP_TRANSPORT"] = "stdio"
+    stdio_env[RUN_DB_ENV] = ":memory:"
     params = StdioServerParameters(
         command=sys.executable,
         args=["-m", "nsforge_mcp.server"],
@@ -558,8 +785,8 @@ async def verify_contract() -> list[str]:
         problems,
     )
     _require(
-        manifest.get("schema") == "nsforge.capabilities/v3",
-        f"manifest schema {manifest.get('schema')!r} != nsforge.capabilities/v3",
+        manifest.get("schema") == "nsforge.capabilities/v4",
+        f"manifest schema {manifest.get('schema')!r} != nsforge.capabilities/v4",
         problems,
     )
 
@@ -569,6 +796,7 @@ async def verify_contract() -> list[str]:
         manifest,
         surface="default",
         music=False,
+        profile="legacy",
         expected_count=EXPECTED_DEFAULT_COUNT,
         check_primitives=True,
         problems=problems,
@@ -576,16 +804,27 @@ async def verify_contract() -> list[str]:
     await _verify_legacy_client(default_server, problems)
     await _verify_stdio_subprocess(problems)
 
-    full_server = _create_server(music=True)
+    full_server = _create_server(music=False, profile="full")
     await _verify_modern_server(
         full_server,
         manifest,
         surface="full",
         music=True,
+        profile="full",
         expected_count=EXPECTED_FULL_COUNT,
         check_primitives=False,
         problems=problems,
     )
+    legacy_music = _create_server(music=True)
+    async with Client(legacy_music, mode=MCP_PROTOCOL_REVISION, raise_exceptions=True) as client:
+        listed = await client.list_tools()
+        _require(
+            len(listed.tools) == EXPECTED_FULL_COUNT
+            and _contract_hash(listed.tools) == EXPECTED_CONTRACT_HASHES["full"],
+            "legacy + NSFORGE_ENABLE_MUSIC=1 no longer preserves the 91-tool full contract",
+            problems,
+        )
+    await _verify_profile_surfaces(problems)
     return problems
 
 
@@ -605,8 +844,8 @@ def main() -> int:
 
     print(
         "MCP contract ok: SDK 2.1.1 / protocol 2026-07-28, "
-        "82 default + 91 full tools, v0.2.4 schemas preserved, "
-        "structured payloads/progress/resources/prompts/cache/legacy mode verified"
+        "82 legacy + 91 full contracts preserved; strict profiles, structured "
+        "payloads, progress, resources, prompts, and legacy mode verified"
     )
     return 0
 

@@ -6,11 +6,11 @@ asserts the invariants that keep NSForge's self-description honest, so an agent
 can rely on it:
 
   1. version parity — pyproject and both package literals agree
-  2. gate parity — the manifest is schema v3 and its advertised gate list
+  2. gate parity — the manifest is schema v4 and its advertised gate list
      matches check.py (the live source of truth)
-  3. self-describing tools — every tool has typed inputs and MCP 2 metadata
+  3. self-describing tools — every tool has typed inputs, profiles, and MCP 2 metadata
   4. dependency parity — pyproject, runtime constant, and manifest agree on MCP
-  5. no doc drift — AGENTS.md's "Gates:" line documents every gate
+  5. no doc drift — AGENTS.md's "Gates:" paragraph documents every gate
 
 Exit 0 = all invariants hold; nonzero prints the specific violations.
 """
@@ -77,8 +77,8 @@ def main() -> int:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     # 2. gate parity
-    if manifest.get("schema") != "nsforge.capabilities/v3":
-        problems.append(f"manifest schema {manifest.get('schema')!r} != nsforge.capabilities/v3")
+    if manifest.get("schema") != "nsforge.capabilities/v4":
+        problems.append(f"manifest schema {manifest.get('schema')!r} != nsforge.capabilities/v4")
     manifest_gates = [g["gate"] for g in manifest.get("harness", [])]
     if manifest_gates != check.DEFAULT_ORDER:
         problems.append(f"manifest gates {manifest_gates} != check.py {check.DEFAULT_ORDER}")
@@ -98,6 +98,33 @@ def main() -> int:
     for key in ("sdk_requirement", "transports", "resources", "prompts", "features"):
         if not mcp_contract.get(key):
             problems.append(f"manifest MCP contract missing {key!r}")
+    required_features = {
+        "tool_profiles",
+        "strict_input_validation",
+        "resource_links",
+        "resource_subscriptions",
+        "resolve_injection",
+        "immutable_run_artifact_resources",
+        "opentelemetry_correlation",
+    }
+    missing_features = required_features - set(mcp_contract.get("features", []))
+    if missing_features:
+        problems.append(f"manifest MCP contract missing features: {sorted(missing_features)}")
+
+    expected_profile_counts = {
+        "legacy": 82,
+        "workflow": 17,
+        "scientific": 35,
+        "interactive": 35,
+        "full": 91,
+    }
+    actual_profile_counts = {
+        name: profile.get("tool_count") for name, profile in manifest.get("profiles", {}).items()
+    }
+    if actual_profile_counts != expected_profile_counts:
+        problems.append(
+            f"manifest profile counts {actual_profile_counts} != {expected_profile_counts}"
+        )
 
     # The manifest generator uses a runtime constant for import-safe discovery;
     # guard that duplicate against the packaging source of truth.
@@ -132,16 +159,29 @@ def main() -> int:
                 problems.append(f"tool {tool.get('name')!r} has no boolean {hint}")
         if tool.get("meta", {}).get("org.nsforge/protocolRevision") != "2026-07-28":
             problems.append(f"tool {tool.get('name')!r} has stale MCP _meta")
+        if not tool.get("profiles"):
+            problems.append(f"tool {tool.get('name')!r} has no tool-profile membership")
+        if not tool.get("provenance_mode"):
+            problems.append(f"tool {tool.get('name')!r} has no provenance mode")
         for param in tool.get("params", []):
             if not param.get("type"):
                 problems.append(f"tool {tool.get('name')!r} param {param.get('name')!r} is untyped")
 
-    # 5. no doc drift — AGENTS.md documents every gate on its "Gates:" line
+    # 5. no doc drift — AGENTS.md documents every gate in its "Gates:" paragraph
     agents_text = AGENTS.read_text(encoding="utf-8") if AGENTS.exists() else ""
-    gate_line = next((ln for ln in agents_text.splitlines() if ln.strip().startswith("Gates:")), "")
+    gate_lines: list[str] = []
+    collecting = False
+    for line in agents_text.splitlines():
+        if line.strip().startswith("Gates:"):
+            collecting = True
+        if collecting:
+            if not line.strip():
+                break
+            gate_lines.append(line.strip())
+    gate_line = " ".join(gate_lines)
     for gate in check.DEFAULT_ORDER:
         if gate not in gate_line:
-            problems.append(f"AGENTS.md 'Gates:' line does not list {gate!r}")
+            problems.append(f"AGENTS.md 'Gates:' paragraph does not list {gate!r}")
 
     if problems:
         print("FAIL harness self-check:")
