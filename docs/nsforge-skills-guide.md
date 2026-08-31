@@ -54,7 +54,10 @@
 
 ### 為什麼需要 Skills？
 
-NSForge 提供 **91 個 MCP tools（預設載入 82；music 9 個 opt-in）**，沒有工作流指引時會造成：
+NSForge v0.4 保留 **91 個 MCP tools catalog** 與 **82-tool legacy 預設面**，
+但 agent 應優先以 `NSFORGE_TOOL_PROFILE=workflow` 啟動 **17-tool** 精簡工作面；
+只有確實需要額外能力時才改用 `scientific`／`interactive`（各 35）或 `full`（91）。
+沒有工作流指引時仍可能造成：
 - 🤯 工具太多，不知道從哪開始
 - 🔄 工具使用順序混亂
 - ❌ 忘記關鍵步驟（如驗證、存檔）
@@ -64,14 +67,17 @@ NSForge 提供 **91 個 MCP tools（預設載入 82；music 9 個 opt-in）**，
 2. 工具的正確調用順序
 3. 每步的成功/失敗處理
 
-### MCP 2.1 discovery（v0.3.0）
+### MCP 2.1 discovery（v0.4.0）
 
 連線後可先讀 `nsforge://health` 與 `nsforge://manifest`，或使用
 `forge_verified_derivation` prompt 建立 provenance-first 工作流。每個 tool 都有
 title、icon、read-only／destructive／idempotent／open-world annotations，以及
 `org.nsforge/*` metadata。回應同時提供文字與 `structuredContent`；應用層錯誤會設
 `isError=true`，但既有錯誤欄位保持不變。`task_run`／`task_explore` 會回報 MCP
-progress，因此 agent 不需自行猜測長任務是否仍在執行。
+progress，因此 agent 不需自行猜測長任務是否仍在執行。讀取既有 session 時使用
+`nsforge://sessions/{session_id}`；strict workflow 完成後，沿回應中的 MCP
+`ResourceLink` 讀取 `nsforge://runs/{run_id}`、run events 與 content-addressed
+`nsforge://artifacts/{sha256}`，不要把內嵌文字當成 trusted artifact。
 若 HTTP 部署啟用 `NSFORGE_MCP_HTTP_JSON_RESPONSE=1`，request-scoped progress 沒有
 串流通道；需要這些通知時應保留預設 streaming response。
 

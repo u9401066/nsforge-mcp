@@ -11,7 +11,7 @@ NSForge is an [MCP](https://modelcontextprotocol.io/) server that *forges* new f
 [![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP%20SDK-2.1.1-purple.svg)](https://modelcontextprotocol.io/)
 [![Tools](https://img.shields.io/badge/MCP%20tools-91-8b5cf6.svg)](docs/tools-reference.md)
-[![Harness](https://img.shields.io/badge/verification-12%20gates-brightgreen.svg)](#-verification-harness)
+[![Harness](https://img.shields.io/badge/verification-14%20gates-brightgreen.svg)](#-verification-harness)
 
 🌐 **English** | [繁體中文](README.zh-TW.md)
 
@@ -124,20 +124,53 @@ uv run python -c "import nsforge; print(nsforge.__version__)"
 }
 ```
 
-### MCP 2.1 contract
+### MCP 2.1 contract and tool profiles
 
-NSForge 0.3.0 runs on the stable MCP Python SDK 2.1.1 and protocol revision
-`2026-07-28`. The existing 91-tool catalog and response dictionaries remain
-compatible, while MCP 2 clients also receive:
+NSForge 0.4.0 exactly pins the stable MCP Python SDK 2.1.1 and protocol revision
+`2026-07-28`. The 91-tool catalog and legacy response dictionaries remain
+compatible. A fixed startup profile keeps discovery focused without deleting a
+capability:
 
-- `structured_output=True` is now explicit while preserving the existing
+| `NSFORGE_TOOL_PROFILE` | Tools | Intended use |
+| --- | ---: | --- |
+| `legacy` _(default)_ | 82 | v0.3-compatible surface; `NSFORGE_ENABLE_MUSIC=1` still expands it to 91 |
+| `workflow` | 17 | Recommended resource-first, strict agent workflow |
+| `scientific` | 35 | Stateless symbolic calculation, simplification, and verification |
+| `interactive` | 35 | Workflow plus session editing and handoff operations |
+| `full` | 91 | Complete compatibility/discovery surface, including music |
+
+Profiles are frozen when the server starts; an unknown value fails closed.
+Compact profiles reject unknown fields and enforce declared enum and numeric
+constraints. Their concise descriptions come from the central `ToolSpec`
+registry, which also drives runtime metadata and the capability manifest.
+The machine-readable manifest is schema v4.
+
+MCP 2 clients also receive:
+
+- explicit `structured_output=True` while preserving the existing
   `structuredContent` + text dual channel;
-- protocol `isError` on application failures, without changing the legacy error body;
+- protocol `isError` on application failures without changing the legacy body;
 - a title, icon, behavioral annotations, and namespaced `_meta` on every tool;
-- `nsforge://manifest`, `nsforge://health`, `nsforge://north-star`, and the
-  `nsforge://derivations/{result_id}` saved-derivation resource template;
-- the `forge_verified_derivation` prompt, cache hints for stable discovery lists,
-  and progress notifications from `task_run` / `task_explore`.
+- `nsforge://manifest`, `nsforge://health`, `nsforge://north-star`, the
+  `nsforge://derivations/{result_id}` compatibility resource, and immutable
+  `nsforge://runs/{run_id}`, `nsforge://runs/{run_id}/events`, detached
+  `nsforge://sessions/{session_id}`, and `nsforge://artifacts/{sha256}` resource
+  templates;
+- phase-event-driven progress, `ResourceLink` blocks for completed runs and
+  verification-bound artifacts, resource-updated notifications, and
+  OpenTelemetry tool/session/run correlation.
+
+The compact workflow uses an allowlisted no-eval expression parser. Strict task
+runs atomically persist immutable tenant-scoped runs, ordered phase events,
+provenance nodes, verification evidence, and content-addressed artifacts through
+a SQLite Unit of Work. Verification failure, missing or stale evidence, caller
+assertion, wrong tenant/subject digest, or incomplete provenance blocks artifact
+code generation.
+
+Relevant process settings are `NSFORGE_TENANT_ID` (default `local`),
+`NSFORGE_RUN_DB` (default `data/nsforge-strict.sqlite3`), and
+`NSFORGE_ARTIFACT_ROOT` (default `./artifacts`). Tenant IDs are opaque slugs;
+output paths must resolve inside the artifact root.
 
 stdio remains the default. To opt in to a loopback Streamable HTTP endpoint:
 
@@ -164,13 +197,23 @@ uv run nsforge-mcp
 Browser clients must also set an exact `NSFORGE_MCP_ALLOWED_ORIGINS` list. An
 empty Origin allowlist accepts non-browser requests with no `Origin` header and
 rejects every supplied Origin. These checks are not authentication: put remote
-HTTP behind real authentication, authorization, and TLS. Process-wide sessions
-and saved results form one trust boundary, so run one instance per tenant and
-pass an explicit `session_id` to every stateful derivation call in multi-client
-deployments. Stateful derivations are single-process/single-replica in v0.3.0;
-do not place replicas behind a load balancer without a shared durable store and
-distributed locking. `NSFORGE_MCP_HTTP_JSON_RESPONSE=1` is opt-in and cannot
+HTTP behind real authentication, authorization, and TLS. `NSFORGE_TENANT_ID`
+scopes strict run/resource lookups, but it is process configuration rather than
+caller authentication. Without a trusted IdP or principal resolver, one server
+instance remains one tenant trust boundary. Legacy sessions and saved results
+still use process globals plus JSON/YAML compatibility storage, so pass an
+explicit `session_id` to every stateful legacy call. Neither compatibility
+state nor the strict SQLite store is shared across replicas; horizontal scaling
+requires shared state, artifact storage, and distributed coordination.
+`NSFORGE_MCP_HTTP_JSON_RESPONSE=1` is opt-in and cannot
 stream request-scoped progress; leave its default `0` for progress notifications.
+
+MCP Tasks is not implemented by Python SDK 2.1.1, so NSForge does not advertise
+a private imitation. Cancelling an await around `asyncio.to_thread` cannot stop
+the worker thread; NSForge therefore never emits a false terminal progress event,
+while calls with `timeout_s` continue to use a terminable process. That isolated
+process persists the same canonical phase events but replays their progress only
+after it returns; live per-phase delivery is the default non-timeout path.
 
 ---
 
@@ -212,8 +255,8 @@ flowchart TD
 ```
 
 - `task_plan` — reify a DTS into an ordered, provenance-tagged plan
-- `task_run` — run the ladder end-to-end (optional hard `timeout_s`; reports MCP progress)
-- `task_explore` — branching search returning **all** verified candidates (reports MCP progress)
+- `task_run` — run the ladder end-to-end; return run/artifact links and phase progress (optional hard `timeout_s`)
+- `task_explore` — return **all** branches with immutable evidence and linked artifacts
 
 > 📖 [General-formula-exploration roadmap](docs/general-formula-exploration-roadmap.md)
 
@@ -237,7 +280,7 @@ stateDiagram-v2
 
 ---
 
-## 🛠️ Tools at a glance — 91 tools · 82 loaded by default
+## 🛠️ Tools at a glance — 91 catalog tools · 17 in the recommended workflow profile
 
 | Module | # | What it does |
 | ------ | :-: | ------------ |
@@ -250,7 +293,7 @@ stateDiagram-v2
 | 📝 Expression | 3 | Parse, validate, extract symbols |
 | 🧭 Task orchestration | 3 | `task_plan` / `task_run` / `task_explore` |
 | 🧭 Suggester | 1 | Retrieval-augmented next-step ranking |
-| 🎵 Music _(opt-in)_ | 9 | Symbolic tones → waveform, spectrum, WAV — set `NSFORGE_ENABLE_MUSIC=1` |
+| 🎵 Music _(full or legacy opt-in)_ | 9 | Symbolic tones → waveform, spectrum, WAV |
 | 🧩 Runtime self-description | 2 | `nsforge_health` · `nsforge_manifest` (agent harness) |
 
 > 📖 **Full list with every tool:** [Tool Reference](docs/tools-reference.md) · machine-readable [`capabilities.json`](docs/agent/capabilities.json)
@@ -259,16 +302,18 @@ stateDiagram-v2
 
 ## ✅ Verification harness
 
-One command is the ground truth. `python scripts/check.py` runs **12 gates** — a green run is the definition of "done".
+One command is the ground truth. `python scripts/check.py` runs **14 gates** — a green run is the definition of "done".
 
 ```
-lint · format · type · import · manifest · mcp · test · bench · generic · provenance · harness · diff
+lint · format · type · security · import · manifest · mcp · test · bench · generic · provenance · package · harness · diff
 ```
 
 - **mcp** — MCP 2.1 discovery, schemas, metadata, payload compatibility, resources, prompts, and legacy-client mode
+- **security** — no high-severity Bandit finding in executable source
 - **bench** — known derivations reproduce correctly
 - **generic** — *unseen*, randomly-composed formulas derive correctly (proves NSForge is a derivation *calculus*, not a hand-built library)
 - **provenance** — every benchmark derivation carries a complete tool-provenance ledger (no hand-derived leaks)
+- **package** — build sdist/wheel, inspect runtime assets, install in isolation, and smoke-test installed MCP
 - **harness** — version, manifest, and gate/document parity guard the verifier itself
 
 ```bash
@@ -323,7 +368,7 @@ DDD with a pure domain core and a replaceable MCP layer (`nsforge` core has **no
 ```bash
 uv sync --all-extras     # set up
 uv run pytest            # tests
-python scripts/check.py  # full harness (12 gates)
+python scripts/check.py  # full harness (14 gates)
 uv run nsforge-mcp       # start the server
 ```
 

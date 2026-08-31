@@ -2,6 +2,32 @@
 
 ## Done
 
+### 🔐 v0.4.0：Trusted workflow／tool profiles／immutable resources (2026-08-31)
+
+- ✅ Release 精確 pin `mcp==2.1.1`；manifest 升 schema v4；harness 12→14，新增
+  `security` 與 isolated `package` build/install/MCP smoke。
+- ✅ 保留 91 catalog、legacy 82 預設與舊 payload；新增 startup-frozen
+  workflow 17、scientific 35、interactive 35、full 91 profiles。`ToolSpec` 統一
+  descriptions、metadata、deprecation、profile membership 與 strict constraints。
+- ✅ Compact profiles 拒絕 unknown fields 並實作已宣告 enum／range；
+  `symbolic_equal` 保留為 `verify_equality` deprecated alias，無功能消失。
+- ✅ 所有 caller expression 改走 allowlisted no-eval AST parser；拒絕 import／attribute／
+  lambda／comprehension／dynamic callable，並限制 eager exponent／combinatorial literal；
+  repository category 與 music／artifact paths 防 traversal／absolute／symlink escape，
+  music root 在工具註冊時凍結。
+- ✅ Strict provenance kernel：immutable run／ordered phase events／provenance DAG／
+  verification evidence／content-addressed artifacts。Codegen 要求 kernel pass evidence、
+  tenant／subject／revision／policy 一致與 complete DAG；caller assertion 不可晉升 trusted。
+- ✅ Application `RunStore` / Unit of Work port + SQLite WAL／foreign keys／optimistic
+  revision adapter；run／events／nodes／evidence／artifact bytes 單一 transaction commit／rollback。
+- ✅ MCP 新增 `nsforge://runs/{run_id}`、`.../events`、
+  `nsforge://sessions/{session_id}`、`nsforge://artifacts/{sha256}` resources、
+  `ResourceLink`、resource-updated notifications、
+  phase-event progress 與 OTel tool／session／run／tenant／correlation attrs/events。
+- ✅ 邊界文件化：legacy process globals／JSON／YAML 仍是相容層；strict SQLite
+  不跨 replicas；無 IdP 時一 instance／tenant；thread cancellation 無法殺 worker；
+  SDK 2.1.1 尚無 MCP Tasks。
+
 ### 🚀 v0.3.0：MCP Python SDK 2.1.1 stable 遷移 (2026-08-31)
 
 - ✅ Runtime 對齊 MCP `2026-07-28`：`FastMCP` → `MCPServer`，stdio 仍為預設，新增預設 loopback 的 opt-in Streamable HTTP；所有 HTTP 都驗證 Host／Origin，remote 需明確旗標、Host allowlist 與外部 auth/TLS
@@ -18,7 +44,7 @@
 ### 🏭 生產級強化：tool 收斂 + wheel 打包 + 可觀測性 (2026-07-08)
 - ✅ **收斂**：`music` 改 opt-in（`config.py` `module_enabled` + `NSFORGE_ENABLE_MUSIC`），預設面 91→82；manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報 active vs catalog；selfcheck 亦查 `nsforge_mcp.__version__`（第三份）與 optional metadata（58c855c）
 - ✅ **打包**：hatch force-include 把 `capabilities.json` 打進 wheel（`nsforge_mcp/capabilities.json`），`uvx` 安裝也能自描述；meta 解析 repo→packaged；建 wheel 驗證含之（300758d）
-- ✅ **可觀測性**：server stderr 結構化啟動日誌（stdout 留給 stdio 協定）＋`NSFORGE_LOG_LEVEL` ＋ `website_url`／版本 metadata；test_server（ea1b66f）
+- ✅ **可觀測性**：server stderr 啟動日誌（stdout 留給 stdio 協定）＋`NSFORGE_LOG_LEVEL` ＋ `website_url`／版本 metadata；test_server（ea1b66f）
 - ✅ 判斷：91 多數為單一職責、可自描述的獨立符號運算，不宜硬併；只收斂任務外圍 music。harness 11/11
 ### 🧩 Agent harness 完整化：自描述 + 自守衛 (2026-07-08)
 - ✅ **Stage A** manifest v2（`gen_capabilities.py`）：除工具外自描述 version／north_star／module_summaries／live gate 清單（匯自 `check.py`）／commands——單一機讀契約（61ffdcd）
@@ -177,14 +203,14 @@
 
 ## Doing
 
-- 🚧 v0.4.0 trusted workflow：安全 parser、路徑 containment、verification-gated codegen
-- 🚧 strict provenance kernel：immutable run／phase event／verification evidence／artifact + SQLite UoW
-- 🚧 MCP tool profiles：legacy 82／full 91 保留，新增 workflow／scientific／interactive compact surfaces
-- 🚧 MCP 2 primitives：run／artifact resources、ResourceLink、progress／subscription／OTel 共用事件流
-- 🚧 完整回歸、文件／Memory Bank、分段 release commits 與 push
+- （無）
 
 ## Next
 
-- 監測 MCP 2.x client 互通性，特別是 structured dual channel、resources 與 prompt。
-- 若需對外網路部署 Streamable HTTP，除 Host／Origin allowlists 外，先設計 OAuth／外部 IdP 與租戶邊界；transport 防護不當作身分驗證。
-- 待 Python SDK 穩定支援 MCP Tasks 後再另案評估。
+- 漸進將 legacy session JSON I/O／process globals 移到 application／infrastructure，收斂完整
+  materialization state，不做 big-bang 重寫。
+- 多 replica 前建立 shared DB／artifact backend／distributed coordination／trusted
+  principal resolver；對外 HTTP 另接 IdP／authorization／TLS。
+- 新增獨立 pseudocode human-approval revision，並漸進引導 legacy codegen 到 trusted artifacts。
+- 持續驗證 MCP 2.x clients 對 compact schemas、ResourceLink 與 subscriptions 的互通；
+  SDK 真正實作 MCP Tasks 後再另案評估。

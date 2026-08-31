@@ -11,7 +11,7 @@ NSForge 是一個 [MCP](https://modelcontextprotocol.io/) 伺服器，透過確�
 [![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP%20SDK-2.1.1-purple.svg)](https://modelcontextprotocol.io/)
 [![Tools](https://img.shields.io/badge/MCP%20tools-91-8b5cf6.svg)](docs/tools-reference.md)
-[![Harness](https://img.shields.io/badge/verification-12%20gates-brightgreen.svg)](#-驗證-harness)
+[![Harness](https://img.shields.io/badge/verification-14%20gates-brightgreen.svg)](#-驗證-harness)
 
 🌐 [English](README.md) | **繁體中文**
 
@@ -124,19 +124,49 @@ uv run python -c "import nsforge; print(nsforge.__version__)"
 }
 ```
 
-### MCP 2.1 契約
+### MCP 2.1 契約與工具 profiles
 
-NSForge 0.3.0 採用穩定版 MCP Python SDK 2.1.1 與協議修訂版
-`2026-07-28`。既有 91 工具目錄與回應字典維持相容；MCP 2 client 另可取得：
+NSForge 0.4.0 精確 pin 穩定版 MCP Python SDK 2.1.1 與協議修訂版
+`2026-07-28`。91 個 catalog 能力與 legacy 回應字典維持相容；
+啟動時固定 profile 讓 discovery 更精準，不刪除任何能力：
 
-- 現在明確設定 `structured_output=True`，同時保留既有的
+| `NSFORGE_TOOL_PROFILE` | 工具數 | 用途 |
+| --- | ---: | --- |
+| `legacy`（預設） | 82 | v0.3 相容面；`NSFORGE_ENABLE_MUSIC=1` 仍可擴為 91 |
+| `workflow` | 17 | 建議的 resource-first 嚴格 agent 工作流 |
+| `scientific` | 35 | 無狀態符號計算、化簡與驗證 |
+| `interactive` | 35 | workflow 加會話編輯與 handoff |
+| `full` | 91 | 完整相容／discovery 面，含 music |
+
+Profile 在 server 建立時凍結，未知值會 fail closed。Compact profiles
+拒絕未知欄位，並套用已宣告的 enum 與數值範圍；精簡 descriptions、
+profile membership 與 metadata 均由中央 `ToolSpec` registry 產生。
+Machine-readable capability manifest 已升為 schema v4。
+
+MCP 2 client 另可取得：
+
+- 明確的 `structured_output=True`，同時保留既有
   `structuredContent`＋文字 dual channel；
-- 應用層失敗會設協議 `isError`，但不更動既有錯誤內容；
-- 每個工具都有 title、icon、行為 annotations 與 namespaced `_meta`；
-- `nsforge://manifest`、`nsforge://health`、`nsforge://north-star`，以及
-  `nsforge://derivations/{result_id}` 已存推導 resource template；
-- `forge_verified_derivation` prompt、穩定 discovery 清單的 cache hints，與
-  `task_run` / `task_explore` 的進度通知。
+- 應用層失敗設協議 `isError`，但不更動 legacy 錯誤內容；
+- 每個工具的 title、icon、行為 annotations 與 namespaced `_meta`；
+- `nsforge://manifest`、`nsforge://health`、`nsforge://north-star`、
+  `nsforge://derivations/{result_id}` 相容 resource，以及不可變的
+  `nsforge://runs/{run_id}`、`nsforge://runs/{run_id}/events`、
+  detached `nsforge://sessions/{session_id}` 與 `nsforge://artifacts/{sha256}` resource
+  templates；
+- phase-event progress、完成 run 與驗證綁定 artifact 的 `ResourceLink`、
+  resource updated 通知與 OpenTelemetry tool/session/run correlation。
+
+Compact workflow 使用 allowlist 且不執行 `eval` 的 expression parser。Strict task
+run 透過 SQLite Unit of Work 原子寫入不可變、tenant-scoped 的 run、
+ordered phase events、provenance nodes、verification evidence 與 content-addressed
+artifacts。驗證失敗、evidence 缺失／過期、caller assertion、tenant 或 subject
+digest 不符、provenance 不完整，都會阻止 artifact codegen。
+
+相關 process 設定為 `NSFORGE_TENANT_ID`（預設 `local`）、`NSFORGE_RUN_DB`
+（預設 `data/nsforge-strict.sqlite3`）與 `NSFORGE_ARTIFACT_ROOT`（預設
+`./artifacts`）。Tenant id 必須是 opaque slug；output path 必須解析在 artifact
+root 之內。
 
 預設仍使用 stdio；若要明確啟用僅綁定 loopback 介面的 Streamable HTTP：
 
@@ -162,12 +192,20 @@ uv run nsforge-mcp
 瀏覽器 client 還必須設定精確的 `NSFORGE_MCP_ALLOWED_ORIGINS`。Origin allowlist
 留空時，只接受沒有 `Origin` header 的非瀏覽器請求，並拒絕所有帶 Origin 的請求。
 這些檢查不是身分驗證：remote HTTP 仍須置於真正的 authentication、authorization
-與 TLS 邊界後方。Process-wide sessions 與 saved results 屬於同一 trust boundary；
-多 client 部署必須每 tenant 一個 instance，且每次 stateful derivation call 都傳入
-明確的 `session_id`。v0.3.0 的 stateful derivation 僅支援單 process／單 replica；
-沒有 shared durable store 與 distributed locking 時，不可把多副本直接放在 load
-balancer 後方。`NSFORGE_MCP_HTTP_JSON_RESPONSE=1` 是 opt-in，無法串流
+與 TLS 邊界後方。`NSFORGE_TENANT_ID` 會限制 strict run／resource lookup，
+但它是 process 設定，不是 caller authentication。沒有可信 IdP 或 principal
+resolver 時，一個 server instance 仍是一個 tenant trust boundary。Legacy
+sessions 與 saved derivations 仍使用 process globals 與 JSON／YAML 相容儲存，
+所以每次 stateful legacy call 都應傳明確 `session_id`。相容狀態與 strict
+SQLite store 都不會跨 replica 共享；水平擴展需要 shared state、artifact backend
+與 distributed coordination。`NSFORGE_MCP_HTTP_JSON_RESPONSE=1` 是 opt-in，無法串流
 request-scoped progress；需要進度通知時請保留預設值 `0`。
+
+Python SDK 2.1.1 尚未實作 MCP Tasks，因此 NSForge 不對外宣稱私有仿作。
+取消 `asyncio.to_thread` 的 await 不會中止 worker thread，所以不會誤報 terminal
+progress；有 `timeout_s` 的呼叫仍使用可終止 process。隔離 process 會保存相同的
+canonical phase events，但只在 process 回傳後重播 progress；預設無 timeout 路徑才是
+逐 phase 即時送達。
 
 ---
 
@@ -209,8 +247,8 @@ flowchart TD
 ```
 
 - `task_plan` — 把 DTS 實體化為帶溯源的有序計畫
-- `task_run` — 端到端跑完整條階梯（可選硬逾時 `timeout_s`；回報 MCP 進度）
-- `task_explore` — 分支探索，回傳**所有**驗證候選（回報 MCP 進度）
+- `task_run` — 端到端跑完整條階梯，回傳 run／artifact links 並回報 phase progress（可選硬逾時 `timeout_s`）
+- `task_explore` — 回傳**所有**分支、不可變 evidence 與連結 artifacts
 
 > 📖 [泛公式探討路線圖](docs/general-formula-exploration-roadmap.md)
 
@@ -236,7 +274,7 @@ stateDiagram-v2
 
 ---
 
-## 🛠️ 工具總覽 — 91 工具 · 預設載入 82
+## 🛠️ 工具總覽 — 91 個 catalog 工具 · 建議 workflow profile 為 17
 
 | 模組 | 數 | 說明 |
 | ---- | :-: | ---- |
@@ -249,7 +287,7 @@ stateDiagram-v2
 | 📝 表達式 | 3 | 解析、驗證、抽取符號 |
 | 🧭 任務編排 | 3 | `task_plan` / `task_run` / `task_explore` |
 | 🧭 推薦器 | 1 | 檢索增強的下一步排序 |
-| 🎵 音樂 _(選用)_ | 9 | 符號音調 → 波形、頻譜、WAV — 設 `NSFORGE_ENABLE_MUSIC=1` |
+| 🎵 音樂 _(`full` 或 legacy opt-in)_ | 9 | 符號音調 → 波形、頻譜、WAV |
 | 🧩 Runtime 自述 | 2 | `nsforge_health` · `nsforge_manifest`（agent harness） |
 
 > 📖 **含每個工具的完整清單：** [工具參考](docs/tools-reference.md) · 機器可讀 [`capabilities.json`](docs/agent/capabilities.json)
@@ -258,16 +296,18 @@ stateDiagram-v2
 
 ## ✅ 驗證 Harness
 
-一個指令即真理。`python scripts/check.py` 跑 **12 個 gate**——全綠就是「完成」的定義。
+一個指令即真理。`python scripts/check.py` 跑 **14 個 gate**——全綠就是「完成」的定義。
 
 ```
-lint · format · type · import · manifest · mcp · test · bench · generic · provenance · harness · diff
+lint · format · type · security · import · manifest · mcp · test · bench · generic · provenance · package · harness · diff
 ```
 
 - **mcp** — MCP 2.1 discovery、schema、metadata、payload 相容性、resources、prompts 與 legacy-client mode
+- **security** — executable source 沒有 Bandit high-severity finding
 - **bench** — 已知推導能正確重現
 - **generic** — *未曾手寫*、隨機組合的公式也能正確推導（證明 NSForge 是推導*演算法*，而非手建公式庫）
 - **provenance** — 每個 benchmark 推導都帶完整溯源帳本（無徒手推導洩漏）
+- **package** — 建立 sdist／wheel、檢查 runtime assets、隔離安裝並 smoke-test installed MCP
 - **harness** — 用版本、manifest 與 gate／文件一致性守衛驗證器本身
 
 ```bash
@@ -322,7 +362,7 @@ DDD 架構，純領域核心搭配可替換的 MCP 層（`nsforge` 核心**不�
 ```bash
 uv sync --all-extras     # 環境
 uv run pytest            # 測試
-python scripts/check.py  # 完整 harness（12 gate）
+python scripts/check.py  # 完整 harness（14 gate）
 uv run nsforge-mcp       # 啟動伺服器
 ```
 

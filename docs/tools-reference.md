@@ -1,6 +1,8 @@
 # 🛠️ NSForge Tool Reference
 
-Complete reference for all **91 MCP tools** across **11 modules** — **82 loaded by default**; the `music` module (9 tools) is opt-in via `NSFORGE_ENABLE_MUSIC=1`.
+Complete reference for all **91 MCP tools** across **11 modules**. The default
+`legacy` profile exposes 82; the recommended strict `workflow` profile exposes
+17 without deleting any catalog capability.
 
 > This page is the single source of truth for the tool surface, linked from both
 > [README (English)](../README.md) and [README (繁體中文)](../README.zh-TW.md).
@@ -24,7 +26,7 @@ Complete reference for all **91 MCP tools** across **11 modules** — **82 loade
 
 ## MCP 2.1 discovery and result contract
 
-NSForge 0.3.0 uses MCP Python SDK 2.1.1 with protocol revision
+NSForge 0.4.0 exactly pins MCP Python SDK 2.1.1 with protocol revision
 `2026-07-28`. Every tool explicitly enables `structured_output=True` and advertises
 its `outputSchema`, human-readable
 title, NSForge icon, namespaced `org.nsforge/*` `_meta`, and the four standard
@@ -39,8 +41,25 @@ and unexpected exceptions retain their JSON body and additionally set MCP
 `isError=true`; a valid verification outcome of `false` without an `error` field
 is not treated as an execution failure.
 
-`task_run` and `task_explore` report protocol progress at task start and finish.
-The server also exposes additive discovery primitives:
+Tool discovery is frozen at server construction through `NSFORGE_TOOL_PROFILE`:
+
+| Profile | Count | Contract |
+| --- | ---: | --- |
+| `legacy` _(default)_ | 82 | v0.3-compatible schemas/payloads; music can still be opt-in |
+| `workflow` | 17 | Recommended resource-first strict workflow |
+| `scientific` | 35 | Stateless calculate/simplify/verify/expression tools |
+| `interactive` | 35 | Workflow plus session editing, handoff, and untrusted manual input |
+| `full` | 91 | Entire catalog, including music |
+
+Unknown profiles fail at startup. Compact profiles reject unknown arguments and
+enforce the enum/range constraints published by the central `ToolSpec` registry;
+compatibility profiles preserve their legacy input schemas and payloads.
+
+`task_run` and `task_explore` report monotonic progress from canonical phase
+events; the same ordered events are persisted with the final run bundle. The
+default non-timeout path delivers them live. A hard-timeout process preserves
+the same events but replays progress only after the isolated worker returns. The
+server also exposes additive primitives:
 
 | Kind | URI / name | Purpose |
 | --- | --- | --- |
@@ -48,11 +67,26 @@ The server also exposes additive discovery primitives:
 | Resource | `nsforge://health` | Live SDK, protocol, engine, and active-tool inventory |
 | Resource | `nsforge://north-star` | The provenance birth-certificate invariant |
 | Resource template | `nsforge://derivations/{result_id}` | Read stored derivation metadata and a lineage summary |
+| Resource template | `nsforge://sessions/{session_id}` | Detached workflow snapshot of a legacy derivation session |
+| Resource template | `nsforge://runs/{run_id}` | Immutable tenant-scoped run, provenance, evidence, and artifact metadata |
+| Resource template | `nsforge://runs/{run_id}/events` | Ordered, digest-linked phase events |
+| Resource template | `nsforge://artifacts/{sha256}` | Immutable content-addressed artifact bytes |
 | Prompt | `forge_verified_derivation` | Start a provenance-complete, verified derivation workflow |
 
 Stable list/discovery responses carry five-minute public cache hints. stdio is
 the default transport; loopback Streamable HTTP is opt-in. See the
-[README transport example](../README.md#mcp-21-contract) before deploying HTTP.
+[README transport example](../README.md#mcp-21-contract-and-tool-profiles) before deploying HTTP.
+
+Completed task calls include `execution_status`, `verification_status`,
+`run_id`, `correlation_id`, resource metadata, and MCP `ResourceLink` content
+blocks. Resource-updated notifications are emitted for resulting URIs. Strict
+state is scoped by server-configured `NSFORGE_TENANT_ID`; this is not a caller
+identity system, so an instance without a trusted IdP remains a single tenant
+boundary. OpenTelemetry spans/events correlate tool, session, and run IDs but do
+not attach complete expressions, generated code, or artifact bytes.
+
+The Python SDK 2.1.1 does not implement MCP Tasks. `task_run` is an ordinary
+NSForge domain tool with progress and immutable resources, not a Tasks extension.
 
 ---
 
@@ -130,6 +164,11 @@ the reification ladder. See the [general-formula-exploration roadmap](general-fo
 | `task_run` | Run the DTS through the ladder (concept → symbol → derivation → verify → code); optional hard `timeout_s` |
 | `task_explore` | Branching search: run the base + every alternative, return all verified candidates ranked best-first |
 
+In compact profiles, verification must produce trusted, matching evidence before
+Python/pseudocode artifacts are materialized. Negative, missing, stale,
+caller-asserted, wrong-tenant, or wrong-subject evidence never yields code
+artifacts. The result instead points to the immutable run/evidence resource.
+
 ---
 
 ## 🧭 Suggester (1)
@@ -156,6 +195,9 @@ the reification ladder. See the [general-formula-exploration roadmap](general-fo
 | `refine_expression` | Simplify using assumptions |
 | `evaluate_numeric` | Numerical evaluation |
 | `symbolic_equal` | Symbolic equality check |
+
+`symbolic_equal` is retained as a deprecated compatibility alias; new workflows
+should select `verify_equality`.
 
 ---
 
@@ -205,11 +247,13 @@ the reification ladder. See the [general-formula-exploration roadmap](general-fo
 
 ## 💻 Code generation (4)
 
-> ⚠️ These reify **verified** derivation steps — always compute/verify first.
+> ⚠️ These four names are legacy caller-attested compatibility tools. For a
+> trusted output, use `task_run`/`task_explore` in a compact profile and resolve
+> the resulting verification-bound artifact `ResourceLink`.
 
 | Tool | Purpose |
 | ---- | ------- |
-| `generate_python_function` | Python function from verified steps |
+| `generate_python_function` | Python function from caller-supplied steps |
 | `generate_latex_derivation` | LaTeX document |
 | `generate_derivation_report` | Markdown report |
 | `generate_sympy_script` | Standalone SymPy script |
@@ -234,7 +278,9 @@ Formulas are **inputs** (from open sources), not a hand-built catalog.
 ## 🎵 Music (9)
 
 Music as symbolic functions of time — a demonstration of the symbolic core.
-**Opt-in:** set `NSFORGE_ENABLE_MUSIC=1` to load these (kept out of the default surface).
+It is included by `full`; legacy clients may still opt it in with
+`NSFORGE_ENABLE_MUSIC=1`. File-producing calls are contained by the configured
+artifact root and reject traversal or symlink escape.
 
 | Tool | Purpose |
 | ---- | ------- |

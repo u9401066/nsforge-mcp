@@ -20,16 +20,47 @@ CONSTITUTION.md (最高原則)
 
 ## 🛠️ 設計模式
 
-### MCP v2 註冊邊界
+### MCP v2 `ToolSpec` 註冊邊界
 
-- `MCPServer` 是唯一 server runtime，`EnvelopeMCP` 在單一邊界為 91 個工具套用 title、icons、annotations／meta 與 structured output。
+- `MCPServer` 是唯一 server runtime，SDK 精確 pin `mcp==2.1.1`。`EnvelopeMCP`
+  在單一邊界為 91 個工具套用 title、icons、annotations／meta、
+  structured output 與 `ResourceLink`。
+- `ToolSpec` 是 profile membership、concise descriptions、deprecation、constraints、
+  provenance mode 與 metadata 的單一真相。Server startup 凍結 legacy 82／workflow 17／
+  scientific 35／interactive 35／full 91 之一；未知 profile fail closed。
 - 既有工具仍回傳原 JSON payload；v2 成功結果同時產生 text／structured content，失敗 envelope 額外設 MCP `isError`。
-- Resources 與 prompt 是加法式原語，不取代舊 tools；長任務透過 `Context` 回報 progress，僅穩定目錄回應使用 cache hints。
+- Resources 與 prompt 是加法式原語，不取代舊 tools；run／event／artifact
+  resources 承擔 strict reads，`nsforge://sessions/{session_id}` 提供 detached legacy
+  workflow snapshot，phase events 驅動 progress 與 updated notifications。
+
+### Strict provenance + Unit of Work
+
+- Domain 保持 immutable `Run`、`PhaseEvent`、`ProvenanceNode`、
+  `VerificationEvidence`、`Artifact`；canonical SHA-256 將 parent／input／output／evidence
+  綁定。
+- Application `StrictRunService` 負責 lifecycle 與 fail-closed codegen eligibility；caller
+  assertion 只能成為 untrusted evidence。
+- `RunStore` / `RunUnitOfWork` 是 application port；SQLite adapter 以 WAL、foreign keys、
+  optimistic revision 單一 transaction 寫 run／events／provenance／evidence／artifacts。
+- Legacy process-global sessions 與 JSON／YAML repository 仍為相容層，不是 strict run
+  authority。
+
+### Expression 與 path 安全邊界
+
+- Caller expression 統一以 allowlisted token transformations + AST walker 建立 SymPy
+  objects；不執行 `eval`、`parse_expr`、`sympify` 所產生的 Python。除結構 budgets，
+  eager literal exponent、組合／gamma-family special functions 整數參數另有限額；
+  `polygamma` 採更嚴格的 128 上限。
+- Repository category、artifact name 與 music output 均需 normalize、root containment
+  與 symlink escape 檢查；music artifact root 在工具註冊時凍結，env drift 不可重導。
 
 ### 相容契約模式
 
-- Capabilities manifest v3 是 agent 的機讀契約，同時描述 MCP 協定、primitives、transports 與每工具 metadata。
-- 第 12 個 `mcp` gate 同時驗證 91 catalog／82 default、modern／legacy client、dual-channel／`isError` 與 primitives。
+- Capabilities manifest v4 是 agent 的機讀契約，同時描述 profiles、strict
+  constraints、MCP primitives、transports 與每工具 metadata。
+- `mcp` gate 驗證五個 exact profiles、legacy contracts、strict validation、dual channel／
+  `isError`、resources／ResourceLink／progress／notifications。完整 harness 為 14 gates，
+  另含 `security` 與 isolated `package` smoke。
 - Default／full 工具 schema 以 golden SHA-256 鎖定，遷移時只允許加法式增強；任何工具消失或輸入／輸出 schema 漂移都會使 gate 失敗。
 
 ### Worker-thread 狀態安全
@@ -43,6 +74,11 @@ CONSTITUTION.md (最高原則)
 - 每個 HTTP bind 都傳入 `TransportSecuritySettings`；非 loopback 還需明確 allow flag、非空 Host allowlist 與真正的外部 auth/TLS。Browser Origin 必須精確 allow；空 Origin allowlist 拒絕所有 supplied Origin。
 - Process-wide session fallback／repository 是單一 trust boundary；多 client 的 stateful call 必須明確傳 `session_id`，每 tenant 一個 instance。JSON-response mode 不串流 request-scoped progress。
 - Transport allowlists 不是 authentication。MCP Tasks 尚未由 SDK 穩定實作，SSE 與其他 deprecated 路徑不納入。
+- `NSFORGE_TENANT_ID` 是 server scope 而非 caller identity；未接 IdP 時一個 instance
+  是一個 tenant boundary。SQLite 與 legacy state 皆不跨 replica 共享。
+- 取消 `asyncio.to_thread` await 無法殺掉 worker；只在 worker 真正結束後回報
+  Finished，hard timeout 用可 terminate process；隔離路徑保留同一批 canonical
+  events，但 process 回傳後才重播 progress。
 
 ### Repository Pattern
 - 介面在 Domain 層定義
@@ -80,7 +116,7 @@ CONSTITUTION.md (最高原則)
 - 使用 pytest markers 分類
 
 ---
-*Last updated: 2026-08-31*
+*Last updated: 2026-08-31 12:37 UTC*
 
 ## MCP-to-MCP 協作模式
 

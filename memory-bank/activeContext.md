@@ -4,15 +4,48 @@
 
 ## 🎯 當前焦點
 
-**v0.4.0 trusted workflow／工具濃縮正在實作（2026-08-31）。** 依 `docs/mcp-tool-surface-v4.md`，本輪保留 legacy 82／full 91 能力，新增固定 tool profiles 與 strict workflow；優先修補非 eval 安全 parser、路徑 containment、驗證失敗仍 codegen，再建立 immutable run／event／verification evidence／artifact、SQLite UoW、ResourceLink、progress／subscription／OTel 共用事件流與 tenant scope。MCP Tasks 仍不假裝支援。
+**v0.4.0 trusted workflow／工具濃縮已完成（2026-08-31）。** 本版精確 pin
+`mcp==2.1.1`，保留 91 catalog、legacy 82 預設與舊 payload，並新增固定
+workflow 17／scientific 35／interactive 35／full 91 profiles。Compact profiles 由
+`ToolSpec` 統一驅動 strict inputs 與精簡 descriptions。Caller expression 已改走
+no-eval allowlisted AST parser，並限制高成本 eager exponent／combinatorial literals；
+repository／artifact／music paths 使用 root containment，music root 在註冊時凍結。
+Strict workflow 已建立 immutable run／phase event／provenance node／verification
+evidence／artifact、tenant-scoped SQLite UoW、run／event／artifact resources、
+`nsforge://sessions/{session_id}` snapshot、`ResourceLink`、resource-updated notifications、
+phase progress 與 OTel correlation。
+Manifest 升為 schema v4，harness 擴為 14 gates，新增 security／package。
 
 **v0.3.0 / MCP Python SDK 2.1.1 stable 遷移完成（2026-08-31）。** Runtime 已對齊 MCP `2026-07-28` 協定與 `MCPServer`；91 catalog／82 default 工具的既有輸入／輸出 schema 與 JSON payload 維持相容，同時加上 v2 metadata、明確保留 structured dual channel 並新增正確 `isError`。Resources、prompt、progress、cache hints 與 opt-in Streamable HTTP 以加法方式上線，stdio 繼續是預設；所有 HTTP 都有 Host／Origin DNS-rebinding 防護，remote 另需明確旗標、Host allowlist 與外部 auth/TLS。MCP Tasks、內建 OAuth、SSE 等未穩定／不適用能力不在本版範圍。
 
 ### 既有架構基線（截至 2026-07-08）
 
-**泛公式探討路線圖 — 階段 5（provenance ledger 強制）完成，北極星落地為架構。** 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（harness 9→10）驗證每 benchmark 推導可溯源——把「AI 不徒手生」從約定升級成可強制的架構不變量。至此路線圖**階段 1-6 全部落地**（含 (3) session_id 化）：階段 6 explore mode（`Explorer`+`task_explore`）對 base＋每個 alternative 各跑完整迴圈、回傳全部驗證候選（排序、帶 provenance），把單一答案變成驗證過的答案空間。多 agent infra 層的**純程式碼部分亦收尾**：DI 組合根（`composition.py`：engine/verifier/session/repo「建一次、注入」的單一組裝點，task 與 derivation 全走它）＋ process-pool timeout（`timeout.py` `run_with_timeout`：spawn 子行程硬逾時，`task_run`/`task_explore` opt-in `timeout_s` 可真殺失控推導）。剩餘僅階段 7（Lean4，可選）與需 infra 決策的項目（HTTP+auth、DB、分散式鎖、observability）。**Agent harness 亦完整化**：manifest v2 自描述（version／gate 清單／commands）、`meta` 模組（`nsforge_health`／`nsforge_manifest`）讓伺服器對 agent runtime 自省、第 11 個 `harness` gate 讓 harness 自我守衛（版本單一真相、gate／manifest／AGENTS 對齊、工具自描述品質）。工具 89→91、harness 10→11。更進一步做**生產級強化**：`music` 收斂為 opt-in（預設面 91→82，少工具＝更好工具選擇）、manifest 打包進 wheel（`uvx` 安裝也自描述）、server stderr 結構化日誌＋metadata。再落地先前緩置的**統一 error envelope**：`EnvelopeMCP` 在註冊邊界一處包住，全部工具未處理例外→一致結構化錯誤，schema 不變、零契約破壞（避開逐一改 91 工具的高風險）。
+**泛公式探討路線圖 — 階段 5（provenance ledger 強制）完成，北極星落地為架構。** 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（harness 9→10）驗證每 benchmark 推導可溯源——把「AI 不徒手生」從約定升級成可強制的架構不變量。至此路線圖**階段 1-6 全部落地**（含 (3) session_id 化）：階段 6 explore mode（`Explorer`+`task_explore`）對 base＋每個 alternative 各跑完整迴圈、回傳全部驗證候選（排序、帶 provenance），把單一答案變成驗證過的答案空間。多 agent infra 層的**純程式碼部分亦收尾**：DI 組合根（`composition.py`：engine/verifier/session/repo「建一次、注入」的單一組裝點，task 與 derivation 全走它）＋ process-pool timeout（`timeout.py` `run_with_timeout`：spawn 子行程硬逾時，`task_run`/`task_explore` opt-in `timeout_s` 可真殺失控推導）。剩餘僅階段 7（Lean4，可選）與需 infra 決策的項目（HTTP+auth、DB、分散式鎖、observability）。**Agent harness 亦完整化**：manifest v2 自描述（version／gate 清單／commands）、`meta` 模組（`nsforge_health`／`nsforge_manifest`）讓伺服器對 agent runtime 自省、第 11 個 `harness` gate 讓 harness 自我守衛（版本單一真相、gate／manifest／AGENTS 對齊、工具自描述品質）。工具 89→91、harness 10→11。更進一步做**生產級強化**：`music` 收斂為 opt-in（預設面 91→82，少工具＝更好工具選擇）、manifest 打包進 wheel（`uvx` 安裝也自描述）、server stderr 啟動日誌＋metadata。再落地先前緩置的**統一 error envelope**：`EnvelopeMCP` 在註冊邊界一處包住，全部工具未處理例外→一致結構化錯誤，schema 不變、零契約破壞（避開逐一改 91 工具的高風險）。
 
 ## ✅ 本次完成 (2026-08-31)
+
+### Trusted workflow / NSForge v0.4.0
+
+- 精確 pin MCP SDK 2.1.1；capability manifest schema v4 與五個 exact profiles：
+  legacy 82、workflow 17、scientific 35、interactive 35、full 91。
+- 中央 `ToolSpec` 提供 profile membership、concise descriptions、deprecation、strict
+  enums／ranges 與 provenance mode；compact calls 拒絕 unknown fields。
+- 無 `eval` 的 allowlisted expression parser 取代對不可信文字的
+  `parse_expr`／`sympify`；repository category 與 music／artifact outputs 均防 traversal
+  與 symlink escape。
+- Strict provenance kernel 把 run、ordered events、provenance DAG、kernel evidence 與
+  content-addressed artifacts 以 canonical SHA-256 綁定；failed／stale／caller-asserted／
+  wrong-tenant／wrong-subject evidence 或 incomplete DAG 均不 codegen。
+- Application `RunStore` / UoW port 與 SQLite adapter 原子提交 strict state；MCP
+  透過 `nsforge://runs/{run_id}`、`.../events`、`nsforge://artifacts/{sha256}`、
+  `ResourceLink`、updated notifications 與 phase progress 呈現。
+- OTel spans/events 連結 tool／session／run／tenant／correlation；stderr 啟動 logs 獨立，
+  不宣稱 structured run logs，不記錄 sensitive payload。
+- Harness 12→14：新增 `security` 與 `package`（sdist／wheel、隔離安裝、
+  installed MCP smoke）。
+- 誠實邊界：legacy process globals／JSON／YAML 仍在；無 IdP 時一 instance／
+  tenant；SQLite 不跨 replicas；thread cancellation 不能殺 worker；SDK 2.1.1 仍無
+  MCP Tasks implementation。
 
 ### MCP 2.1.1 stable / NSForge v0.3.0
 
@@ -116,9 +149,14 @@ README.md                                    # 工具數量 108
 
 ## 🔜 下一步
 
-1. 監測 MCP 2.x clients 對 dual-channel structured output 與新 primitives 的實際互通性。
-2. 若未來要對外網路開放 Streamable HTTP，除 transport Host／Origin allowlists 外，須先接入真實 IdP／token verifier 並建立 tenant 邊界；不以本版 transport 防護取代身分驗證。
-3. 待 Python SDK 穩定實作 MCP Tasks 後再獨立評估，不預告本版不具備的能力。
+1. 將 legacy `DerivationSession` JSON I/O／process globals 漸進移出 domain，並收斂到
+   materialization-state application services，不做 big-bang 相容性重寫。
+2. 多 replica 前先建 shared DB／artifact backend／distributed coordination／trusted
+   principal resolver；對外 HTTP 另需 IdP／token verifier／authorization／TLS。
+3. 為 pseudocode 加入獨立 human approval revision；將四個 caller-attested legacy codegen
+   tools 漸進引導到 verified artifact workflow，不在 0.4 刪除。
+4. 監測 MCP 2.x client 對 ResourceLink／subscriptions／compact schemas 的互通性；待
+   Python SDK 真正實作 MCP Tasks 後再獨立評估。
 
 ---
-*Last updated: 2026-08-31*
+*Last updated: 2026-08-31 12:37 UTC*

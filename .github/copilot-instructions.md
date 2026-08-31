@@ -75,7 +75,7 @@ uv add --dev pytest ruff
 2. 📖 README 更新（如需要）
 3. 📋 CHANGELOG 更新（如需要）
 4. 🗺️ ROADMAP 標記（如需要）
-5. ✅ `uv run python scripts/check.py`（12 gates，含 `mcp` contract gate）
+5. ✅ `uv run python scripts/check.py`（14 gates，含 `security`、`mcp`、`package`）
 
 詳見：`.github/bylaws/git-workflow.md`
 
@@ -99,16 +99,30 @@ uv add --dev pytest ruff
 
 > 詳細說明見 `docs/nsforge-skills-guide.md`
 
-### MCP 2.1 協議規則（NSForge 0.3.0）
+### MCP 2.1 協議規則（NSForge 0.4.0）
 
-- Runtime 使用 `MCPServer`、MCP Python SDK 2.1.1、protocol revision `2026-07-28`。
-- Catalog 共 91 tools；預設 82，music 9 個需 `NSFORGE_ENABLE_MUSIC=1`。
+- Runtime 使用 `MCPServer`、精確 pin MCP Python SDK 2.1.1、protocol revision `2026-07-28`。
+- Catalog 共 91 tools；固定啟動 profiles 為 legacy 82（預設）、workflow 17、
+  scientific 35、interactive 35、full 91。Legacy 仍支援 music opt-in。
 - 既有工具名稱、input／output schema 與 response payload 是相容性契約；不可為了 MCP 2 metadata 改壞它們。
 - 每個工具必須保有 explicit structured output、title、icon、標準 annotations 與 namespaced `org.nsforge/*` `_meta`。application error 要保留既有 JSON body 並設 protocol `isError`。
-- Discovery 可讀 `nsforge://manifest`、`nsforge://health`、`nsforge://north-star`、`nsforge://derivations/{result_id}`，以及 `forge_verified_derivation` prompt。
-- `task_run`／`task_explore` 會透過 MCP `Context` 回報開始與完成進度；不要把 progress 誤寫成 MCP Tasks extension。
+- Compact profiles 必須拒絕 unknown fields 並實作 `ToolSpec` 宣告的 enum／range
+  constraints；descriptions 精簡，教學移到 docs／prompt。
+- Discovery 可讀 `nsforge://manifest`、`nsforge://health`、`nsforge://north-star`、
+  `nsforge://derivations/{result_id}`、`nsforge://runs/{run_id}`、`.../events`、
+  `nsforge://sessions/{session_id}`、`nsforge://artifacts/{sha256}`，以及
+  `forge_verified_derivation` prompt。
+- Strict task results 以 `ResourceLink` 連到 immutable run／artifact；phase event 同時驅動
+  provenance、progress、SQLite persistence 與 OTel correlation。
+- SDK 2.1.1 尚未實作 MCP Tasks；`task_run` 是 NSForge tool，不可宣稱為 Tasks extension。
 - stdio 為預設；Streamable HTTP 只在明確 opt-in 時啟用。非 loopback 需 allow flag 與真正的外部 authentication／TLS；allow flag 本身不是安全邊界。
 - MCP 2 sync handlers 可在 worker threads 執行；session／repository 的共享可變狀態與檔案寫入必須維持 thread-safe／atomic。
+- Caller expression 只能走中央 allowlisted no-eval parser；不得直接用
+  `parse_expr`／`sympify`；保留 exponent／combinatorial literal complexity budgets。
+  Repository／artifact／music paths 必須通過 root containment，music root 在註冊時凍結。
+- Strict workflow 以 tenant-scoped SQLite UoW 為權威；legacy JSON／YAML 與 process
+  globals 只是相容層。沒有 IdP 時，一個 instance 就是一個 tenant boundary；
+  不宣稱 cross-replica shared state。
 
 ### ⚠️ 數學計算黃金法則
 
@@ -118,7 +132,7 @@ uv add --dev pytest ruff
 >
 > **「人類的推導是一步一步的，每步都可加入新元素！」**
 
-#### 📊 工具快速選擇指南（NSForge v0.3.0）
+#### 📊 工具快速選擇指南（NSForge v0.4.0）
 
 | 我想要... | 用哪個？ | 工具 |
 |-----------|---------|------|
@@ -148,7 +162,8 @@ uv add --dev pytest ruff
 | 程式碼生成 | NSForge | `generate_python_function`, `generate_*` |
 | **優化求解** | **USolver** | 與 `derivation_prepare_for_optimization` 協作 |
 
-> 💡 **NSForge catalog 91（預設 82）＋ SymPy-MCP 32。** 實際連線預設面為 82 個 NSForge tools；詳見各 Skill 文檔。
+> 💡 **NSForge catalog 91：legacy 82／workflow 17／scientific 35／interactive 35／full 91。**
+> Agent 新工作流建議用 `workflow`；舊 client 預設仍是 `legacy`。
 
 #### 🔥 步進式推導工作流（核心）
 

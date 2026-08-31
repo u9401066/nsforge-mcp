@@ -36,13 +36,16 @@ python scripts/check.py --json     # machine-readable summary (for agents)
 python scripts/check.py --gates lint,type,test   # subset
 ```
 
-Gates: 12 total — lint, format, type, import, manifest, mcp, test, bench, generic, provenance, harness, diff. Exit code 0 = green.
+Gates: 14 total — lint, format, type, security, import, manifest, mcp, test,
+bench, generic, provenance, package, harness, diff. Exit code 0 = green.
 (bench = derivation-correctness of `benchmarks/*.json` through the L3 orchestrator;
 generic = arbitrary unseen compositions derive correctly, proving NSForge is a
 derivation *calculus*, not a hand-built formula library; provenance = every
 benchmark derivation carries a complete tool-provenance ledger, no hand-derived leaks;
 mcp = MCP 2.1.1 discovery, schemas, metadata, payloads, resources, prompts, and
 legacy-client compatibility stay green;
+security = executable source has no high-severity Bandit finding;
+package = sdist/wheel build, isolated install, packaged assets, and installed MCP smoke stay green;
 harness = the harness self-checks its own invariants — package version parity,
 self-describing tools, and gate/doc parity — so agents can trust the signal.)
 
@@ -63,9 +66,16 @@ self-describing tools, and gate/doc parity — so agents can trust the signal.)
 - Never commit secrets or generated outputs (`dist/`, `.venv/`, `data/`).
 - After adding/removing an `@mcp.tool`, regenerate the manifest:
   `python scripts/gen_capabilities.py`.
-- MCP runtime baseline: SDK 2.1.1, protocol `2026-07-28`, `MCPServer`, 91 catalog
-  tools / 82 default. Preserve legacy schemas and payloads; add protocol features
-  through the central tool contract and verify with the `mcp` gate.
+- MCP runtime baseline: exact SDK 2.1.1 pin, protocol `2026-07-28`, `MCPServer`, 91 catalog
+  tools. Fixed startup profiles are legacy 82 (default), workflow 17,
+  scientific 35, interactive 35, and full 91. Preserve legacy schemas and
+  payloads; add protocol features through the central `ToolSpec` contract and
+  verify with the `mcp` gate.
+- Compact profiles reject unknown inputs and enforce declared enum/range
+  constraints. Strict task runs persist tenant-scoped immutable run, event,
+  evidence, and artifact records in SQLite and expose them through
+  `nsforge://runs/{run_id}`, `nsforge://runs/{run_id}/events`,
+  `nsforge://sessions/{session_id}`, and `nsforge://artifacts/{sha256}` resources.
 
 ## Related Files
 

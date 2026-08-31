@@ -6,7 +6,7 @@
 
 **專案名稱**：Neurosymbolic Forge (NSForge) — `nsforge-mcp`
 
-**目前版本**：`0.3.0`（MCP Python SDK `2.1.1`）
+**目前版本**：`0.4.0`（精確 pin MCP Python SDK `2.1.1`）
 
 **一句話描述**：把「概念 → 實體」每一階工具化的 MCP Server；AI 編排、工具實體化，產出可驗證可追溯的符號/推導/演算法。
 
@@ -35,7 +35,14 @@ Presentation → Application → Domain ← Infrastructure
 - 工具編排入 Application
 - sympy-mcp 計算後端、檔案存取入 Infrastructure
 
-MCP 邊界由 v2 `MCPServer` 單一組合根註冊：91 個 catalog 工具（預設 82，`music` 9 個 opt-in）共用 metadata／error envelope，並以 resources、prompt 與 health／manifest 自省原語補充 tool surface。
+MCP 邊界由 v2 `MCPServer` 單一組合根註冊：91 個 catalog 能力以
+`ToolSpec` 分為 legacy 82（預設）、workflow 17、scientific 35、interactive 35
+與 full 91。Compact profiles 是 resource-first 且 strict-input；legacy/full 保留契約。
+
+Trusted workflow 的 domain 物件是 immutable run／phase event／provenance node／
+verification evidence／artifact；application 透過 `RunStore` Unit of Work port 與 SQLite
+adapter 原子提交。Legacy session／YAML repository 仍是相容層，不是 strict
+run 的權威狀態。
 
 ## ✨ 核心功能
 
@@ -46,6 +53,11 @@ MCP 邊界由 v2 `MCPServer` 單一組合根註冊：91 個 catalog 工具（預
 - 🌐 外部公式搜尋（Wikidata、BioModels、SciPy 常數）
 - 🔗 生態橋接（sympy-mcp handoff、USolver 最佳化）
 - 🧭 MCP 原生自描述（structured output、resources、prompt、progress、cache hints）
+- 🔐 帶結構／高成本 literal budgets 的 no-eval parser，以及註冊時凍結 root 的
+  repository／artifact／export path containment
+- 🧬 Strict verification evidence gate／immutable artifacts／`ResourceLink`
+- 🗃️ Tenant-scoped SQLite run store、phase events 與 OTel correlation
+- 📖 Run／event／artifact resources 與 detached `nsforge://sessions/{session_id}` snapshot
 
 ## 🔧 技術棧
 
@@ -58,14 +70,16 @@ MCP 邊界由 v2 `MCPServer` 單一組合根註冊：91 個 catalog 工具（預
 | 傳輸 | stdio（預設）／具 Host、Origin 防護的 Streamable HTTP（預設 loopback、opt-in） |
 | Linting | Ruff, ty |
 | 測試 | pytest |
+| 狀態 | Legacy JSON／YAML compatibility；strict SQLite Unit of Work |
+| 可觀測性 | MCP SDK OpenTelemetry + tool／session／run correlation |
 
 ## 📦 生態系分工
 
 | MCP | 職責 |
 |-----|------|
 | sympy-mcp (32 工具) | 基礎公式、常數、符號計算引擎（ODE/PDE/矩陣） |
-| **nsforge-mcp (91 catalog／82 default)** | 推導框架、溯源存檔、驗證、實體化、外部搜尋、橋接；`music` 9 工具 opt-in |
+| **nsforge-mcp (91 catalog／workflow 17 recommended)** | 推導框架、溯源存檔、驗證、實體化、外部搜尋、橋接；legacy 82 仍是預設 |
 | usolver-mcp（選配） | 為 NSForge 推導的公式找最佳參數值 |
 
 ---
-*Last updated: 2026-08-31 · Realigned to NSForge: 2026-07-07*
+*Last updated: 2026-08-31 12:37 UTC · Realigned to NSForge: 2026-07-07*

@@ -7,6 +7,75 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-31
+
+### Added
+
+- 🧰 **固定 tool profiles 與中央 `ToolSpec` registry** — 保留 91 個 catalog
+  能力與 `legacy=82`（預設），新增 `workflow=17`、`scientific=35`、
+  `interactive=35`、`full=91`。Profile 於 server construction 凍結；未知
+  profile fail closed。Compact surfaces 使用精簡 descriptions、拒絕 unknown
+  fields，並套用明確 enum／numeric constraints；`symbolic_equal` 保留為
+  `verify_equality` 的 deprecated alias。
+- 🧬 **Strict provenance kernel** — 新增 immutable `Run`、ordered `PhaseEvent`、
+  `ProvenanceNode`、`VerificationEvidence` 與 content-addressed `Artifact`。
+  Canonical SHA-256 將 inputs、outputs、parents、evidence 與 artifacts 綁定；caller
+  assertion 可被記錄但永遠不是 trusted evidence。
+- 🗃️ **Tenant-scoped SQLite revision store** — application `RunStore` / Unit of Work
+  port 與 infrastructure SQLite adapter 以 WAL、foreign keys、optimistic revision 將
+  run／events／provenance／evidence／artifact metadata 與 bytes 在同一 transaction
+  commit／terminal revision 不可就地改寫。
+- 🔗 **Immutable MCP resources 與 `ResourceLink`** — 新增
+  `nsforge://runs/{run_id}`、`nsforge://runs/{run_id}/events` 與
+  `nsforge://artifacts/{sha256}` templates，另以 `nsforge://sessions/{session_id}`
+  提供 detached workflow session snapshot。`task_run` / `task_explore` 的既有
+  structured payload 外附 run／artifact links，並發 resource-updated notifications。
+- 📊 **單一 phase event stream 與 OTel correlation** — 真實 phase events 同時驅動
+  provenance、SQLite persistence、MCP progress 與 OpenTelemetry events；span 連結
+  tool／session／run correlation id，不記錄完整 expression、code 或 artifact bytes。
+- 🧪 **14-gate release harness** — 新增 `security`（Bandit high-severity）與
+  `package`（sdist／wheel inventory、隔離安裝與 installed MCP smoke）；完整清單為
+  lint、format、type、security、import、manifest、mcp、test、bench、generic、
+  provenance、package、harness、diff。
+
+### Changed
+
+- 📌 **Exact stable dependency 與 manifest v4** — release dependency 改為 `mcp==2.1.1`，
+  並由 package／contract smoke 驗證實際安裝版；capability manifest schema v4 新增
+  tool profiles、strict validation constraints 與 immutable resource contract。
+- 🛠️ **Resource-first compact surface** — health、manifest、run、event、artifact 與
+  saved derivation 的讀取由 resources 承擔；tools 保留單一決定性動作，不併成
+  難以溯源的 mega-tool。Legacy/full 工具名稱與回應 payload 維持相容。
+- ✅ **分離 execution 與 verification status** — task payload 加入 `execution_status`、
+  `verification_status`、`run_id`、`correlation_id`、revision 與 resource metadata。
+  Strict artifact codegen 必須同時通過 trusted evidence、subject digest、tenant、
+  revision／policy 與 provenance DAG 檢查。
+- 📦 **相容狀態與 trusted state 分層** — 既有 process-global sessions、JSON
+  與 YAML repository 繼續作為 legacy adapter；strict workflow 以 SQLite run store 為權威。
+
+### Fixed
+
+- 🔒 **No-eval expression parser** — 所有 caller expression 改走 allowlisted token
+  transformation + AST constructor，不再以 SymPy `parse_expr`／`sympify` 執行輸入所產生
+  的 Python。拒絕 import、attribute、lambda、comprehension、dynamic callable，
+  並保留長度、深度、power tower 與 AST-node budgets；另拒絕 eager literal exponent
+  大於 10000，及組合／gamma-family special functions 的大整數參數；`polygamma`
+  另採 128 的較嚴格上限，避免合法語法同步耗盡 worker。
+- 🛡️ **Path containment** — repository category、artifact name 與 music output path
+  均經正規化／root containment，拒絕 traversal、absolute escape 與 symlink escape；
+  music artifact root 在工具註冊時凍結，後續 environment drift 不會重導輸出。
+- ⛔ **驗證失敗不再產碼** — failed acceptance 即使舊 provenance ledger 完整，
+  也不會在 strict workflow 留下 generated code 或 artifact。
+
+### Known limitations
+
+- `NSFORGE_TENANT_ID` 是 server scope，不是身分驗證；沒有可信 IdP／principal
+  resolver 時，一個 instance 仍是單 tenant trust boundary。SQLite、legacy state 與
+  artifact bytes 皆無 cross-replica sharing。
+- 取消 `asyncio.to_thread` await 不會中止 worker；NSForge 不會誤發 Finished，
+  hard timeout 仍使用可終止 process。
+- MCP Python SDK 2.1.1 尚未實作 Tasks extension；`task_run` 不是 MCP Tasks。
+
 ## [0.3.0] - 2026-08-31
 
 ### Added
@@ -14,7 +83,7 @@
 - 🧭 **MCP 2 discovery primitives** — 新增 `nsforge://manifest`、`nsforge://health`、`nsforge://north-star` resources、`nsforge://derivations/{result_id}` 已存推導 resource template，以及 `forge_verified_derivation` prompt；穩定 list/discovery 回應帶五分鐘 public cache hints。
 - 🧪 **第 12 個 `mcp` gate** — official in-memory client 同時驗證預設 82／完整 91 工具、v0.2.4 schema 與 payload hash、全工具 metadata、structured output、application-error `isError`、resources、prompt、cache hints 與 legacy-client mode；release harness 共 12 gates。
 - 🛡️ **MCP 2 統一結果 envelope（跨全部工具）** — `EnvelopeMCP` 在 `register_all_tools` 邊界替每個工具明確設定 `structured_output=True`；SDK 1.25 已有的 `structuredContent`＋text dual channel 及其 body／hash 完整保留。本次另替既有錯誤 JSON 加上 protocol `isError=true` semantic signal；未處理例外仍統一為 `{success: false, error: {type, message, tool}}`，`functools.wraps` 保留簽章與既有 schema。
-- 🏭 **生產級強化（tool 收斂＋wheel 打包＋可觀測性）** — (1) **精簡預設面**：`music`（9 工具）改 opt-in（`NSFORGE_ENABLE_MUSIC=1`），預設 91→82（少工具＝更好的工具選擇）；`nsforge_mcp/config.py` 單一真相、manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報告 active vs catalog。(2) **manifest 打包進 wheel**（hatch force-include），`uvx` 安裝也能自描述。(3) **stderr 結構化啟動日誌**（`NSFORGE_LOG_LEVEL`）＋伺服器 `website_url`／版本 metadata。harness 亦守衛 `nsforge_mcp.__version__`（第三份版本）與 optional metadata。
+- 🏭 **生產級強化（tool 收斂＋wheel 打包＋可觀測性）** — (1) **精簡預設面**：`music`（9 工具）改 opt-in（`NSFORGE_ENABLE_MUSIC=1`），預設 91→82（少工具＝更好的工具選擇）；`nsforge_mcp/config.py` 單一真相、manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報告 active vs catalog。(2) **manifest 打包進 wheel**（hatch force-include），`uvx` 安裝也能自描述。(3) **stderr 啟動日誌**（`NSFORGE_LOG_LEVEL`）＋伺服器 `website_url`／版本 metadata。harness 亦守衛 `nsforge_mcp.__version__`（第三份版本）與 optional metadata。
 - 🧩 **Agent harness 完整化（自描述＋自守衛）** — agents 賴以工作的基座現在自描述且自守衛：manifest **v3**（`docs/agent/capabilities.json` 自描述 version／north-star／modules／12 個 live gates／MCP contract／commands）；runtime 自省 MCP tools `nsforge_health`＋`nsforge_manifest`；`harness` gate 另守衛版本單一真相、manifest／gate 對齊、工具 metadata 品質與 AGENTS.md 漂移。
 - 🌳 **explore mode（roadmap 階段 6）** — `task_explore`（`application/explorer.py`）：把 DTS 的 `alternatives` 當分支，對 base＋每個 alternative 各跑完整 L3 迴圈，回傳**所有**驗證候選（依 verified>通過神諭數>簡潔排序，各帶 acceptance＋provenance）。把「推導一個答案」變成「探索驗證過的答案空間」。
 - 🧱 **infra 純程式碼收尾：DI 組合根 + process-pool timeout** — `nsforge_mcp/composition.py`：組合根（frozen `Services`：engine/verifier/session_manager/repository）+ `get_services()`（雙重檢查鎖），object graph「建一次、注入」的單一組裝點；`task.py`／`derivation.py` 全改走它（消除每次 `new` engine/verifier、自有 `_manager` 全域與 7 處重複 `Path("formulas")`）。`nsforge/infrastructure/timeout.py` `run_with_timeout`（spawn 子行程硬牆鐘逾時、超時即 terminate→`ComputationTimeout`）；`task_run`/`task_explore` 加 opt-in `timeout_s`，可真殺失控推導。

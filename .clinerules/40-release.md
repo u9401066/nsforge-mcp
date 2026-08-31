@@ -17,7 +17,8 @@ NSForge ships as a Python package (`nsforge-mcp`). No VSIX / Docker / extension.
 
 ## Pre-Tag Verification
 - `python scripts/check.py` (must be all green)
-- `uv build`
+- The harness includes `security` and an isolated `package` build/install smoke;
+  `uv build` may still be run separately when inspecting release artifacts.
 
 ## Tag Format
 - Annotated tags: `vX.Y.Z`

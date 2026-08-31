@@ -1,6 +1,8 @@
 # MCP Python SDK v2 遷移與工具翻新規格
 
 > 日期：2026-08-31；基線：SDK 1.25.0；目標：SDK 2.1.1 stable、協定 2026-07-28。
+> 狀態：v0.3.0 遷移記錄已完成；v0.4.0 trusted workflow 後續實作見第 9 節與
+> [`mcp-tool-surface-v4.md`](mcp-tool-surface-v4.md)。
 
 ## 1. 版本決策
 
@@ -19,9 +21,10 @@
   [Versioning](https://modelcontextprotocol.io/docs/2026-07-28/learn/versioning)、
   [Specification](https://modelcontextprotocol.io/specification/2026-07-28)。
 
-dependency 採 `mcp>=2.1.1,<3`，lockfile 必須解析為 2.1.1。不要獨立 pin
-`mcp-types`。SDK 內部雖改用 `httpx2`，NSForge adapters 仍直接 import `httpx`，
-故保留自身 `httpx` dependency。依據：
+v0.3 migration 原採 `mcp>=2.1.1,<3` 並由 lockfile 解析為 2.1.1；v0.4
+release 已由後續決策改為精確 `mcp==2.1.1`，package／contract gates 同時驗證
+實際安裝版本。不要獨立 pin `mcp-types`。SDK 內部雖改用 `httpx2`，NSForge
+adapters 仍直接 import `httpx`，故保留自身 `httpx` dependency。依據：
 [官方 migration guide](https://github.com/modelcontextprotocol/python-sdk/blob/v2.1.1/docs/migration.md)。
 
 ## 2. 不可破壞的相容矩陣
@@ -137,9 +140,10 @@ lineage 摘要（不是逐工具的完整 provenance ledger）。resource metada
 cache scope 不是授權，因此 HTTP 預設只允許 loopback。
 manifest 與 north-star 必須隨 wheel 打包，不能只在 source checkout 可讀。
 
-Session resource、工具結果內的 `ResourceLink` 與 `subscriptions/listen` 通知列為
-後續非 blocker：它們牽涉 mutable-state 授權、cache invalidation 與 content-block
-相容性；加入前須另有跨 worker、legacy client 與資料隔離測試。
+v0.4.0 在 tenant-scoped immutable store 建立後，另加入 run／event／artifact
+resources、工具結果內的 `ResourceLink` 與 resource-updated 通知；
+`nsforge://sessions/{session_id}` 只回傳在 session transaction 內擷取的 detached
+legacy snapshot，不暴露可變物件本身。Metadata／subscription 不視為授權。
 
 新增 `forge_verified_derivation` prompt；它只編排 deterministic tools，不在 prompt
 內手算公式或宣稱未經工具驗證的結果。依據：
@@ -153,8 +157,9 @@ Session resource、工具結果內的 `ResourceLink` 與 `subscriptions/listen` 
   cache hint。cache hint 不是 access control。
 - typed lifespan 一次建立 process-wide `Services`，shutdown 一次清理；不得另存
   第二套 singleton。spawned timeout worker 不攜帶不可 pickle 的 Context。
-- progress 用於 `task_run`、`task_explore` 的真實開始／完成邊界；事件單調，無
-  callback 時 final result 完全不變。沒有 phase callback/IPC 時不假裝知道內部進度。
+- v0.3 先回報 `task_run`、`task_explore` 開始／完成邊界；v0.4 改由真實
+  phase events 驅動單調 progress、persistence 與 OTel events。無 callback 時 final
+  result 保持相容。
 
 依據：[Caching](https://github.com/modelcontextprotocol/python-sdk/blob/v2.1.1/docs/client/caching.md)、
 [Lifespan](https://github.com/modelcontextprotocol/python-sdk/blob/v2.1.1/docs/handlers/lifespan.md)、
@@ -242,3 +247,44 @@ README、tools reference、manifest、Memory Bank 與版本資訊同步。
 與 metadata → error dual-track → resources/prompts/runtime → concurrency/tests →
 docs/Memory Bank。每個 code commit 跑相應 gates，最終全量 green 後才 push；交付列出
 commit hashes、gate 結果與 remote branch。
+
+## 9. v0.4.0 trusted workflow 後續實作
+
+v0.4.0 不回頭改寫上述 v0.3 migration contract，而是在相容面之外加上
+可驗證執行面：
+
+1. **Exact stable runtime**：v0.4 release 由寬範圍改為 `mcp==2.1.1`，package／
+   contract smoke 同時驗證實際安裝版本；capability manifest 升為 schema v4。
+2. **Fixed profiles**：`legacy=82`（預設）、`workflow=17`、
+   `scientific=35`、`interactive=35`、`full=91`。未知 profile 啟動失敗；
+   compact profiles 拒絕 unknown fields 並套用 enum／range constraints。
+3. **No-eval expression boundary**：統一 allowlisted tokenizer／AST constructor，不再對
+   caller text 使用 `parse_expr`／`sympify`，並保留複雜度 budget。
+4. **Strict evidence gate**：驗證失敗、缺失／過期 evidence、caller assertion、
+   wrong tenant／digest／revision／policy 或 incomplete provenance 皆不產出程式碼
+   artifact。Legacy codegen payload 只為相容層，不會被升格為 trusted artifact。
+5. **Immutable application kernel**：`RunStore` port 與 SQLite Unit of Work 原子寫入
+   tenant-scoped run、ordered events、provenance nodes、verification evidence 與
+   content-addressed artifacts；terminal revision 不可就地修改。
+6. **MCP primitives**：`nsforge://runs/{run_id}`、`.../events`、
+   `nsforge://sessions/{session_id}`、`nsforge://artifacts/{sha256}`，以及 tool result
+   中的 `ResourceLink`、updated
+   notification 與 phase progress。
+7. **Observability**：SDK OpenTelemetry span 帶 tool／session／run correlation；phase event
+   是 provenance、progress、persistence 與 trace event 的共同真相，不記錄完整
+   expression、code 或 artifact bytes。
+8. **Release gates**：harness 由 12 擴為 14：
+   `lint, format, type, security, import, manifest, mcp, test, bench, generic,
+   provenance, package, harness, diff`。
+
+### 實際邊界
+
+- Legacy `DerivationSession`／`DerivationRepository` 仍是 process globals + JSON／YAML
+  相容層；strict SQLite 只是 trusted workflow 的權威狀態。
+- `NSFORGE_TENANT_ID` 是 server scope，不是 caller identity。未接 IdP／token verifier
+  時，一個 instance 只適合一個 tenant trust boundary。
+- SQLite 與 process globals 都不是 cross-replica shared state；多副本需 shared DB、
+  artifact backend、distributed coordination 與 trusted principal resolver。
+- 取消 `asyncio.to_thread` 的 await 不會停止 worker，因此不誤報 Finished；
+  hard timeout 仍透過可終止 process。
+- MCP Python SDK 2.1.1 仍未實作 Tasks extension；NSForge 不宣稱支援。
