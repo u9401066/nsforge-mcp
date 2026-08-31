@@ -1336,10 +1336,7 @@ def register_derivation_tools(mcp: Any) -> None:
                     category="derived",
                 )
 
-                # Register + persistence are one repository transaction.
-                with repo.transaction():
-                    repo.register(derivation_result)
-                    saved_path = repo.save(str(result["session_id"]))
+                saved_path = repo.register_and_save(derivation_result)
 
             except Exception as e:
                 result["save_warning"] = f"Completed but save failed: {e}"
@@ -1604,10 +1601,8 @@ def register_derivation_tools(mcp: Any) -> None:
                     "error": "No updates provided",
                 }
 
-            # Update + persistence are atomic relative to repository callers.
-            with repo.transaction():
-                repo.update(result_id, **updates)
-                saved_path = repo.save(result_id)
+            # Roll back the in-memory metadata if persistence fails.
+            saved_path = repo.update_and_save(result_id, **updates)
 
             return {
                 "success": True,

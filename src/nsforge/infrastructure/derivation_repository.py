@@ -34,6 +34,8 @@ from typing import Any
 import yaml
 from sympy import Basic, sympify
 
+from nsforge.infrastructure.storage_paths import contained_path, validate_storage_segment
+
 
 @dataclass
 class DerivationResult:
@@ -59,6 +61,9 @@ class DerivationResult:
     verified: bool = False
     verification_method: str = ""  # e.g., "reverse_derivative", "dimensional_analysis"
     verified_at: str | None = None
+    # Compatibility metadata may still be caller asserted.  Strict workflows
+    # only trust immutable VerificationEvidence from the run store.
+    verification_trust: str = "none"
 
     # Metadata
     category: str = ""
@@ -90,6 +95,7 @@ class DerivationResult:
             "verified": self.verified,
             "verification_method": self.verification_method,
             "verified_at": self.verified_at,
+            "verification_trust": self.verification_trust,
             "category": self.category,
             "tags": self.tags,
             "description": self.description,
@@ -202,15 +208,25 @@ class DerivationRepository:
             if save_dir is None:
                 raise ValueError("No directory specified for saving")
 
-            # Create category subdirectory
-            category_dir = save_dir / result.category if result.category else save_dir
+            safe_id = validate_storage_segment(result.id, field="result id")
+            resolved_root = save_dir.resolve()
+            # Category is metadata, never a caller-controlled path.  Keeping it
+            # to one validated segment preserves the legacy directory layout.
+            category_dir = resolved_root
+            if result.category:
+                category = validate_storage_segment(result.category, field="category")
+                category_dir = contained_path(resolved_root, category, field="category")
             category_dir.mkdir(parents=True, exist_ok=True)
 
             # Atomic write: the temporary file must share the destination directory
             # so os.replace is atomic on the target filesystem.
-            file_path = category_dir / f"{result.id}.yaml"
+            file_path = contained_path(
+                resolved_root,
+                category_dir / f"{safe_id}.yaml",
+                field="derivation result path",
+            )
             tmp_fd, tmp_name = tempfile.mkstemp(
-                dir=str(category_dir), prefix=f".{result.id}_", suffix=".tmp"
+                dir=str(category_dir), prefix=f".{safe_id}_", suffix=".tmp"
             )
             try:
                 with open(tmp_fd, "w", encoding="utf-8") as f:
@@ -227,6 +243,60 @@ class DerivationRepository:
                 raise
 
             return file_path
+
+    def register_and_save(
+        self,
+        result: DerivationResult,
+        directory: Path | None = None,
+    ) -> Path:
+        """Register and persist a result atomically from the caller's view."""
+        with self._lock:
+            previous = self._results.get(result.id)
+            self._results[result.id] = result
+            try:
+                return self.save(result.id, directory)
+            except BaseException:
+                if previous is None:
+                    self._results.pop(result.id, None)
+                else:
+                    self._results[result.id] = previous
+                raise
+
+    def update_and_save(
+        self,
+        result_id: str,
+        *,
+        directory: Path | None = None,
+        **updates: Any,
+    ) -> Path:
+        """Apply metadata and persistence as one rollback-capable operation."""
+        with self._lock:
+            current = self._results.get(result_id)
+            if current is None:
+                raise ValueError(f"Derivation result '{result_id}' not found")
+            previous = copy.deepcopy(current)
+            save_dir = directory or self._formulas_dir
+            old_path: Path | None = None
+            if save_dir is not None:
+                safe_id = validate_storage_segment(previous.id, field="result id")
+                old_parent = save_dir.resolve()
+                if previous.category:
+                    old_category = validate_storage_segment(previous.category, field="category")
+                    old_parent = contained_path(old_parent, old_category, field="category")
+                old_path = contained_path(
+                    save_dir.resolve(),
+                    old_parent / f"{safe_id}.yaml",
+                    field="derivation result path",
+                )
+            try:
+                self.update(result_id, **updates)
+                new_path = self.save(result_id, directory)
+            except BaseException:
+                self._results[result_id] = previous
+                raise
+            if old_path is not None and old_path != new_path and old_path.exists():
+                old_path.unlink()
+            return new_path
 
     def update(
         self,
@@ -269,7 +339,13 @@ class DerivationRepository:
 
             for key, value in updates.items():
                 if key in allowed_fields and hasattr(result, key):
+                    if key == "category" and value:
+                        validate_storage_segment(str(value), field="category")
                     setattr(result, key, value)
+                    if key == "verified":
+                        # This legacy repository API has no verifier attestation;
+                        # record the assertion but never promote it to trusted.
+                        result.verification_trust = "caller_asserted" if value else "none"
 
             return result
 
@@ -294,10 +370,17 @@ class DerivationRepository:
 
             # Delete file if requested
             if delete_file and self._formulas_dir:
-                category_dir = (
-                    self._formulas_dir / result.category if result.category else self._formulas_dir
+                safe_id = validate_storage_segment(result_id, field="result id")
+                root = self._formulas_dir.resolve()
+                category_dir = root
+                if result.category:
+                    category = validate_storage_segment(result.category, field="category")
+                    category_dir = contained_path(root, category, field="category")
+                file_path = contained_path(
+                    root,
+                    category_dir / f"{safe_id}.yaml",
+                    field="derivation result path",
                 )
-                file_path = category_dir / f"{result_id}.yaml"
                 if file_path.exists():
                     file_path.unlink()
 
