@@ -32,8 +32,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from sympy import Basic, sympify
+from sympy import Basic
 
+from nsforge.infrastructure.parsing import parse_expression_safe
 from nsforge.infrastructure.storage_paths import contained_path, validate_storage_segment
 
 
@@ -79,7 +80,10 @@ class DerivationResult:
 
     def to_sympy(self) -> Basic:
         """Convert expression string to SymPy expression."""
-        return sympify(self.expression)
+        parsed, error = parse_expression_safe(self.expression)
+        if error is not None or not isinstance(parsed, Basic):
+            raise ValueError(error or "persisted expression is not a scalar SymPy value")
+        return parsed
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""

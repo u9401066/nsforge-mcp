@@ -7,13 +7,14 @@ Concrete implementation of the SymbolicEngine interface using SymPy.
 from typing import Any
 
 import sympy as sp
-from sympy.parsing.sympy_parser import parse_expr
 
 from nsforge.domain.entities import Expression, ExpressionType
-from nsforge.domain.safe_parse import check_expression_safety
 from nsforge.domain.services import SymbolicEngine
 from nsforge.domain.value_objects import MathContext, SimplificationLevel
-from nsforge.infrastructure.parsing import SYMPY_PARSER_TRANSFORMATIONS
+from nsforge.infrastructure.parsing import (
+    SYMPY_PARSER_TRANSFORMATIONS,
+    parse_expression_safe,
+)
 
 
 class SymPyEngine(SymbolicEngine):
@@ -28,22 +29,19 @@ class SymPyEngine(SymbolicEngine):
 
     def parse(self, expr_str: str, context: MathContext | None = None) -> Expression:
         """Parse a string into an Expression using SymPy."""
-        unsafe = check_expression_safety(expr_str)
-        if unsafe:
-            return Expression(
-                raw=expr_str, latex="", sympy_expr=None, expr_type=ExpressionType.UNKNOWN
-            )
         try:
             # Get symbols with assumptions if provided
             local_dict = self._get_local_dict(context)
 
-            # Parse the expression
-            sympy_expr = parse_expr(
+            # Parse through the no-eval allowlist boundary.  ``evaluate=False``
+            # preserves the engine's historical unevaluated input representation.
+            sympy_expr, error = parse_expression_safe(
                 expr_str,
                 local_dict=local_dict,
-                transformations=self.TRANSFORMATIONS,
                 evaluate=False,
             )
+            if error is not None or sympy_expr is None:
+                raise ValueError(error or "expression parser returned no value")
 
             # Determine expression type
             expr_type = self._classify_expression(sympy_expr)
@@ -256,7 +254,10 @@ class SymPyEngine(SymbolicEngine):
     def _to_sympy(self, value: Any) -> Any:
         """Convert a value to SymPy format."""
         if isinstance(value, str):
-            return parse_expr(value, transformations=self.TRANSFORMATIONS)
+            parsed, error = parse_expression_safe(value)
+            if error is not None or parsed is None:
+                raise ValueError(error or "expression parser returned no value")
+            return parsed
         return sp.sympify(value)
 
     def _classify_expression(self, expr: Any) -> ExpressionType:

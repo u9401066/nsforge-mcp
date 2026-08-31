@@ -24,6 +24,7 @@ from nsforge.infrastructure.derivation_repository import (
     DerivationRepository,
     DerivationResult,
 )
+from nsforge.infrastructure.parsing import parse_expression_safe
 from nsforge_mcp.composition import get_services
 
 
@@ -72,6 +73,14 @@ def _resolve_session(session_id: str = "") -> DerivationSession | None:
     if session_id:
         return _get_manager().get(session_id)
     return _get_current_session()
+
+
+def _parse_expression_or_raise(expression: str) -> Any:
+    """Parse a serialized/caller expression through the shared no-eval boundary."""
+    parsed, error = parse_expression_safe(expression)
+    if error is not None or parsed is None:
+        raise ValueError(error or "expression parser returned no value")
+    return parsed
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -369,7 +378,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 "display_text": "📊 **drug_elimination** (Step 3)\\n\\n$$C_{0} e^{- k t}$$"
               }
         """
-        from sympy import latex, sympify
+        from sympy import latex
 
         session = _resolve_session(session_id)
         if session is None:
@@ -393,7 +402,7 @@ def register_derivation_tools(mcp: Any) -> None:
                 "display_text": f"📊 **{snapshot['name']}** (Step {len(steps)})\n\n_尚未載入公式_",
             }
 
-        expr = sympify(expression)
+        expr = _parse_expression_or_raise(expression)
         latex_str = latex(expr)
         sympy_str = str(expr)
 
@@ -828,7 +837,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
         # 解析表達式（支援 Unicode 希臘字母、上下標）
         try:
-            expr = sp.sympify(_preprocess_for_sympify(expression))
+            expr = _parse_expression_or_raise(_preprocess_for_sympify(expression))
         except Exception as e:
             return {
                 "success": False,
@@ -1307,11 +1316,9 @@ def register_derivation_tools(mcp: Any) -> None:
         saved_path = None
         if auto_save:
             try:
-                import sympy as sp
-
                 repo = _get_repository()
                 final_expression = str(result["final_expression"])
-                final_symbols = sp.sympify(final_expression).free_symbols
+                final_symbols = _parse_expression_or_raise(final_expression).free_symbols
 
                 # Build only from the locked, detached completion snapshot.
                 # A later legacy mutation of this session cannot change what
@@ -1741,7 +1748,7 @@ def register_derivation_tools(mcp: Any) -> None:
             }
         snapshot = session.to_dict()
         expression = snapshot["current_expression"]
-        expr = sp.sympify(expression) if expression is not None else None
+        expr = _parse_expression_or_raise(expression) if expression is not None else None
 
         result: dict[str, Any] = {
             "success": True,
@@ -1871,7 +1878,7 @@ def register_derivation_tools(mcp: Any) -> None:
 
         # 解析表達式（支援 Unicode 希臘字母、上下標）
         try:
-            expr = sp.sympify(_preprocess_for_sympify(expression))
+            expr = _parse_expression_or_raise(_preprocess_for_sympify(expression))
         except Exception as e:
             return {
                 "success": False,
@@ -1937,8 +1944,6 @@ def register_derivation_tools(mcp: Any) -> None:
         Returns:
             Handoff 狀態和建議
         """
-        import sympy as sp
-
         session = _resolve_session(session_id)
 
         nsforge_capabilities = {
@@ -1972,7 +1977,7 @@ def register_derivation_tools(mcp: Any) -> None:
             }
         snapshot = session.to_dict()
         expression = snapshot["current_expression"]
-        expr = sp.sympify(expression) if expression is not None else None
+        expr = _parse_expression_or_raise(expression) if expression is not None else None
 
         return {
             "has_active_session": True,
@@ -2057,9 +2062,9 @@ def register_derivation_tools(mcp: Any) -> None:
                 "message": "Complete a derivation first before preparing for optimization",
             }
 
-        from sympy import latex, sympify
+        from sympy import latex
 
-        expr = sympify(expression)
+        expr = _parse_expression_or_raise(expression)
         free_vars = sorted(expr.free_symbols, key=lambda x: str(x))
 
         # 分類變數：可優化變數 vs 參數

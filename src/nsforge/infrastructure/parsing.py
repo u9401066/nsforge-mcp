@@ -1,30 +1,17 @@
-"""
-Shared SymPy parsing helpers — the single source of truth for the parser
-transformations and the guarded parse wrapper used across the tool layer.
-
-Consolidates what were seven near-identical ``TRANSFORMATIONS`` definitions and
-three ``_parse_safe`` helpers, and closes a gap where some tools parsed
-caller-supplied expressions without the untrusted-input safety guard.
-"""
+"""Shared no-eval parsing adapter used across the MCP and infrastructure layers."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
+from nsforge.domain.safe_parse import (
+    ALLOWLIST_TRANSFORMATIONS,
+    parse_expression_allowlisted,
 )
 
-from nsforge.domain.safe_parse import check_expression_safety
-
-# The one parser configuration every tool should use.
-SYMPY_PARSER_TRANSFORMATIONS = standard_transformations + (
-    implicit_multiplication_application,
-    convert_xor,
-)
+# Backward-compatible public alias.  These are token-to-token transformations;
+# expression construction is performed by the allowlisted AST walker, not eval.
+SYMPY_PARSER_TRANSFORMATIONS = ALLOWLIST_TRANSFORMATIONS
 
 
 def parse_expression_safe(
@@ -32,23 +19,19 @@ def parse_expression_safe(
     *,
     local_dict: dict[str, Any] | None = None,
     check_safety: bool = True,
+    evaluate: bool = True,
 ) -> tuple[Any, str | None]:
     """Parse an expression string, returning ``(sympy expr | None, error | None)``.
 
-    Applies the untrusted-input safety guard before parsing (unless disabled),
-    normalises ``^`` to ``**``, optionally injects ``local_dict`` symbols, and
-    reports any parse error as a string. This is the single place tool code should
-    parse caller-supplied expressions.
+    ``check_safety=False`` bypasses only complexity budgets for trusted persisted
+    data; the structural allowlist is always enforced.  No mode executes input.
     """
-    if check_safety:
-        unsafe = check_expression_safety(expression)
-        if unsafe:
-            return None, unsafe
     try:
-        parsed = parse_expr(
-            expression.replace("^", "**"),
+        parsed = parse_expression_allowlisted(
+            expression,
             local_dict=local_dict,
-            transformations=SYMPY_PARSER_TRANSFORMATIONS,
+            evaluate=evaluate,
+            check_complexity=check_safety,
         )
         return parsed, None
     except Exception as exc:

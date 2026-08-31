@@ -7,6 +7,10 @@ These tools convert human-readable formulas to SymPy-computable form.
 
 from typing import Any
 
+import sympy as sp
+
+from nsforge.infrastructure.parsing import parse_expression_safe
+
 
 def register_expression_tools(mcp: Any) -> None:
     """Register expression parsing tools with MCP server."""
@@ -42,14 +46,6 @@ def register_expression_tools(mcp: Any) -> None:
             parse_expression("∫x²dx", description="Integral of x squared")
             → {"sympy_expr": "Integral(x**2, x)", ...}
         """
-        import sympy as sp
-        from sympy.parsing.sympy_parser import (
-            convert_xor,
-            implicit_multiplication_application,
-            parse_expr,
-            standard_transformations,
-        )
-
         # Symbol replacements for common notations
         # NOTE: Must keep in sync with derivation.py's _preprocess_for_sympify
         # TODO: Centralize into domain layer (cf. SYMBOL_REPLACEMENTS in formula.py)
@@ -113,24 +109,12 @@ def register_expression_tools(mcp: Any) -> None:
         for old, new in replacements.items():
             expr_clean = expr_clean.replace(old, new)
 
-        # Check if it's an equation
-        is_equation = "=" in expr_clean and expr_clean.count("=") == 1
-
         try:
-            transformations = standard_transformations + (
-                implicit_multiplication_application,
-                convert_xor,
-            )
-
-            if is_equation:
-                lhs, rhs = expr_clean.split("=")
-                lhs_expr = parse_expr(lhs.strip(), transformations=transformations)
-                rhs_expr = parse_expr(rhs.strip(), transformations=transformations)
-                sympy_expr = sp.Eq(lhs_expr, rhs_expr)
-                all_symbols = lhs_expr.free_symbols | rhs_expr.free_symbols
-            else:
-                sympy_expr = parse_expr(expr_clean, transformations=transformations)
-                all_symbols = sympy_expr.free_symbols
+            sympy_expr, error = parse_expression_safe(expr_clean)
+            if error is not None or sympy_expr is None:
+                raise ValueError(error or "expression parser returned no value")
+            is_equation = isinstance(sympy_expr, sp.Equality)
+            all_symbols = sympy_expr.free_symbols
 
             # Extract symbol info
             symbols_info = []
@@ -204,22 +188,15 @@ def register_expression_tools(mcp: Any) -> None:
             validate_expression("F = m*a + v", units_map={"F": "N", "m": "kg", "a": "m/s²", "v": "m/s"})
             → {"valid": False, "issues": ["Dimension mismatch: m*a (N) + v (m/s)"]}
         """
-        import sympy as sp
-
         issues = []
         warnings = []
 
         # First, try to parse
         try:
-            # Handle equation form
-            if "=" in expression:
-                lhs, rhs = expression.split("=", 1)
-                lhs_expr = sp.sympify(lhs.strip())
-                rhs_expr = sp.sympify(rhs.strip())
-                all_symbols = lhs_expr.free_symbols | rhs_expr.free_symbols
-            else:
-                expr = sp.sympify(expression)
-                all_symbols = expr.free_symbols
+            expr, error = parse_expression_safe(expression)
+            if error is not None or expr is None:
+                raise ValueError(error or "expression parser returned no value")
+            all_symbols = expr.free_symbols
 
             found_symbols = {str(s) for s in all_symbols}
 
@@ -283,8 +260,6 @@ def register_expression_tools(mcp: Any) -> None:
                 {"name": "a", "type": "real", "suggested_unit": "m/s²", "description": "Acceleration"}
               ]
         """
-        import sympy as sp
-
         # Context-based symbol knowledge
         SYMBOL_KNOWLEDGE = {
             "mechanics": {
@@ -325,12 +300,9 @@ def register_expression_tools(mcp: Any) -> None:
         }
 
         try:
-            # Parse expression
-            if "=" in expression:
-                parts = expression.split("=")
-                expr = sp.sympify(f"({parts[0]}) - ({parts[1]})")
-            else:
-                expr = sp.sympify(expression)
+            expr, error = parse_expression_safe(expression)
+            if error is not None or expr is None:
+                raise ValueError(error or "expression parser returned no value")
 
             all_symbols = expr.free_symbols
             knowledge = SYMBOL_KNOWLEDGE.get(context, {}) if context else {}

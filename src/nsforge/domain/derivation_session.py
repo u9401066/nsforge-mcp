@@ -31,6 +31,7 @@ from typing import Any, Protocol, cast
 import sympy as sp
 
 from nsforge.domain.formula import Formula, FormulaParser, FormulaSource, ParseError
+from nsforge.domain.safe_parse import parse_expression_allowlisted
 
 
 class _Lockable(Protocol):
@@ -432,7 +433,7 @@ class DerivationSession:
         # 解析替換表達式
         if isinstance(replacement, str):
             try:
-                replacement_expr = sp.sympify(replacement)
+                replacement_expr = parse_expression_allowlisted(replacement)
             except Exception as e:
                 return {
                     "success": False,
@@ -731,8 +732,8 @@ class DerivationSession:
 
         try:
             if lower is not None and upper is not None:
-                lower_val = sp.sympify(lower)
-                upper_val = sp.sympify(upper)
+                lower_val = parse_expression_allowlisted(lower)
+                upper_val = parse_expression_allowlisted(upper)
                 new_expr = sp.integrate(original, (var_symbol, lower_val, upper_val))
                 cmd = f"integrate(expr, ({variable}, {lower}, {upper}))"
             else:
@@ -891,7 +892,7 @@ class DerivationSession:
         # 恢復前一步的表達式
         if self.steps:
             last_step = self.steps[-1]
-            self.current_expression = sp.sympify(last_step.output_expression)
+            self.current_expression = parse_expression_allowlisted(last_step.output_expression)
         else:
             self.current_expression = None
 
@@ -941,7 +942,7 @@ class DerivationSession:
         # 恢復當前表達式
         if self.steps:
             last_step = self.steps[-1]
-            self.current_expression = sp.sympify(last_step.output_expression)
+            self.current_expression = parse_expression_allowlisted(last_step.output_expression)
         else:
             # 回滾到 0，清空所有
             self.current_expression = None
@@ -993,7 +994,7 @@ class DerivationSession:
         if after_step == 0:
             output_expr = self.current_expression or sp.Integer(0)
         else:
-            output_expr = sp.sympify(self.steps[after_step - 1].output_expression)
+            output_expr = parse_expression_allowlisted(self.steps[after_step - 1].output_expression)
 
         # 建立新步驟
         note_emoji = {
@@ -1193,7 +1194,7 @@ class DerivationSession:
 
         # 恢復當前表達式
         if data.get("current_expression"):
-            session.current_expression = sp.sympify(data["current_expression"])
+            session.current_expression = parse_expression_allowlisted(data["current_expression"])
         session.current_formula_id = data.get("current_formula_id")
 
         # 恢復步驟

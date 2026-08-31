@@ -11,14 +11,8 @@ from __future__ import annotations
 from typing import Any
 
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
 
-_TRANSFORMS = standard_transformations + (implicit_multiplication_application, convert_xor)
+from nsforge.infrastructure.parsing import parse_expression_safe
 
 
 def _unit_map() -> dict[str, Any]:
@@ -58,12 +52,15 @@ def dimension_of(expression: str, units_map: dict[str, str]) -> tuple[str | None
 
     try:
         units = _unit_map()
-        expr = parse_expr(expression, transformations=_TRANSFORMS)
+        expr, expression_error = parse_expression_safe(expression)
+        if expression_error is not None or expr is None:
+            raise ValueError(expression_error or "expression parser returned no value")
         subs: dict[Any, Any] = {}
         for name, unit_str in units_map.items():
-            subs[sp.Symbol(name)] = parse_expr(
-                unit_str, local_dict=units, transformations=_TRANSFORMS
-            )
+            unit_value, unit_error = parse_expression_safe(unit_str, local_dict=units)
+            if unit_error is not None or unit_value is None:
+                raise ValueError(unit_error or f"invalid unit for {name}")
+            subs[sp.Symbol(name)] = unit_value
         dim = SI.get_dimensional_expr(expr.subs(subs))
         return str(dim), None
     except Exception as exc:
@@ -83,12 +80,15 @@ def _dimensional_deps(
 
     try:
         units = _unit_map()
-        expr = parse_expr(expression, transformations=_TRANSFORMS)
+        expr, expression_error = parse_expression_safe(expression)
+        if expression_error is not None or expr is None:
+            raise ValueError(expression_error or "expression parser returned no value")
         subs: dict[Any, Any] = {}
         for name, unit_str in units_map.items():
-            subs[sp.Symbol(name)] = parse_expr(
-                unit_str, local_dict=units, transformations=_TRANSFORMS
-            )
+            unit_value, unit_error = parse_expression_safe(unit_str, local_dict=units)
+            if unit_error is not None or unit_value is None:
+                raise ValueError(unit_error or f"invalid unit for {name}")
+            subs[sp.Symbol(name)] = unit_value
         dim_expr = SI.get_dimensional_expr(expr.subs(subs))
         deps = SI.get_dimension_system().get_dimensional_dependencies(Dimension(dim_expr))
         return {str(getattr(k, "name", k)): int(v) for k, v in deps.items()}, None
@@ -106,7 +106,7 @@ def dimensions_match(
     got, err = _dimensional_deps(expression, units_map)
     if err or got is None:
         return None, f"analysis failed: {err}"
-    want, werr = _dimensional_deps("__q__", {"__q__": expected_units})
+    want, werr = _dimensional_deps("nsforge_quantity", {"nsforge_quantity": expected_units})
     if werr or want is None:
         return None, f"bad expected_units: {werr}"
     return got == want, f"got {got}, expected {want}"

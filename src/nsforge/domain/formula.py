@@ -16,11 +16,10 @@ from typing import Any
 
 import sympy as sp
 from sympy.parsing.latex import parse_latex
-from sympy.parsing.sympy_parser import (
-    convert_xor,
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
+
+from nsforge.domain.safe_parse import (
+    ALLOWLIST_TRANSFORMATIONS,
+    parse_expression_allowlisted,
 )
 
 
@@ -159,10 +158,7 @@ class FormulaParser:
     """
 
     # SymPy 解析轉換
-    TRANSFORMATIONS = standard_transformations + (
-        implicit_multiplication_application,
-        convert_xor,
-    )
+    TRANSFORMATIONS = ALLOWLIST_TRANSFORMATIONS
 
     # 常見替換
     SYMBOL_REPLACEMENTS = {
@@ -262,17 +258,8 @@ class FormulaParser:
         for old, new in cls.SYMBOL_REPLACEMENTS.items():
             input_str = input_str.replace(old, new)
 
-        # 處理方程式（含 =）
-        is_equation = "=" in input_str and input_str.count("=") == 1
-
         try:
-            if is_equation:
-                lhs, rhs = input_str.split("=")
-                lhs_expr = parse_expr(lhs.strip(), transformations=cls.TRANSFORMATIONS)
-                rhs_expr = parse_expr(rhs.strip(), transformations=cls.TRANSFORMATIONS)
-                expr = sp.Eq(lhs_expr, rhs_expr)
-            else:
-                expr = parse_expr(input_str, transformations=cls.TRANSFORMATIONS)
+            expr = parse_expression_allowlisted(input_str)
 
             # 提取變數
             variables = cls._extract_variables(expr)
