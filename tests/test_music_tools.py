@@ -15,9 +15,7 @@ Tests all 9 music tools:
 
 from __future__ import annotations
 
-import os
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -44,8 +42,9 @@ class MockMCP:
 
 
 @pytest.fixture()
-def mcp():
+def mcp(tmp_path, monkeypatch):
     """Create a MockMCP with music tools registered."""
+    monkeypatch.setenv("NSFORGE_ARTIFACT_ROOT", str(tmp_path))
     mock = MockMCP()
     register_music_tools(mock)
     return mock
@@ -271,18 +270,14 @@ class TestFunctionToWaveform:
 
 
 class TestPlotWaveform:
-    def test_plot_to_file(self, mcp):
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-            path = f.name
-        try:
-            result = mcp.tools["music_plot_waveform"](
-                "sin(2*pi*440*t)", duration=0.005, output_path=path
-            )
-            assert result["success"]
-            assert os.path.exists(path)
-            assert os.path.getsize(path) > 0
-        finally:
-            os.unlink(path)
+    def test_plot_to_file(self, mcp, tmp_path):
+        result = mcp.tools["music_plot_waveform"](
+            "sin(2*pi*440*t)", duration=0.005, output_path="waveform.png"
+        )
+        path = Path(result["file_path"])
+        assert result["success"]
+        assert path == (tmp_path / "waveform.png").resolve()
+        assert path.stat().st_size > 0
 
     def test_plot_to_base64(self, mcp):
         result = mcp.tools["music_plot_waveform"]("sin(2*pi*440*t)", duration=0.005)
@@ -297,32 +292,26 @@ class TestPlotWaveform:
 
 
 class TestPlotSpectrum:
-    def test_spectrum_to_file(self, mcp):
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-            path = f.name
-        try:
-            result = mcp.tools["music_plot_spectrum"](
-                "sin(2*pi*440*t)", duration=1.0, output_path=path
-            )
-            assert result["success"]
-            assert os.path.exists(path)
-        finally:
-            os.unlink(path)
+    def test_spectrum_to_file(self, mcp, tmp_path):
+        result = mcp.tools["music_plot_spectrum"](
+            "sin(2*pi*440*t)", duration=1.0, output_path="spectrum.png"
+        )
+        path = Path(result["file_path"])
+        assert result["success"]
+        assert path == (tmp_path / "spectrum.png").resolve()
+        assert path.is_file()
 
     def test_spectrum_dominant_frequency(self, mcp):
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-            path = f.name
-        try:
-            result = mcp.tools["music_plot_spectrum"](
-                "sin(2*pi*440*t) + 0.5*sin(2*pi*880*t)", duration=1.0, output_path=path
-            )
-            assert result["success"]
-            freqs = result["dominant_frequencies"]
-            assert len(freqs) >= 2
-            # The highest magnitude should be near 440 Hz
-            assert abs(freqs[0]["frequency_hz"] - 440.0) < 2.0
-        finally:
-            os.unlink(path)
+        result = mcp.tools["music_plot_spectrum"](
+            "sin(2*pi*440*t) + 0.5*sin(2*pi*880*t)",
+            duration=1.0,
+            output_path="spectrum-harmonics.png",
+        )
+        assert result["success"]
+        freqs = result["dominant_frequencies"]
+        assert len(freqs) >= 2
+        # The highest magnitude should be near 440 Hz
+        assert abs(freqs[0]["frequency_hz"] - 440.0) < 2.0
 
     def test_spectrum_to_base64(self, mcp):
         result = mcp.tools["music_plot_spectrum"]("sin(2*pi*440*t)", duration=0.1)
@@ -336,33 +325,27 @@ class TestPlotSpectrum:
 
 
 class TestGenerateWav:
-    def test_generate_wav_file(self, mcp):
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            path = f.name
-        try:
-            result = mcp.tools["music_generate_wav"](
-                "sin(2*pi*440*t)", duration=0.5, output_path=path
-            )
-            assert result["success"]
-            assert os.path.exists(path)
-            assert os.path.getsize(path) > 44  # WAV header is 44 bytes
-            assert result["duration"] == 0.5
-            assert result["sample_rate"] == 44100
-            assert result["bit_depth"] == 16
-        finally:
-            os.unlink(path)
+    def test_generate_wav_file(self, mcp, tmp_path):
+        result = mcp.tools["music_generate_wav"](
+            "sin(2*pi*440*t)", duration=0.5, output_path="tone.wav"
+        )
+        path = Path(result["file_path"])
+        assert result["success"]
+        assert path == (tmp_path / "tone.wav").resolve()
+        assert path.stat().st_size > 44  # WAV header is 44 bytes
+        assert result["duration"] == 0.5
+        assert result["sample_rate"] == 44100
+        assert result["bit_depth"] == 16
 
     def test_wav_custom_sample_rate(self, mcp):
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            path = f.name
-        try:
-            result = mcp.tools["music_generate_wav"](
-                "sin(2*pi*440*t)", duration=0.1, sample_rate=22050, output_path=path
-            )
-            assert result["success"]
-            assert result["sample_rate"] == 22050
-        finally:
-            os.unlink(path)
+        result = mcp.tools["music_generate_wav"](
+            "sin(2*pi*440*t)",
+            duration=0.1,
+            sample_rate=22050,
+            output_path="tone-22050.wav",
+        )
+        assert result["success"]
+        assert result["sample_rate"] == 22050
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

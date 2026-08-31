@@ -10,8 +10,12 @@ the model. Enable one by setting ``NSFORGE_ENABLE_<MODULE>=1``, e.g.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
-from typing import Literal
+from pathlib import Path
+from typing import Literal, cast
+
+from nsforge_mcp.tool_contract import TOOL_PROFILES, ToolProfile
 
 # Tool modules registered only when explicitly enabled (kept out of the default
 # production surface). Kept as a plain tuple so tooling can read it statically.
@@ -27,6 +31,9 @@ _LOOPBACK_ALLOWED_ORIGINS = (
 )
 
 Transport = Literal["stdio", "streamable-http"]
+TenantScopeMode = Literal["local", "configured"]
+
+_TENANT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,6 +48,18 @@ class TransportConfig:
     stateless_http: bool = False
     allowed_hosts: tuple[str, ...] = _LOOPBACK_ALLOWED_HOSTS
     allowed_origins: tuple[str, ...] = _LOOPBACK_ALLOWED_ORIGINS
+
+
+@dataclass(frozen=True, slots=True)
+class SurfaceConfig:
+    """Validated, immutable process scope captured when a server is built."""
+
+    profile: ToolProfile
+    legacy_music: bool
+    tenant_id: str
+    tenant_scope_mode: TenantScopeMode
+    artifact_root: Path
+    run_store_path: Path | Literal[":memory:"]
 
 
 def _truthy_env(name: str) -> bool:
@@ -107,6 +126,65 @@ def transport_config() -> TransportConfig:
         stateless_http=_truthy_env("NSFORGE_MCP_STATELESS_HTTP"),
         allowed_hosts=allowed_hosts,
         allowed_origins=allowed_origins,
+    )
+
+
+def tool_profile() -> ToolProfile:
+    """Return the fixed startup tool profile; unknown values fail closed."""
+    raw = os.environ.get("NSFORGE_TOOL_PROFILE")
+    value = "legacy" if raw is None else raw.strip().lower()
+    if value not in TOOL_PROFILES:
+        allowed = ", ".join(TOOL_PROFILES)
+        raise ValueError(f"NSFORGE_TOOL_PROFILE must be one of: {allowed}")
+    return cast("ToolProfile", value)
+
+
+def tenant_id() -> str:
+    """Return an opaque tenant slug that can never be interpreted as a path."""
+    raw = os.environ.get("NSFORGE_TENANT_ID", "local")
+    value = raw.strip()
+    if raw != value or value in {"", ".", ".."} or _TENANT_ID_RE.fullmatch(value) is None:
+        raise ValueError(
+            "NSFORGE_TENANT_ID must be a 1-128 character opaque slug using only "
+            "letters, digits, '.', '_' or '-' and no path separators"
+        )
+    return value
+
+
+def artifact_root() -> Path:
+    """Resolve the process artifact root once without creating or writing it."""
+    raw = os.environ.get("NSFORGE_ARTIFACT_ROOT")
+    candidate = Path(raw) if raw is not None and raw.strip() else Path.cwd() / "artifacts"
+    resolved = candidate.resolve(strict=False)
+    if resolved.exists() and not resolved.is_dir():
+        raise ValueError("NSFORGE_ARTIFACT_ROOT must resolve to a directory")
+    return resolved
+
+
+def run_store_path() -> Path | Literal[":memory:"]:
+    """Resolve the process run database once, preserving SQLite's memory sentinel."""
+    raw = os.environ.get("NSFORGE_RUN_DB", "data/nsforge-strict.sqlite3")
+    value = raw.strip() or "data/nsforge-strict.sqlite3"
+    if value == ":memory:":
+        return ":memory:"
+    resolved = Path(value).resolve(strict=False)
+    if resolved.exists() and resolved.is_dir():
+        raise ValueError("NSFORGE_RUN_DB must resolve to a database file, not a directory")
+    return resolved
+
+
+def surface_config() -> SurfaceConfig:
+    """Capture profile, tenant scope, and artifact boundary for one server instance."""
+    profile = tool_profile()
+    resolved_tenant = tenant_id()
+    scope_mode: TenantScopeMode = "local" if resolved_tenant == "local" else "configured"
+    return SurfaceConfig(
+        profile=profile,
+        legacy_music=profile == "legacy" and module_enabled("music"),
+        tenant_id=resolved_tenant,
+        tenant_scope_mode=scope_mode,
+        artifact_root=artifact_root(),
+        run_store_path=run_store_path(),
     )
 
 

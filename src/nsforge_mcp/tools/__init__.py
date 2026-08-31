@@ -28,6 +28,7 @@ from typing import Any
 from nsforge_mcp.config import module_enabled
 from nsforge_mcp.envelope import EnvelopeMCP
 from nsforge_mcp.introspection import health_payload
+from nsforge_mcp.tool_contract import ToolProfile, profile_tool_names, spec_for
 from nsforge_mcp.tools.calculate import register_calculate_tools
 from nsforge_mcp.tools.codegen import register_codegen_tools
 from nsforge_mcp.tools.derivation import register_derivation_tools
@@ -44,13 +45,23 @@ from nsforge_mcp.tools.verify import register_verify_tools
 def register_all_tools(
     mcp: Any,
     *,
+    profile: ToolProfile = "legacy",
+    active_tool_names: frozenset[str] | None = None,
     module_state: Mapping[str, bool] | None = None,
     health_factory: Callable[[], dict[str, Any]] | None = None,
 ) -> None:
     """Register all NSForge tools with the MCP server."""
+    configured_artifact_root = getattr(getattr(mcp, "surface", None), "artifact_root", None)
+    legacy_music = (
+        module_state.get("music", False) if module_state is not None else module_enabled("music")
+    )
+    enabled_names = active_tool_names or profile_tool_names(
+        profile,
+        legacy_music=profile == "legacy" and legacy_music,
+    )
     # Wrap once so every tool gets a uniform error envelope (an unhandled exception
     # becomes a structured, logged error dict) without touching any tool body.
-    mcp = EnvelopeMCP(mcp)
+    mcp = EnvelopeMCP(mcp, profile=profile, enabled_names=enabled_names)
 
     # 🔥 Core: Derivation engine (the "Forge" in NSForge)
     register_derivation_tools(mcp)
@@ -76,8 +87,7 @@ def register_all_tools(
 
     # 🎵 Music: mission-tangential; opt-in via NSFORGE_ENABLE_MUSIC=1 so the default
     # surface stays lean (fewer tools => better tool selection by the model).
-    music_enabled = (
-        module_state.get("music", False) if module_state is not None else module_enabled("music")
-    )
-    if music_enabled:
-        register_music_tools(mcp)
+    if any(spec_for(name).module == "music" for name in enabled_names):
+        register_music_tools(mcp, output_root=configured_artifact_root)
+
+    mcp.assert_complete()

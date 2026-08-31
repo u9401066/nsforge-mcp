@@ -29,18 +29,27 @@ from __future__ import annotations
 import base64
 import io
 import wave
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import sympy as sp
-from sympy.parsing.sympy_parser import parse_expr
 
-from nsforge.infrastructure.parsing import SYMPY_PARSER_TRANSFORMATIONS
+from nsforge.infrastructure.parsing import parse_expression_safe
+from nsforge.infrastructure.storage_paths import contained_output_path
+from nsforge_mcp.config import artifact_root
 
 # WAV file header size in bytes (RIFF header + fmt chunk + data chunk header)
 _WAV_HEADER_BYTES = 44
 
-TRANSFORMATIONS = SYMPY_PARSER_TRANSFORMATIONS
+
+def _parse_music_expression(expression: str) -> Any:
+    """Parse one caller-supplied waveform through the shared no-eval boundary."""
+    parsed, error = parse_expression_safe(expression.replace("^", "**"))
+    if error is not None or parsed is None:
+        raise ValueError(error or "expression parser returned no value")
+    return parsed
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Musical note → frequency mapping (Equal temperament, A4 = 440 Hz)
@@ -96,12 +105,16 @@ def _note_to_frequency(note: str, a4_freq: float = 440.0) -> float:
     return float(a4_freq * (2.0 ** (semitones / 12.0)))
 
 
-def register_music_tools(mcp: Any) -> None:  # noqa: C901
+def register_music_tools(mcp: Any, *, output_root: Path | None = None) -> None:  # noqa: C901
     """Register music function tools with MCP server.
 
     These tools enable representing music as mathematical functions
     and generating scientific visualizations from them.
     """
+    # Freeze the export boundary with the server surface. Direct library users
+    # that omit it retain the environment-based registration API, but later
+    # environment changes cannot redirect an already registered tool.
+    resolved_output_root = output_root or artifact_root()
 
     @mcp.tool()
     def music_note_to_frequency(
@@ -414,7 +427,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
         try:
             expr_clean = expression.replace("^", "**")
             t = sp.Symbol("t")
-            sympy_expr = parse_expr(expr_clean, transformations=TRANSFORMATIONS)
+            sympy_expr = _parse_music_expression(expr_clean)
 
             # Create fast numerical function
             f_numeric = sp.lambdify(t, sympy_expr, modules=["numpy"])
@@ -483,7 +496,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
 
             expr_clean = expression.replace("^", "**")
             t = sp.Symbol("t")
-            sympy_expr = parse_expr(expr_clean, transformations=TRANSFORMATIONS)
+            sympy_expr = _parse_music_expression(expr_clean)
 
             f_numeric = sp.lambdify(t, sympy_expr, modules=["numpy"])
 
@@ -506,12 +519,16 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             fig.tight_layout()
 
             if output_path:
-                fig.savefig(output_path, dpi=150, bbox_inches="tight")
+                resolved_output = contained_output_path(
+                    resolved_output_root, output_path, suffixes=frozenset({".png"})
+                )
+                fig.savefig(resolved_output, dpi=150, bbox_inches="tight")
+                resolved_path = str(resolved_output)
                 return {
                     "success": True,
-                    "file_path": output_path,
+                    "file_path": resolved_path,
                     "format": "png",
-                    "description": f"Waveform plot saved to {output_path}",
+                    "description": f"Waveform plot saved to {resolved_path}",
                 }
             else:
                 buf = io.BytesIO()
@@ -563,7 +580,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
 
             expr_clean = expression.replace("^", "**")
             t = sp.Symbol("t")
-            sympy_expr = parse_expr(expr_clean, transformations=TRANSFORMATIONS)
+            sympy_expr = _parse_music_expression(expr_clean)
 
             f_numeric = sp.lambdify(t, sympy_expr, modules=["numpy"])
 
@@ -614,13 +631,17 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             fig.tight_layout()
 
             if output_path:
-                fig.savefig(output_path, dpi=150, bbox_inches="tight")
+                resolved_output = contained_output_path(
+                    resolved_output_root, output_path, suffixes=frozenset({".png"})
+                )
+                fig.savefig(resolved_output, dpi=150, bbox_inches="tight")
+                resolved_path = str(resolved_output)
                 return {
                     "success": True,
-                    "file_path": output_path,
+                    "file_path": resolved_path,
                     "format": "png",
                     "dominant_frequencies": dominant_freqs,
-                    "description": f"Spectrum plot saved to {output_path}",
+                    "description": f"Spectrum plot saved to {resolved_path}",
                 }
             else:
                 buf = io.BytesIO()
@@ -668,7 +689,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
         try:
             expr_clean = expression.replace("^", "**")
             t = sp.Symbol("t")
-            sympy_expr = parse_expr(expr_clean, transformations=TRANSFORMATIONS)
+            sympy_expr = _parse_music_expression(expr_clean)
 
             f_numeric = sp.lambdify(t, sympy_expr, modules=["numpy"])
 
@@ -687,7 +708,11 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
             pcm_data = np.clip(waveform * 32767, -32768, 32767).astype(np.int16)
 
             # Write WAV file
-            with wave.open(output_path, "w") as wf:
+            resolved_output = contained_output_path(
+                resolved_output_root, output_path, suffixes=frozenset({".wav"})
+            )
+            resolved_path = str(resolved_output)
+            with wave.open(resolved_path, "w") as wf:
                 wf.setnchannels(1)
                 wf.setsampwidth(2)
                 wf.setframerate(sample_rate)
@@ -695,7 +720,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
 
             return {
                 "success": True,
-                "file_path": output_path,
+                "file_path": resolved_path,
                 "format": "wav",
                 "duration": duration,
                 "sample_rate": sample_rate,
@@ -703,7 +728,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
                 "bit_depth": 16,
                 "file_size_bytes": num_samples * 2 + _WAV_HEADER_BYTES,
                 "description": (
-                    f"WAV file: {duration}s, {sample_rate} Hz, 16-bit mono → {output_path}"
+                    f"WAV file: {duration}s, {sample_rate} Hz, 16-bit mono → {resolved_path}"
                 ),
             }
         except Exception as e:
@@ -732,7 +757,7 @@ def register_music_tools(mcp: Any) -> None:  # noqa: C901
         """
         try:
             expr_clean = expression.replace("^", "**")
-            sympy_expr = parse_expr(expr_clean, transformations=TRANSFORMATIONS)
+            sympy_expr = _parse_music_expression(expr_clean)
 
             free_syms = sorted(str(s) for s in sympy_expr.free_symbols)
 

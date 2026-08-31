@@ -5,7 +5,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from nsforge_mcp.tool_contract import KNOWN_TOOL_NAMES, contract_for
+import pytest
+
+from nsforge_mcp.tool_contract import (
+    KNOWN_TOOL_NAMES,
+    TOOL_PROFILES,
+    TOOL_SPECS,
+    contract_for,
+    profile_manifest,
+    profile_tool_names,
+    spec_for,
+)
 
 MANIFEST = Path(__file__).resolve().parents[1] / "docs" / "agent" / "capabilities.json"
 
@@ -55,3 +65,25 @@ def test_completion_discloses_that_auto_save_can_overwrite() -> None:
     contract = contract_for("derivation_complete", "derivation")
     assert contract.read_only_hint is False
     assert contract.destructive_hint is True
+
+
+def test_toolspec_is_the_exact_profile_source_of_truth() -> None:
+    assert set(TOOL_SPECS) == KNOWN_TOOL_NAMES
+    assert {profile: len(profile_tool_names(profile)) for profile in TOOL_PROFILES} == {
+        "legacy": 82,
+        "workflow": 17,
+        "scientific": 35,
+        "interactive": 35,
+        "full": 91,
+    }
+    assert profile_manifest()["workflow"]["strict_inputs"] is True
+    assert spec_for("symbolic_equal").deprecated is True
+    assert spec_for("symbolic_equal").replacement == "verify_equality"
+    assert spec_for("generate_python_function").provenance_mode == "caller-attested"
+
+
+def test_unknown_or_misfiled_toolspec_fails_closed() -> None:
+    with pytest.raises(ValueError, match="unknown MCP tool"):
+        spec_for("future_stateful_tool")
+    with pytest.raises(ValueError, match="belongs to module"):
+        spec_for("verify_equality", "calculate")

@@ -14,7 +14,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 
-from nsforge.application.task_orchestrator import TaskOrchestrator
+from nsforge.application.task_orchestrator import (
+    AcceptanceOutcome,
+    ExecutionEventSink,
+    TaskOrchestrator,
+)
+from nsforge.domain.provenance import ProvenanceLedger
 from nsforge.domain.services import SymbolicEngine, Verifier
 from nsforge.domain.task_spec import DerivationTaskSpec
 
@@ -30,6 +35,8 @@ class ExploreCandidate:
     oracles_passed: int
     oracles_total: int
     generated_code: str = ""
+    provenance: ProvenanceLedger = field(default_factory=ProvenanceLedger)
+    acceptance: tuple[AcceptanceOutcome, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -51,11 +58,33 @@ class Explorer:
     spec: DerivationTaskSpec
     engine: SymbolicEngine
     verifier: Verifier | None = None
+    event_sink: ExecutionEventSink | None = field(default=None, repr=False)
+    require_verification: bool = False
 
     def explore(self) -> ExploreResult:
         candidates: list[ExploreCandidate] = []
         for label, branch in self._branches():
-            result = TaskOrchestrator(branch, engine=self.engine, verifier=self.verifier).run()
+            branch_sink: ExecutionEventSink | None = None
+            if self.event_sink is not None:
+
+                def branch_sink(
+                    phase: str,
+                    status: str,
+                    tool: str,
+                    payload: dict[str, object],
+                    *,
+                    _label: str = label,
+                ) -> None:
+                    assert self.event_sink is not None
+                    self.event_sink(phase, status, tool, {**payload, "branch": _label})
+
+            result = TaskOrchestrator(
+                branch,
+                engine=self.engine,
+                verifier=self.verifier,
+                event_sink=branch_sink,
+                require_verification=self.require_verification,
+            ).run()
             passed = sum(1 for o in result.acceptance if o.status == "verified")
             candidates.append(
                 ExploreCandidate(
@@ -66,6 +95,8 @@ class Explorer:
                     oracles_passed=passed,
                     oracles_total=len(result.acceptance),
                     generated_code=result.generated_code,
+                    provenance=result.provenance,
+                    acceptance=tuple(result.acceptance),
                 )
             )
         # Rank: verified first, then more oracles passed, then simpler (shorter) result.

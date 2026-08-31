@@ -50,3 +50,5 @@ secrets/
 
 # runtime session artifacts
 derivation_sessions/
+data/
+artifacts/

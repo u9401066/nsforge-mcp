@@ -16,7 +16,9 @@ is reified into a plan. See docs/reification-ladder-direction.md.
 
 from __future__ import annotations
 
+import keyword
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -36,6 +38,8 @@ from nsforge.domain.value_objects import MathContext, VerificationStatus
 
 # Names that must NOT be declared as symbols (SymPy functions / constants).
 _FUNCTION_NAMES = SYMPY_RESERVED_NAMES
+
+type ExecutionEventSink = Callable[[str, str, str, dict[str, object]], None]
 
 
 def _verdict(ok: bool) -> str:
@@ -67,6 +71,7 @@ class PlannedStep:
     tool: str  # the tool that would produce this entity (its "birth certificate")
     purpose: str
     args: dict[str, Any] = field(default_factory=dict)
+    executor: str = "local"  # local | internal | external
 
 
 @dataclass(frozen=True)
@@ -123,6 +128,18 @@ class TaskOrchestrator:
     spec: DerivationTaskSpec
     engine: SymbolicEngine | None = None  # inject an engine to execute the DERIVATION rung
     verifier: Verifier | None = None  # inject to execute DIMENSIONAL acceptance oracles
+    event_sink: ExecutionEventSink | None = field(default=None, repr=False)
+    require_verification: bool = False
+
+    def _emit(
+        self,
+        phase: str,
+        status: str,
+        tool: str,
+        payload: dict[str, object] | None = None,
+    ) -> None:
+        if self.event_sink is not None:
+            self.event_sink(phase, status, tool, payload or {})
 
     def plan(self) -> list[PlannedStep]:
         """Reify the spec into an ordered list of intended tool calls."""
@@ -133,18 +150,20 @@ class TaskOrchestrator:
             steps.append(
                 PlannedStep(
                     LadderPhase.SYMBOL,
-                    "intro_many",
+                    "sympy-mcp:intro_many",
                     f"introduce given symbol {sym} ({meta})",
                     {"symbol": sym},
+                    "external",
                 )
             )
         for sym in self.spec.unknowns:
             steps.append(
                 PlannedStep(
                     LadderPhase.SYMBOL,
-                    "intro_many",
+                    "sympy-mcp:intro_many",
                     f"introduce unknown {sym}",
                     {"symbol": sym},
+                    "external",
                 )
             )
 
@@ -176,13 +195,21 @@ class TaskOrchestrator:
                     {"target": unknown},
                 )
             )
+        acceptance_tools = {
+            AcceptanceKind.EQUIVALENCE: ("verify_equality", "local"),
+            AcceptanceKind.BOUNDARY: ("internal:boundary_check", "internal"),
+            AcceptanceKind.LIMIT: ("calculate_limit", "local"),
+            AcceptanceKind.DIMENSIONAL: ("check_dimensions", "local"),
+        }
         for check in self.spec.acceptance:
+            tool, executor = acceptance_tools[check.kind]
             steps.append(
                 PlannedStep(
                     LadderPhase.DERIVATION,
-                    f"verify_{check.kind.value}",
+                    tool,
                     check.description or f"acceptance oracle: {check.kind.value}",
                     dict(check.params),
+                    executor,
                 )
             )
 
@@ -190,15 +217,17 @@ class TaskOrchestrator:
         steps.append(
             PlannedStep(
                 LadderPhase.ALGORITHM,
-                "generate_pseudocode",
+                "internal:render_pseudocode",
                 "reify the verified derivation into human-checkable pseudocode",
+                executor="internal",
             )
         )
         steps.append(
             PlannedStep(
                 LadderPhase.ALGORITHM,
-                "generate_python_function",
+                "internal:generate_python_function",
                 "compile pseudocode into provenance-bound executable code",
+                executor="internal",
             )
         )
         return steps
@@ -209,11 +238,19 @@ class TaskOrchestrator:
         plan = self.plan()
 
         # CONCEPT: validate coherence (deterministic).
+        self._emit("concept", "running", "task.validate")
         problems = self.spec.validate()
         if problems:
             phases.append(PhaseResult(LadderPhase.CONCEPT, PhaseStatus.FAILED, "; ".join(problems)))
+            self._emit(
+                "concept",
+                "failed",
+                "task.validate",
+                {"problem_count": len(problems)},
+            )
             return TaskRunResult(self.spec.name, ok=False, phases=phases)
         phases.append(PhaseResult(LadderPhase.CONCEPT, PhaseStatus.OK, f"goal: {self.spec.goal}"))
+        self._emit("concept", "ok", "task.validate")
 
         # SYMBOL: build the registry (deterministic).
         symbol_steps = [s for s in plan if s.phase is LadderPhase.SYMBOL]
@@ -225,6 +262,12 @@ class TaskOrchestrator:
                 symbol_steps,
             )
         )
+        self._emit(
+            "symbol",
+            "ok",
+            "task.register_symbols",
+            {"symbol_count": len(self.spec.symbols)},
+        )
 
         # DERIVATION + VERIFY with self-correction: try the base derivation, then
         # each alternative candidate, stopping at the first that passes acceptance.
@@ -234,6 +277,7 @@ class TaskOrchestrator:
         attempts: list[AttemptOutcome] = []
         provenance = ProvenanceLedger()
         if self.engine is not None:
+            self._emit("derivation", "running", "task.derive")
             candidates: list[Modification | None] = [None, *self.spec.alternatives]
             derivation_result: PhaseResult | None = None
             for candidate in candidates:
@@ -245,6 +289,25 @@ class TaskOrchestrator:
                 ok = all(o.status == "verified" for o in oracles) if oracles else True
                 label = "base" if candidate is None else f"alternative:{candidate.id}"
                 attempts.append(AttemptOutcome(label, derived, ok, phase.detail))
+                self._emit(
+                    "derivation",
+                    phase.status.value,
+                    "task.derive_candidate",
+                    {"candidate": label, "has_result": bool(derived)},
+                )
+                for outcome in oracles:
+                    verification_tool = {
+                        AcceptanceKind.EQUIVALENCE.value: "verify_equality",
+                        AcceptanceKind.BOUNDARY.value: "internal:boundary_check",
+                        AcceptanceKind.LIMIT.value: "calculate_limit",
+                        AcceptanceKind.DIMENSIONAL.value: "check_dimensions",
+                    }.get(outcome.kind, "internal:acceptance")
+                    self._emit(
+                        "verification",
+                        outcome.status,
+                        verification_tool,
+                        {"candidate": label},
+                    )
                 derivation_result = phase
                 derived_expression, acceptance, verified = derived, oracles, ok
                 if ok:
@@ -264,20 +327,50 @@ class TaskOrchestrator:
                     derivation_steps,
                 )
             )
+            self._emit(
+                "derivation",
+                "planned",
+                "task.derive",
+                {"planned_steps": len(derivation_steps)},
+            )
 
         # ALGORITHM: reify the derivation into code ONLY when its provenance is
         # complete — the north star enforced as architecture (no un-sourced code).
         generated_code = ""
-        if derived_expression and self.engine is not None and provenance.is_complete:
+        verification_eligible = verified and (bool(acceptance) or not self.require_verification)
+        if (
+            derived_expression
+            and self.engine is not None
+            and provenance.is_complete
+            and verification_eligible
+        ):
             algo_result, generated_code = self._execute_algorithm(derived_expression)
             phases.append(algo_result)
+            self._emit(
+                "algorithm",
+                "materialized",
+                "internal:generate_python_function",
+                {"has_artifact": True},
+            )
         elif derived_expression and self.engine is not None:
+            if not provenance.is_complete:
+                refusal = "derivation lacks complete provenance"
+            elif not verified:
+                refusal = "verification failed"
+            else:
+                refusal = "trusted verification evidence is required"
             phases.append(
                 PhaseResult(
                     LadderPhase.ALGORITHM,
                     PhaseStatus.PLANNED,
-                    "refused: derivation lacks complete provenance (no un-sourced code emitted)",
+                    f"refused: {refusal} (no code emitted)",
                 )
+            )
+            self._emit(
+                "algorithm",
+                "blocked",
+                "internal:generate_python_function",
+                {"reason": refusal},
             )
         else:
             algo_steps = [s for s in plan if s.phase is LadderPhase.ALGORITHM]
@@ -288,6 +381,12 @@ class TaskOrchestrator:
                     "pseudocode -> code (needs the verified derivation)",
                     algo_steps,
                 )
+            )
+            self._emit(
+                "algorithm",
+                "planned",
+                "internal:generate_python_function",
+                {"has_derivation": False},
             )
 
         return TaskRunResult(
@@ -342,6 +441,12 @@ class TaskOrchestrator:
         target_lhs, target_rhs = defs[target_idx]
 
         working = engine.parse(target_rhs, context)
+        self._emit(
+            "derivation",
+            "ok" if working.is_valid else "failed",
+            "engine.parse",
+            {"operation": "parse_target", "output": working.raw},
+        )
         if not working.is_valid:
             return (
                 PhaseResult(
@@ -372,6 +477,7 @@ class TaskOrchestrator:
                 continue
             substituted = engine.substitute(working, {symbol: repl.sympy_expr}, context)
             if substituted.raw != working.raw:
+                before = working.raw
                 steps.append(
                     PlannedStep(
                         LadderPhase.DERIVATION,
@@ -381,6 +487,17 @@ class TaskOrchestrator:
                     )
                 )
                 working = substituted
+                self._emit(
+                    "derivation",
+                    "ok",
+                    "engine.substitute",
+                    {
+                        "input": before,
+                        "output": working.raw,
+                        "symbol": symbol,
+                        "source": source,
+                    },
+                )
 
         # solve_for: if the primary unknown isn't already the LHS, isolate it by
         # solving the composed equation (working = target_lhs) for the unknown.
@@ -389,6 +506,7 @@ class TaskOrchestrator:
             equation = engine.parse(f"({working.raw}) - ({target_lhs})", context)
             solutions = engine.solve(equation, primary, context) if equation.is_valid else []
             if solutions:
+                before = working.raw
                 working = solutions[0]
                 steps.append(
                     PlannedStep(
@@ -399,8 +517,21 @@ class TaskOrchestrator:
                     )
                 )
                 target_lhs = primary
+                self._emit(
+                    "derivation",
+                    "ok",
+                    "engine.solve",
+                    {"input": before, "output": working.raw, "target": primary},
+                )
 
+        before = working.raw
         working = engine.simplify(working)
+        self._emit(
+            "derivation",
+            "ok",
+            "engine.simplify",
+            {"input": before, "output": working.raw},
+        )
         derived = f"{target_lhs} = {working.raw}"
         detail = f"executed: {derived}  ({len(steps)} step(s))"
         return (PhaseResult(LadderPhase.DERIVATION, PhaseStatus.OK, detail, steps), derived)
@@ -552,15 +683,23 @@ class TaskOrchestrator:
                 "result_var": lhs,
             }
         ]
-        func_name = re.sub(r"\W+", "_", self.spec.name).strip("_").lower() or "derived_function"
+        func_name = re.sub(r"\W+", "_", self.spec.name).strip("_").lower()
+        if (
+            not func_name
+            or func_name[0].isdigit()
+            or keyword.iskeyword(func_name)
+            or func_name.startswith("__")
+        ):
+            func_name = f"derived_{func_name.lstrip('_') or 'function'}"
         code = render_python_function(
             func_name, self.spec.goal or self.spec.name, parameters, steps, [lhs]
         )
         step = PlannedStep(
             LadderPhase.ALGORITHM,
-            "generate_python_function",
+            "internal:generate_python_function",
             "reify the verified derivation into provenance-bound code",
             {"function": func_name},
+            "internal",
         )
         return (
             PhaseResult(LadderPhase.ALGORITHM, PhaseStatus.OK, f"generated {func_name}()", [step]),

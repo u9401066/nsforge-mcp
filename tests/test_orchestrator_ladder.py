@@ -66,6 +66,22 @@ def test_algorithm_rung_reifies_code() -> None:
     assert out["v"] == 1.0 + 6.0 * 3.0 / 2.0
 
 
+def test_algorithm_rung_normalizes_non_identifier_task_names() -> None:
+    """Caller labels remain data even when they begin with digits or contain keywords."""
+    result = _run(
+        {
+            "name": "123 class",
+            "goal": "derive an identity",
+            "given": {"x": "value"},
+            "unknowns": ["y"],
+            "base_formulas": ["y = x"],
+        }
+    )
+
+    assert result.ok  # type: ignore[attr-defined]
+    assert result.generated_code.startswith("def derived_123_class(")  # type: ignore[attr-defined]
+
+
 def test_plain_composition_still_planned_without_engine() -> None:
     """Without an engine the ALGORITHM rung stays PLANNED (no hand-derivation)."""
     dts = DerivationTaskSpec.from_dict(
