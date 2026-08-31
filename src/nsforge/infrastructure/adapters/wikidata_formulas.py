@@ -10,6 +10,7 @@ Wikidata 是最強大的公開結構化公式來源：
 直接精確檢索，不使用 RAG。
 """
 
+import logging
 import re
 from types import TracebackType
 from typing import Any
@@ -21,6 +22,7 @@ from .base import BaseAdapter, FormulaInfo
 
 # Wikidata SPARQL 端點
 WIKIDATA_SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
+logger = logging.getLogger("nsforge")
 
 # 常用 Wikidata 屬性
 WD_PROPS = {
@@ -105,7 +107,7 @@ class WikidataFormulaAdapter(BaseAdapter):
             return self._parse_search_results(data)
         except Exception as e:
             # 記錄錯誤但不中斷
-            print(f"Wikidata search error: {e}")
+            logger.warning("Wikidata search error: %s", e)
             return []
 
     def search_by_category(
@@ -157,7 +159,7 @@ class WikidataFormulaAdapter(BaseAdapter):
             data = self._execute_sparql(sparql)
             return self._parse_search_results(data)
         except Exception as e:
-            print(f"Wikidata category search error: {e}")
+            logger.warning("Wikidata category search error: %s", e)
             return []
 
     def get_formula(self, formula_id: str) -> FormulaInfo | None:
@@ -229,7 +231,7 @@ class WikidataFormulaAdapter(BaseAdapter):
                 },
             )
         except Exception as e:
-            print(f"Wikidata get_formula error: {e}")
+            logger.warning("Wikidata get_formula error: %s", e)
             return None
 
     def list_categories(self) -> list[str]:

@@ -8,7 +8,11 @@ how a general agent runs a large derivation task from a single declarative spec.
 See docs/reification-ladder-direction.md.
 """
 
+import asyncio
+from collections.abc import Callable
 from typing import Any
+
+from mcp.server.mcpserver import Context
 
 from nsforge.application.explorer import Explorer
 from nsforge.application.task_orchestrator import TaskOrchestrator
@@ -94,6 +98,28 @@ def _execute_task_explore(spec: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+async def _run_with_progress(
+    ctx: Context[Any, Any],
+    operation: Callable[[dict[str, Any]], dict[str, Any]],
+    spec: dict[str, Any],
+    timeout_s: float | None,
+    label: str,
+) -> dict[str, Any]:
+    """Run blocking orchestration off-loop and report factual boundaries."""
+    await ctx.report_progress(0.0, 1.0, f"Starting {label}")
+    if timeout_s is None:
+        result = await asyncio.to_thread(operation, spec)
+    else:
+        try:
+            result = await asyncio.to_thread(run_with_timeout, operation, spec, timeout=timeout_s)
+        except ComputationTimeout as exc:
+            result = {"success": False, "error": str(exc), "timed_out": True}
+    # Do not put this in ``finally``: cancelling an await on ``to_thread`` does
+    # not stop the worker, so a "Finished" event there would be factually false.
+    await ctx.report_progress(1.0, 1.0, f"Finished {label}")
+    return result
+
+
 def register_task_tools(mcp: Any) -> None:
     """Register the L2/L3 task orchestration tools with the MCP server."""
 
@@ -134,7 +160,9 @@ def register_task_tools(mcp: Any) -> None:
         }
 
     @mcp.tool()
-    def task_run(spec: dict[str, Any], timeout_s: float | None = None) -> dict[str, Any]:
+    async def task_run(
+        spec: dict[str, Any], ctx: Context[Any, Any], timeout_s: float | None = None
+    ) -> dict[str, Any]:
         """
         Run the DTS through the reification ladder.
 
@@ -153,15 +181,12 @@ def register_task_tools(mcp: Any) -> None:
         Returns:
             {"success", "spec", "derived_expression", "generated_code", "phases"}.
         """
-        if timeout_s is None:
-            return _execute_task_run(spec)
-        try:
-            return run_with_timeout(_execute_task_run, spec, timeout=timeout_s)
-        except ComputationTimeout as exc:
-            return {"success": False, "error": str(exc), "timed_out": True}
+        return await _run_with_progress(ctx, _execute_task_run, spec, timeout_s, "task run")
 
     @mcp.tool()
-    def task_explore(spec: dict[str, Any], timeout_s: float | None = None) -> dict[str, Any]:
+    async def task_explore(
+        spec: dict[str, Any], ctx: Context[Any, Any], timeout_s: float | None = None
+    ) -> dict[str, Any]:
         """
         Explore a branching derivation tree from a DTS.
 
@@ -180,9 +205,6 @@ def register_task_tools(mcp: Any) -> None:
         Returns:
             {"success", "concept", "candidates": [...]} ranked best-first.
         """
-        if timeout_s is None:
-            return _execute_task_explore(spec)
-        try:
-            return run_with_timeout(_execute_task_explore, spec, timeout=timeout_s)
-        except ComputationTimeout as exc:
-            return {"success": False, "error": str(exc), "timed_out": True}
+        return await _run_with_progress(
+            ctx, _execute_task_explore, spec, timeout_s, "task exploration"
+        )

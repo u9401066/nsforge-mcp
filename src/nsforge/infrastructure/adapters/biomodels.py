@@ -16,6 +16,7 @@ API 文檔: https://www.ebi.ac.uk/biomodels/docs/
 直接精確檢索，不使用 RAG。
 """
 
+import logging
 import re
 from types import TracebackType
 from typing import Any
@@ -27,6 +28,7 @@ from .base import BaseAdapter, FormulaInfo
 
 # BioModels API 端點
 BIOMODELS_API = "https://www.ebi.ac.uk/biomodels"
+logger = logging.getLogger("nsforge")
 
 
 class BioModelsAdapter(BaseAdapter):
@@ -89,7 +91,7 @@ class BioModelsAdapter(BaseAdapter):
 
             return self._parse_search_results(data)
         except Exception as e:
-            print(f"BioModels search error: {e}")
+            logger.warning("BioModels search error: %s", e)
             return []
 
     def search_pk_models(self, drug: str = "", limit: int = 10) -> list[FormulaInfo]:
@@ -180,7 +182,7 @@ class BioModelsAdapter(BaseAdapter):
                 },
             )
         except Exception as e:
-            print(f"BioModels get_formula error: {e}")
+            logger.warning("BioModels get_formula error: %s", e)
             return None
 
     def get_kinetic_laws(self, model_id: str) -> list[dict[str, Any]]:
@@ -207,7 +209,7 @@ class BioModelsAdapter(BaseAdapter):
             response.raise_for_status()
             return self._extract_kinetic_laws(response.text)
         except Exception as e:
-            print(f"BioModels get_kinetic_laws error: {e}")
+            logger.warning("BioModels get_kinetic_laws error: %s", e)
             return []
 
     def list_categories(self) -> list[str]:
@@ -305,7 +307,7 @@ class BioModelsAdapter(BaseAdapter):
                     break
 
         except Exception as e:
-            print(f"SBML parsing error: {e}")
+            logger.warning("SBML parsing error: %s", e)
 
         return kinetic_laws
 

@@ -22,10 +22,12 @@ Design Principles:
 7. Formula search = Agent's scientific knowledge base (Wikidata, BioModels)
 """
 
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from nsforge_mcp.config import module_enabled
 from nsforge_mcp.envelope import EnvelopeMCP
+from nsforge_mcp.introspection import health_payload
 from nsforge_mcp.tools.calculate import register_calculate_tools
 from nsforge_mcp.tools.codegen import register_codegen_tools
 from nsforge_mcp.tools.derivation import register_derivation_tools
@@ -39,7 +41,12 @@ from nsforge_mcp.tools.task import register_task_tools
 from nsforge_mcp.tools.verify import register_verify_tools
 
 
-def register_all_tools(mcp: Any) -> None:
+def register_all_tools(
+    mcp: Any,
+    *,
+    module_state: Mapping[str, bool] | None = None,
+    health_factory: Callable[[], dict[str, Any]] | None = None,
+) -> None:
     """Register all NSForge tools with the MCP server."""
     # Wrap once so every tool gets a uniform error envelope (an unhandled exception
     # becomes a structured, logged error dict) without touching any tool body.
@@ -65,9 +72,12 @@ def register_all_tools(mcp: Any) -> None:
     register_suggest_tools(mcp)
 
     # 🧩 Agent harness: runtime self-description (health, manifest)
-    register_meta_tools(mcp)
+    register_meta_tools(mcp, health_factory=health_factory or health_payload)
 
     # 🎵 Music: mission-tangential; opt-in via NSFORGE_ENABLE_MUSIC=1 so the default
     # surface stays lean (fewer tools => better tool selection by the model).
-    if module_enabled("music"):
+    music_enabled = (
+        module_state.get("music", False) if module_state is not None else module_enabled("music")
+    )
+    if music_enabled:
         register_music_tools(mcp)

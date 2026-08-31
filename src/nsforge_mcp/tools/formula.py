@@ -12,10 +12,13 @@ Formula Search Tools - 公式檢索 MCP 工具
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     pass
+
+logger = logging.getLogger("nsforge")
 
 
 def register_formula_tools(mcp: Any) -> None:
@@ -110,7 +113,7 @@ def register_formula_tools(mcp: Any) -> None:
                 finally:
                     wikidata_adapter.close()
             except Exception as e:
-                print(f"Wikidata search failed: {e}")
+                logger.warning("Wikidata search failed: %s", e)
 
         # 搜尋 BioModels
         if search_biomodels:
@@ -134,7 +137,7 @@ def register_formula_tools(mcp: Any) -> None:
                 finally:
                     biomodels_adapter.close()
             except Exception as e:
-                print(f"BioModels search failed: {e}")
+                logger.warning("BioModels search failed: %s", e)
 
         # 搜尋 SciPy 常數
         if search_scipy:
@@ -148,7 +151,7 @@ def register_formula_tools(mcp: Any) -> None:
                     results.append(r.to_dict())
                 sources_searched.append("scipy")
             except Exception as e:
-                print(f"SciPy search failed: {e}")
+                logger.warning("SciPy search failed: %s", e)
 
         return {
             "success": True,

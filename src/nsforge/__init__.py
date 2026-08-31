@@ -7,7 +7,7 @@ This is the core domain library for symbolic reasoning,
 independent of the MCP transport layer.
 """
 
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 
 from nsforge.application.use_cases import (
     CalculateUseCase,
