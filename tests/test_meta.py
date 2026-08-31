@@ -30,6 +30,8 @@ def test_health_reports_version_and_status() -> None:
     assert health["status"] == "ok"
     assert health["name"] == "nsforge"
     assert health["version"] == __version__
+    assert health["mcp_sdk_version"].startswith("2.")
+    assert health["mcp_protocol_revision"] == "2026-07-28"
     assert health["tool_count"] and health["tool_count"] >= 89
 
 

@@ -1,7 +1,34 @@
 {
-  "schema": "nsforge.capabilities/v2",
-  "version": "0.2.4",
+  "schema": "nsforge.capabilities/v3",
+  "version": "0.3.0",
   "north_star": "Every symbol, equation, value, and line of code in a result has a tool call as its birth certificate; the AI hand-derives nothing.",
+  "mcp": {
+    "protocol_revision": "2026-07-28",
+    "sdk_requirement": ">=2.1.1,<3",
+    "transports": [
+      "stdio",
+      "streamable-http"
+    ],
+    "resources": [
+      "nsforge://manifest",
+      "nsforge://health",
+      "nsforge://north-star",
+      "nsforge://derivations/{result_id}"
+    ],
+    "prompts": [
+      "forge_verified_derivation"
+    ],
+    "features": [
+      "structured_output",
+      "tool_annotations",
+      "tool_icons",
+      "resources",
+      "resource_templates",
+      "prompts",
+      "progress_notifications",
+      "legacy_client_mode"
+    ]
+  },
   "tool_count": 91,
   "default_tool_count": 82,
   "modules": [
@@ -60,6 +87,11 @@
       "command": "python scripts/gen_capabilities.py --check"
     },
     {
+      "gate": "mcp",
+      "verifies": "MCP 2.1.1 discovery, schemas, metadata, payloads, resources, and prompts remain compatible",
+      "command": "python scripts/mcp_contract.py"
+    },
+    {
       "gate": "test",
       "verifies": "the pytest suite passes",
       "command": "pytest -q"
@@ -102,6 +134,7 @@
     {
       "name": "calculate_limit",
       "module": "calculate",
+      "title": "Calculate Limit",
       "params": [
         {
           "name": "expression",
@@ -121,11 +154,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Calculate the limit of an expression."
+      "summary": "Calculate the limit of an expression.",
+      "annotations": {
+        "title": "Calculate Limit",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "calculate_series",
       "module": "calculate",
+      "title": "Calculate Series",
       "params": [
         {
           "name": "expression",
@@ -149,11 +196,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Calculate series expansion of an expression."
+      "summary": "Calculate series expansion of an expression.",
+      "annotations": {
+        "title": "Calculate Series",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "calculate_summation",
       "module": "calculate",
+      "title": "Calculate Summation",
       "params": [
         {
           "name": "expression",
@@ -173,11 +234,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Calculate symbolic summation."
+      "summary": "Calculate symbolic summation.",
+      "annotations": {
+        "title": "Calculate Summation",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "define_distribution",
       "module": "calculate",
+      "title": "Define Distribution",
       "params": [
         {
           "name": "distribution_type",
@@ -193,11 +268,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Define a probability distribution."
+      "summary": "Define a probability distribution.",
+      "annotations": {
+        "title": "Define Distribution",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "distribution_probability",
       "module": "calculate",
+      "title": "Distribution Probability",
       "params": [
         {
           "name": "distribution_type",
@@ -213,11 +302,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Calculate probability P(condition)."
+      "summary": "Calculate probability P(condition).",
+      "annotations": {
+        "title": "Distribution Probability",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "distribution_stats",
       "module": "calculate",
+      "title": "Distribution Stats",
       "params": [
         {
           "name": "distribution_type",
@@ -233,11 +336,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Compute statistics of a distribution."
+      "summary": "Compute statistics of a distribution.",
+      "annotations": {
+        "title": "Distribution Stats",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "evaluate_numeric",
       "module": "calculate",
+      "title": "Evaluate Numeric",
       "params": [
         {
           "name": "expression",
@@ -253,11 +370,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Evaluate expression numerically."
+      "summary": "Evaluate expression numerically.",
+      "annotations": {
+        "title": "Evaluate Numeric",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "query_assumptions",
       "module": "calculate",
+      "title": "Query Assumptions",
       "params": [
         {
           "name": "expression",
@@ -273,11 +404,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Query properties of an expression based on assumptions."
+      "summary": "Query properties of an expression based on assumptions.",
+      "annotations": {
+        "title": "Query Assumptions",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "refine_expression",
       "module": "calculate",
+      "title": "Refine Expression",
       "params": [
         {
           "name": "expression",
@@ -289,11 +434,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Simplify expression using assumptions."
+      "summary": "Simplify expression using assumptions.",
+      "annotations": {
+        "title": "Refine Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "solve_inequality",
       "module": "calculate",
+      "title": "Solve Inequality",
       "params": [
         {
           "name": "inequality",
@@ -309,11 +468,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Solve a single inequality."
+      "summary": "Solve a single inequality.",
+      "annotations": {
+        "title": "Solve Inequality",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "solve_inequality_system",
       "module": "calculate",
+      "title": "Solve Inequality System",
       "params": [
         {
           "name": "inequalities",
@@ -325,11 +498,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Solve a system of inequalities (find the intersection)."
+      "summary": "Solve a system of inequalities (find the intersection).",
+      "annotations": {
+        "title": "Solve Inequality System",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "symbolic_equal",
       "module": "calculate",
+      "title": "Symbolic Equal",
       "params": [
         {
           "name": "expr1",
@@ -341,11 +528,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Check if two expressions are symbolically equivalent."
+      "summary": "Check if two expressions are symbolically equivalent.",
+      "annotations": {
+        "title": "Symbolic Equal",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "calculate",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "generate_derivation_report",
       "module": "codegen",
+      "title": "Generate Derivation Report",
       "params": [
         {
           "name": "problem",
@@ -369,11 +570,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Generate a complete derivation report in Markdown."
+      "summary": "Generate a complete derivation report in Markdown.",
+      "annotations": {
+        "title": "Generate Derivation Report",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "codegen",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "generate_latex_derivation",
       "module": "codegen",
+      "title": "Generate LaTeX Derivation",
       "params": [
         {
           "name": "title",
@@ -389,11 +604,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Generate LaTeX documentation for a derivation."
+      "summary": "Generate LaTeX documentation for a derivation.",
+      "annotations": {
+        "title": "Generate LaTeX Derivation",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "codegen",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "generate_python_function",
       "module": "codegen",
+      "title": "Generate Python Function",
       "params": [
         {
           "name": "name",
@@ -417,11 +646,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Generate a Python function from VERIFIED derivation steps."
+      "summary": "Generate a Python function from VERIFIED derivation steps.",
+      "annotations": {
+        "title": "Generate Python Function",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "codegen",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "generate_sympy_script",
       "module": "codegen",
+      "title": "Generate SymPy Script",
       "params": [
         {
           "name": "expressions",
@@ -433,11 +676,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Generate a standalone SymPy script for a computation."
+      "summary": "Generate a standalone SymPy script for a computation.",
+      "annotations": {
+        "title": "Generate SymPy Script",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "codegen",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_abort",
       "module": "derivation",
+      "title": "Derivation Abort",
       "params": [
         {
           "name": "session_id",
@@ -445,11 +702,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "放棄當前推導"
+      "summary": "放棄當前推導",
+      "annotations": {
+        "title": "Derivation Abort",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_add_note",
       "module": "derivation",
+      "title": "Derivation Add Note",
       "params": [
         {
           "name": "note",
@@ -473,11 +744,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "在推導中加入說明（不是計算步驟）"
+      "summary": "在推導中加入說明（不是計算步驟）",
+      "annotations": {
+        "title": "Derivation Add Note",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_complete",
       "module": "derivation",
+      "title": "Derivation Complete",
       "params": [
         {
           "name": "description",
@@ -513,11 +798,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "完成推導並自動存檔"
+      "summary": "完成推導並自動存檔",
+      "annotations": {
+        "title": "Derivation Complete",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_delete_saved",
       "module": "derivation",
+      "title": "Derivation Delete Saved",
       "params": [
         {
           "name": "result_id",
@@ -529,11 +828,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "刪除已存檔的推導結果"
+      "summary": "刪除已存檔的推導結果",
+      "annotations": {
+        "title": "Derivation Delete Saved",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_delete_step",
       "module": "derivation",
+      "title": "Derivation Delete Step",
       "params": [
         {
           "name": "step_number",
@@ -545,11 +858,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "刪除單一步驟"
+      "summary": "刪除單一步驟",
+      "annotations": {
+        "title": "Derivation Delete Step",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_differentiate",
       "module": "derivation",
+      "title": "Derivation Differentiate",
       "params": [
         {
           "name": "variable",
@@ -581,11 +908,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "對當前表達式微分（帶人類知識記錄）"
+      "summary": "對當前表達式微分（帶人類知識記錄）",
+      "annotations": {
+        "title": "Derivation Differentiate",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_export_for_sympy",
       "module": "derivation",
+      "title": "Derivation Export For SymPy",
       "params": [
         {
           "name": "include_variables",
@@ -601,11 +942,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "導出當前推導狀態給 SymPy-MCP"
+      "summary": "導出當前推導狀態給 SymPy-MCP",
+      "annotations": {
+        "title": "Derivation Export For SymPy",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_get_saved",
       "module": "derivation",
+      "title": "Derivation Get Saved",
       "params": [
         {
           "name": "result_id",
@@ -613,11 +968,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "取得已存檔的推導結果詳情"
+      "summary": "取得已存檔的推導結果詳情",
+      "annotations": {
+        "title": "Derivation Get Saved",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_get_step",
       "module": "derivation",
+      "title": "Derivation Get Step",
       "params": [
         {
           "name": "step_number",
@@ -629,11 +998,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "取得單一步驟的詳細資訊"
+      "summary": "取得單一步驟的詳細資訊",
+      "annotations": {
+        "title": "Derivation Get Step",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_get_steps",
       "module": "derivation",
+      "title": "Derivation Get Steps",
       "params": [
         {
           "name": "session_id",
@@ -641,11 +1024,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "取得所有推導步驟"
+      "summary": "取得所有推導步驟",
+      "annotations": {
+        "title": "Derivation Get Steps",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_handoff_status",
       "module": "derivation",
+      "title": "Derivation Handoff Status",
       "params": [
         {
           "name": "session_id",
@@ -653,11 +1050,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "顯示 Handoff 狀態和可用選項"
+      "summary": "顯示 Handoff 狀態和可用選項",
+      "annotations": {
+        "title": "Derivation Handoff Status",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_import_from_sympy",
       "module": "derivation",
+      "title": "Derivation Import From SymPy",
       "params": [
         {
           "name": "expression",
@@ -693,11 +1104,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "從 SymPy-MCP 導入結果回 NSForge"
+      "summary": "從 SymPy-MCP 導入結果回 NSForge",
+      "annotations": {
+        "title": "Derivation Import From SymPy",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_insert_note",
       "module": "derivation",
+      "title": "Derivation Insert Note",
       "params": [
         {
           "name": "after_step",
@@ -721,11 +1146,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "在指定位置插入說明"
+      "summary": "在指定位置插入說明",
+      "annotations": {
+        "title": "Derivation Insert Note",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_integrate",
       "module": "derivation",
+      "title": "Derivation Integrate",
       "params": [
         {
           "name": "variable",
@@ -761,11 +1200,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "對當前表達式積分（帶人類知識記錄）"
+      "summary": "對當前表達式積分（帶人類知識記錄）",
+      "annotations": {
+        "title": "Derivation Integrate",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_list_saved",
       "module": "derivation",
+      "title": "Derivation List Saved",
       "params": [
         {
           "name": "category",
@@ -773,18 +1226,46 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "列出所有已存檔的推導結果"
+      "summary": "列出所有已存檔的推導結果",
+      "annotations": {
+        "title": "Derivation List Saved",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_list_sessions",
       "module": "derivation",
+      "title": "Derivation List Sessions",
       "params": [],
       "returns": "dict[str, Any]",
-      "summary": "列出所有推導會話"
+      "summary": "列出所有推導會話",
+      "annotations": {
+        "title": "Derivation List Sessions",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_load_formula",
       "module": "derivation",
+      "title": "Derivation Load Formula",
       "params": [
         {
           "name": "formula",
@@ -816,11 +1297,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "載入公式到當前會話"
+      "summary": "載入公式到當前會話",
+      "annotations": {
+        "title": "Derivation Load Formula",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_prepare_for_optimization",
       "module": "derivation",
+      "title": "Derivation Prepare For Optimization",
       "params": [
         {
           "name": "session_id",
@@ -828,11 +1323,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "準備推導結果給優化求解器（如 USolver）"
+      "summary": "準備推導結果給優化求解器（如 USolver）",
+      "annotations": {
+        "title": "Derivation Prepare For Optimization",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_record_step",
       "module": "derivation",
+      "title": "Derivation Record Step",
       "params": [
         {
           "name": "expression",
@@ -868,18 +1377,46 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "記錄一個推導步驟（從 SymPy-MCP 或手動）"
+      "summary": "記錄一個推導步驟（從 SymPy-MCP 或手動）",
+      "annotations": {
+        "title": "Derivation Record Step",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_repository_stats",
       "module": "derivation",
+      "title": "Derivation Repository Stats",
       "params": [],
       "returns": "dict[str, Any]",
-      "summary": "取得推導庫統計資訊"
+      "summary": "取得推導庫統計資訊",
+      "annotations": {
+        "title": "Derivation Repository Stats",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_resume",
       "module": "derivation",
+      "title": "Derivation Resume",
       "params": [
         {
           "name": "session_id",
@@ -887,11 +1424,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "恢復暫停的推導會話"
+      "summary": "恢復暫停的推導會話",
+      "annotations": {
+        "title": "Derivation Resume",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_rollback",
       "module": "derivation",
+      "title": "Derivation Rollback",
       "params": [
         {
           "name": "to_step",
@@ -903,11 +1454,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "回滾到指定步驟"
+      "summary": "回滾到指定步驟",
+      "annotations": {
+        "title": "Derivation Rollback",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_search_saved",
       "module": "derivation",
+      "title": "Derivation Search Saved",
       "params": [
         {
           "name": "query",
@@ -915,11 +1480,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "搜尋已存檔的推導結果"
+      "summary": "搜尋已存檔的推導結果",
+      "annotations": {
+        "title": "Derivation Search Saved",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_show",
       "module": "derivation",
+      "title": "Derivation Show",
       "params": [
         {
           "name": "format",
@@ -935,11 +1514,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "顯示當前推導狀態和公式（類似 SymPy-MCP 的 print_latex_expression）"
+      "summary": "顯示當前推導狀態和公式（類似 SymPy-MCP 的 print_latex_expression）",
+      "annotations": {
+        "title": "Derivation Show",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_simplify",
       "module": "derivation",
+      "title": "Derivation Simplify",
       "params": [
         {
           "name": "method",
@@ -967,11 +1560,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "簡化當前表達式（帶人類知識記錄）"
+      "summary": "簡化當前表達式（帶人類知識記錄）",
+      "annotations": {
+        "title": "Derivation Simplify",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_solve_for",
       "module": "derivation",
+      "title": "Derivation Solve For",
       "params": [
         {
           "name": "variable",
@@ -999,11 +1606,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "求解變數（帶人類知識記錄）"
+      "summary": "求解變數（帶人類知識記錄）",
+      "annotations": {
+        "title": "Derivation Solve For",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_start",
       "module": "derivation",
+      "title": "Derivation Start",
       "params": [
         {
           "name": "name",
@@ -1019,11 +1640,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "開始新的推導會話"
+      "summary": "開始新的推導會話",
+      "annotations": {
+        "title": "Derivation Start",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_status",
       "module": "derivation",
+      "title": "Derivation Status",
       "params": [
         {
           "name": "session_id",
@@ -1031,11 +1666,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "取得當前會話狀態"
+      "summary": "取得當前會話狀態",
+      "annotations": {
+        "title": "Derivation Status",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_substitute",
       "module": "derivation",
+      "title": "Derivation Substitute",
       "params": [
         {
           "name": "variable",
@@ -1071,11 +1720,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "代入操作（帶人類知識記錄）"
+      "summary": "代入操作（帶人類知識記錄）",
+      "annotations": {
+        "title": "Derivation Substitute",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_update_saved",
       "module": "derivation",
+      "title": "Derivation Update Saved",
       "params": [
         {
           "name": "result_id",
@@ -1123,11 +1786,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "更新已存檔推導的元資料"
+      "summary": "更新已存檔推導的元資料",
+      "annotations": {
+        "title": "Derivation Update Saved",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_update_step",
       "module": "derivation",
+      "title": "Derivation Update Step",
       "params": [
         {
           "name": "step_number",
@@ -1155,11 +1832,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "更新步驟的元資料"
+      "summary": "更新步驟的元資料",
+      "annotations": {
+        "title": "Derivation Update Step",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "derivation",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "extract_symbols",
       "module": "expression",
+      "title": "Extract Symbols",
       "params": [
         {
           "name": "expression",
@@ -1171,11 +1862,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Extract symbols from an expression with inferred metadata."
+      "summary": "Extract symbols from an expression with inferred metadata.",
+      "annotations": {
+        "title": "Extract Symbols",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "expression",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "parse_expression",
       "module": "expression",
+      "title": "Parse Expression",
       "params": [
         {
           "name": "expression",
@@ -1191,11 +1896,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Parse a mathematical expression into SymPy-computable form."
+      "summary": "Parse a mathematical expression into SymPy-computable form.",
+      "annotations": {
+        "title": "Parse Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "expression",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "validate_expression",
       "module": "expression",
+      "title": "Validate Expression",
       "params": [
         {
           "name": "expression",
@@ -1215,11 +1934,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Validate a mathematical expression for correctness."
+      "summary": "Validate a mathematical expression for correctness.",
+      "annotations": {
+        "title": "Validate Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "expression",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "formula_categories",
       "module": "formula",
+      "title": "Formula Categories",
       "params": [
         {
           "name": "source",
@@ -1227,11 +1960,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "列出可用的公式分類"
+      "summary": "列出可用的公式分類",
+      "annotations": {
+        "title": "Formula Categories",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "formula",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "formula_constants",
       "module": "formula",
+      "title": "Formula Constants",
       "params": [
         {
           "name": "category",
@@ -1243,11 +1990,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "列出物理常數"
+      "summary": "列出物理常數",
+      "annotations": {
+        "title": "Formula Constants",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "formula",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "formula_get",
       "module": "formula",
+      "title": "Formula Get",
       "params": [
         {
           "name": "formula_id",
@@ -1259,11 +2020,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "獲取公式詳細資訊"
+      "summary": "獲取公式詳細資訊",
+      "annotations": {
+        "title": "Formula Get",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "formula",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "formula_kinetic_laws",
       "module": "formula",
+      "title": "Formula Kinetic Laws",
       "params": [
         {
           "name": "model_id",
@@ -1271,11 +2046,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "獲取 BioModels 模型的動力學公式"
+      "summary": "獲取 BioModels 模型的動力學公式",
+      "annotations": {
+        "title": "Formula Kinetic Laws",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "formula",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "formula_pk_models",
       "module": "formula",
+      "title": "Formula PK Models",
       "params": [
         {
           "name": "query",
@@ -1291,11 +2080,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "搜尋藥動學 (PK) 模型"
+      "summary": "搜尋藥動學 (PK) 模型",
+      "annotations": {
+        "title": "Formula PK Models",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "formula",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "formula_search",
       "module": "formula",
+      "title": "Formula Search",
       "params": [
         {
           "name": "query",
@@ -1315,25 +2118,67 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "搜尋公式（跨多個來源）"
+      "summary": "搜尋公式（跨多個來源）",
+      "annotations": {
+        "title": "Formula Search",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "formula",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "nsforge_health",
       "module": "meta",
+      "title": "NSForge Health",
       "params": [],
       "returns": "dict[str, Any]",
-      "summary": "Liveness + inventory: server name, version, tool count, engine versions."
+      "summary": "Liveness + inventory: server name, version, tool count, engine versions.",
+      "annotations": {
+        "title": "NSForge Health",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "meta",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "nsforge_manifest",
       "module": "meta",
+      "title": "NSForge Manifest",
       "params": [],
       "returns": "dict[str, Any]",
-      "summary": "Return the full capability manifest (tools, gates, commands, north star)."
+      "summary": "Return the full capability manifest (tools, gates, commands, north star).",
+      "annotations": {
+        "title": "NSForge Manifest",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "meta",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_compose_chord",
       "module": "music",
+      "title": "Music Compose Chord",
       "params": [
         {
           "name": "tones",
@@ -1345,11 +2190,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Combine multiple tones into a chord (sum of sinusoids)."
+      "summary": "Combine multiple tones into a chord (sum of sinusoids).",
+      "annotations": {
+        "title": "Music Compose Chord",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_compose_sequence",
       "module": "music",
+      "title": "Music Compose Sequence",
       "params": [
         {
           "name": "notes",
@@ -1361,11 +2220,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Compose a melody as a piecewise function of tones over time."
+      "summary": "Compose a melody as a piecewise function of tones over time.",
+      "annotations": {
+        "title": "Music Compose Sequence",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_compose_tone",
       "module": "music",
+      "title": "Music Compose Tone",
       "params": [
         {
           "name": "frequency",
@@ -1389,11 +2262,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Create a symbolic tone function: A·sin(2πft + φ)."
+      "summary": "Create a symbolic tone function: A·sin(2πft + φ).",
+      "annotations": {
+        "title": "Music Compose Tone",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_function_info",
       "module": "music",
+      "title": "Music Function Info",
       "params": [
         {
           "name": "expression",
@@ -1401,11 +2288,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Analyze a music function and return its symbolic properties."
+      "summary": "Analyze a music function and return its symbolic properties.",
+      "annotations": {
+        "title": "Music Function Info",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_function_to_waveform",
       "module": "music",
+      "title": "Music Function To Waveform",
       "params": [
         {
           "name": "expression",
@@ -1421,11 +2322,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Numerically evaluate a music function to produce waveform data."
+      "summary": "Numerically evaluate a music function to produce waveform data.",
+      "annotations": {
+        "title": "Music Function To Waveform",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_generate_wav",
       "module": "music",
+      "title": "Music Generate WAV",
       "params": [
         {
           "name": "expression",
@@ -1449,11 +2364,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Generate a WAV audio file from a mathematical function."
+      "summary": "Generate a WAV audio file from a mathematical function.",
+      "annotations": {
+        "title": "Music Generate WAV",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_note_to_frequency",
       "module": "music",
+      "title": "Music Note To Frequency",
       "params": [
         {
           "name": "note",
@@ -1465,11 +2394,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Convert a musical note name to its frequency in Hz."
+      "summary": "Convert a musical note name to its frequency in Hz.",
+      "annotations": {
+        "title": "Music Note To Frequency",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_plot_spectrum",
       "module": "music",
+      "title": "Music Plot Spectrum",
       "params": [
         {
           "name": "expression",
@@ -1497,11 +2440,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Plot the frequency spectrum (FFT) of a music function."
+      "summary": "Plot the frequency spectrum (FFT) of a music function.",
+      "annotations": {
+        "title": "Music Plot Spectrum",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "music_plot_waveform",
       "module": "music",
+      "title": "Music Plot Waveform",
       "params": [
         {
           "name": "expression",
@@ -1525,11 +2482,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Plot the time-domain waveform of a music function."
+      "summary": "Plot the time-domain waveform of a music function.",
+      "annotations": {
+        "title": "Music Plot Waveform",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "music",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "apart_expression",
       "module": "simplify",
+      "title": "Apart Expression",
       "params": [
         {
           "name": "expression",
@@ -1545,11 +2516,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Partial fraction decomposition."
+      "summary": "Partial fraction decomposition.",
+      "annotations": {
+        "title": "Apart Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "cancel_expression",
       "module": "simplify",
+      "title": "Cancel Expression",
       "params": [
         {
           "name": "expression",
@@ -1557,11 +2542,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Cancel common factors in rational expression."
+      "summary": "Cancel common factors in rational expression.",
+      "annotations": {
+        "title": "Cancel Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "collect_expression",
       "module": "simplify",
+      "title": "Collect Expression",
       "params": [
         {
           "name": "expression",
@@ -1581,11 +2580,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Collect terms by specified variable(s)."
+      "summary": "Collect terms by specified variable(s).",
+      "annotations": {
+        "title": "Collect Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "combsimp_expression",
       "module": "simplify",
+      "title": "Combsimp Expression",
       "params": [
         {
           "name": "expression",
@@ -1593,11 +2606,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Simplify combinatorial expressions (factorials, binomials)."
+      "summary": "Simplify combinatorial expressions (factorials, binomials).",
+      "annotations": {
+        "title": "Combsimp Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "expand_expression",
       "module": "simplify",
+      "title": "Expand Expression",
       "params": [
         {
           "name": "expression",
@@ -1637,11 +2664,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Expand algebraic expression."
+      "summary": "Expand algebraic expression.",
+      "annotations": {
+        "title": "Expand Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "factor_expression",
       "module": "simplify",
+      "title": "Factor Expression",
       "params": [
         {
           "name": "expression",
@@ -1657,11 +2698,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Factorize algebraic expression."
+      "summary": "Factorize algebraic expression.",
+      "annotations": {
+        "title": "Factor Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "fourier_transform_expression",
       "module": "simplify",
+      "title": "Fourier Transform Expression",
       "params": [
         {
           "name": "expression",
@@ -1677,11 +2732,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Fourier transform: f(x) → F(k)."
+      "summary": "Fourier transform: f(x) → F(k).",
+      "annotations": {
+        "title": "Fourier Transform Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "inverse_fourier_transform_expression",
       "module": "simplify",
+      "title": "Inverse Fourier Transform Expression",
       "params": [
         {
           "name": "expression",
@@ -1697,11 +2766,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Inverse Fourier transform: F(k) → f(x)."
+      "summary": "Inverse Fourier transform: F(k) → f(x).",
+      "annotations": {
+        "title": "Inverse Fourier Transform Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "inverse_laplace_transform_expression",
       "module": "simplify",
+      "title": "Inverse Laplace Transform Expression",
       "params": [
         {
           "name": "expression",
@@ -1717,11 +2800,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Inverse Laplace transform: F(s) → f(t)."
+      "summary": "Inverse Laplace transform: F(s) → f(t).",
+      "annotations": {
+        "title": "Inverse Laplace Transform Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "laplace_transform_expression",
       "module": "simplify",
+      "title": "Laplace Transform Expression",
       "params": [
         {
           "name": "expression",
@@ -1737,11 +2834,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Laplace transform: f(t) → F(s)."
+      "summary": "Laplace transform: f(t) → F(s).",
+      "annotations": {
+        "title": "Laplace Transform Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "powsimp_expression",
       "module": "simplify",
+      "title": "Powsimp Expression",
       "params": [
         {
           "name": "expression",
@@ -1761,11 +2872,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Simplify powers and exponentials."
+      "summary": "Simplify powers and exponentials.",
+      "annotations": {
+        "title": "Powsimp Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "radsimp_expression",
       "module": "simplify",
+      "title": "Radsimp Expression",
       "params": [
         {
           "name": "expression",
@@ -1781,11 +2906,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Simplify radicals (square roots, cube roots, etc.)."
+      "summary": "Simplify radicals (square roots, cube roots, etc.).",
+      "annotations": {
+        "title": "Radsimp Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "together_expression",
       "module": "simplify",
+      "title": "Together Expression",
       "params": [
         {
           "name": "expression",
@@ -1797,11 +2936,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Combine rational expressions over a common denominator."
+      "summary": "Combine rational expressions over a common denominator.",
+      "annotations": {
+        "title": "Together Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "trigsimp_expression",
       "module": "simplify",
+      "title": "Trigsimp Expression",
       "params": [
         {
           "name": "expression",
@@ -1821,11 +2974,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Simplify trigonometric expressions."
+      "summary": "Simplify trigonometric expressions.",
+      "annotations": {
+        "title": "Trigsimp Expression",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "simplify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "derivation_suggest_next",
       "module": "suggest",
+      "title": "Derivation Suggest Next",
       "params": [
         {
           "name": "goal",
@@ -1841,11 +3008,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Rank candidate next steps for a derivation by relevance."
+      "summary": "Rank candidate next steps for a derivation by relevance.",
+      "annotations": {
+        "title": "Derivation Suggest Next",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "suggest",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "task_explore",
       "module": "task",
+      "title": "Task Explore",
       "params": [
         {
           "name": "spec",
@@ -1857,11 +3038,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Explore a branching derivation tree from a DTS."
+      "summary": "Explore a branching derivation tree from a DTS.",
+      "annotations": {
+        "title": "Task Explore",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "task",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "task_plan",
       "module": "task",
+      "title": "Task Plan",
       "params": [
         {
           "name": "spec",
@@ -1869,11 +3064,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Reify a Derivation Task Spec (DTS) into an ordered plan of tool calls."
+      "summary": "Reify a Derivation Task Spec (DTS) into an ordered plan of tool calls.",
+      "annotations": {
+        "title": "Task Plan",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "task",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "task_run",
       "module": "task",
+      "title": "Task Run",
       "params": [
         {
           "name": "spec",
@@ -1885,11 +3094,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Run the DTS through the reification ladder."
+      "summary": "Run the DTS through the reification ladder.",
+      "annotations": {
+        "title": "Task Run",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "task",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "check_dimensions",
       "module": "verify",
+      "title": "Check Dimensions",
       "params": [
         {
           "name": "expression",
@@ -1901,11 +3124,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Check dimensional consistency of an expression."
+      "summary": "Check dimensional consistency of an expression.",
+      "annotations": {
+        "title": "Check Dimensions",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "verify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "reverse_verify",
       "module": "verify",
+      "title": "Reverse Verify",
       "params": [
         {
           "name": "result_expr",
@@ -1925,11 +3162,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Verify a result by applying the reverse operation."
+      "summary": "Verify a result by applying the reverse operation.",
+      "annotations": {
+        "title": "Reverse Verify",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "verify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "verify_derivative",
       "module": "verify",
+      "title": "Verify Derivative",
       "params": [
         {
           "name": "function",
@@ -1945,11 +3196,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Verify a derivative by computing and comparing."
+      "summary": "Verify a derivative by computing and comparing.",
+      "annotations": {
+        "title": "Verify Derivative",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "verify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "verify_equality",
       "module": "verify",
+      "title": "Verify Equality",
       "params": [
         {
           "name": "expression1",
@@ -1961,11 +3226,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Verify that two expressions are symbolically equal."
+      "summary": "Verify that two expressions are symbolically equal.",
+      "annotations": {
+        "title": "Verify Equality",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "verify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "verify_integral",
       "module": "verify",
+      "title": "Verify Integral",
       "params": [
         {
           "name": "integrand",
@@ -1981,11 +3260,25 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Verify an integral by differentiating the result."
+      "summary": "Verify an integral by differentiating the result.",
+      "annotations": {
+        "title": "Verify Integral",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "verify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     },
     {
       "name": "verify_solution",
       "module": "verify",
+      "title": "Verify Solution",
       "params": [
         {
           "name": "equation",
@@ -2001,7 +3294,20 @@
         }
       ],
       "returns": "dict[str, Any]",
-      "summary": "Verify that a value satisfies an equation."
+      "summary": "Verify that a value satisfies an equation.",
+      "annotations": {
+        "title": "Verify Solution",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "structured_output": true,
+      "meta": {
+        "org.nsforge/module": "verify",
+        "org.nsforge/protocolRevision": "2026-07-28",
+        "org.nsforge/responseEnvelope": "v1-compatible"
+      }
     }
   ]
 }

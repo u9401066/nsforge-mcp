@@ -5,11 +5,12 @@ An agent harness is only trustworthy if it can detect its own rot. This gate
 asserts the invariants that keep NSForge's self-description honest, so an agent
 can rely on it:
 
-  1. version single-source — pyproject [project].version == nsforge.__version__
-  2. gate parity — the manifest is schema v2 and its advertised gate list
+  1. version parity — pyproject and both package literals agree
+  2. gate parity — the manifest is schema v3 and its advertised gate list
      matches check.py (the live source of truth)
-  3. self-describing tools — every tool has a summary and every parameter is typed
-  4. no doc drift — AGENTS.md's "Gates:" line documents every gate
+  3. self-describing tools — every tool has typed inputs and MCP 2 metadata
+  4. dependency parity — pyproject, runtime constant, and manifest agree on MCP
+  5. no doc drift — AGENTS.md's "Gates:" line documents every gate
 
 Exit 0 = all invariants hold; nonzero prints the specific violations.
 """
@@ -31,10 +32,23 @@ AGENTS = REPO / "AGENTS.md"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check  # noqa: E402
 
+from nsforge_mcp.tool_contract import MCP_SDK_REQUIREMENT  # noqa: E402
+
 
 def _pyproject_version() -> str:
     data = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
     return str(data["project"]["version"])
+
+
+def _pyproject_mcp_requirement() -> str:
+    """Return the specifier portion of the direct MCP dependency."""
+    data = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
+    for dependency in data["project"]["dependencies"]:
+        if dependency == "mcp":
+            return ""
+        if dependency.startswith("mcp") and dependency[3:4] in "<>=!~":
+            return dependency[3:]
+    raise AssertionError("direct mcp dependency not found in pyproject.toml")
 
 
 def _module_version(init_path: Path) -> str:
@@ -50,7 +64,7 @@ def _module_version(init_path: Path) -> str:
 def main() -> int:
     problems: list[str] = []
 
-    # 1. version single-source (pyproject drives every package)
+    # 1. version parity (pyproject drives every package release)
     py_v = _pyproject_version()
     for pkg in ("nsforge", "nsforge_mcp"):
         pkg_v = _module_version(SRC / pkg / "__init__.py")
@@ -63,8 +77,8 @@ def main() -> int:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     # 2. gate parity
-    if manifest.get("schema") != "nsforge.capabilities/v2":
-        problems.append(f"manifest schema {manifest.get('schema')!r} != nsforge.capabilities/v2")
+    if manifest.get("schema") != "nsforge.capabilities/v3":
+        problems.append(f"manifest schema {manifest.get('schema')!r} != nsforge.capabilities/v3")
     manifest_gates = [g["gate"] for g in manifest.get("harness", [])]
     if manifest_gates != check.DEFAULT_ORDER:
         problems.append(f"manifest gates {manifest_gates} != check.py {check.DEFAULT_ORDER}")
@@ -78,6 +92,24 @@ def main() -> int:
     elif not set(optional).issubset(manifest.get("modules", [])):
         problems.append(f"optional_modules {optional} not a subset of modules")
 
+    mcp_contract = manifest.get("mcp", {})
+    if mcp_contract.get("protocol_revision") != "2026-07-28":
+        problems.append("manifest MCP protocol revision is not 2026-07-28")
+    for key in ("sdk_requirement", "transports", "resources", "prompts", "features"):
+        if not mcp_contract.get(key):
+            problems.append(f"manifest MCP contract missing {key!r}")
+
+    # The manifest generator uses a runtime constant for import-safe discovery;
+    # guard that duplicate against the packaging source of truth.
+    project_mcp = _pyproject_mcp_requirement()
+    manifest_mcp = mcp_contract.get("sdk_requirement")
+    if project_mcp != MCP_SDK_REQUIREMENT or manifest_mcp != project_mcp:
+        problems.append(
+            "MCP dependency drift: "
+            f"pyproject={project_mcp!r}, constant={MCP_SDK_REQUIREMENT!r}, "
+            f"manifest={manifest_mcp!r}"
+        )
+
     # 3. self-describing tools
     tools = manifest.get("tools", [])
     if manifest.get("tool_count") != len(tools):
@@ -85,11 +117,26 @@ def main() -> int:
     for tool in tools:
         if not tool.get("summary"):
             problems.append(f"tool {tool.get('name')!r} has no summary")
+        if not tool.get("title"):
+            problems.append(f"tool {tool.get('name')!r} has no MCP title")
+        if tool.get("structured_output") is not True:
+            problems.append(f"tool {tool.get('name')!r} does not require structured output")
+        annotations = tool.get("annotations", {})
+        for hint in (
+            "readOnlyHint",
+            "destructiveHint",
+            "idempotentHint",
+            "openWorldHint",
+        ):
+            if not isinstance(annotations.get(hint), bool):
+                problems.append(f"tool {tool.get('name')!r} has no boolean {hint}")
+        if tool.get("meta", {}).get("org.nsforge/protocolRevision") != "2026-07-28":
+            problems.append(f"tool {tool.get('name')!r} has stale MCP _meta")
         for param in tool.get("params", []):
             if not param.get("type"):
                 problems.append(f"tool {tool.get('name')!r} param {param.get('name')!r} is untyped")
 
-    # 4. no doc drift — AGENTS.md documents every gate on its "Gates:" line
+    # 5. no doc drift — AGENTS.md documents every gate on its "Gates:" line
     agents_text = AGENTS.read_text(encoding="utf-8") if AGENTS.exists() else ""
     gate_line = next((ln for ln in agents_text.splitlines() if ln.strip().startswith("Gates:")), "")
     for gate in check.DEFAULT_ORDER:

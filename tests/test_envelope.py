@@ -4,16 +4,21 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
+import pytest
+from mcp.types import CallToolResult
+
 from nsforge_mcp.envelope import EnvelopeMCP, with_error_envelope
 
 
 class _FakeMCP:
     def __init__(self) -> None:
         self.tools: dict[str, Callable[..., Any]] = {}
+        self.options: dict[str, dict[str, Any]] = {}
 
-    def tool(self) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    def tool(self, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
             self.tools[fn.__name__] = fn
+            self.options[fn.__name__] = kwargs
             return fn
 
         return decorator
@@ -45,7 +50,7 @@ def test_envelope_preserves_name_and_signature() -> None:
 
     wrapped = with_error_envelope(sample)
     assert wrapped.__name__ == "sample"
-    # inspect.signature follows __wrapped__, so FastMCP sees the real params.
+    # inspect.signature follows __wrapped__, so MCPServer sees the real params.
     assert list(inspect.signature(wrapped).parameters) == ["expression", "variable"]
 
 
@@ -58,8 +63,71 @@ def test_envelope_mcp_wraps_registered_tools() -> None:
         raise RuntimeError("boom")
 
     result = fake.tools["crash"]()  # registered under its real name, enveloped
-    assert result["success"] is False
-    assert result["error"]["type"] == "RuntimeError"
+    assert isinstance(result, CallToolResult)
+    assert result.is_error is True
+    assert result.structured_content["success"] is False
+    assert result.structured_content["error"]["type"] == "RuntimeError"
+
+
+def test_handled_failure_uses_protocol_error_channel_without_losing_payload() -> None:
+    fake = _FakeMCP()
+
+    @EnvelopeMCP(fake).tool()
+    def handled_failure() -> dict[str, Any]:
+        return {"success": False, "error": "expected failure", "detail": 7}
+
+    result = fake.tools["handled_failure"]()
+    assert isinstance(result, CallToolResult)
+    assert result.is_error is True
+    assert result.structured_content == {
+        "success": False,
+        "error": "expected failure",
+        "detail": 7,
+    }
+
+
+def test_negative_verification_without_error_stays_normal_result() -> None:
+    fake = _FakeMCP()
+
+    @EnvelopeMCP(fake).tool()
+    def negative_verification() -> dict[str, Any]:
+        return {"verified": False, "message": "not equal"}
+
+    assert fake.tools["negative_verification"]() == {
+        "verified": False,
+        "message": "not equal",
+    }
+
+
+def test_envelope_mcp_adds_v2_discovery_metadata() -> None:
+    fake = _FakeMCP()
+
+    @EnvelopeMCP(fake).tool()
+    def parse_expression() -> dict[str, Any]:
+        return {"success": True}
+
+    options = fake.options["parse_expression"]
+    assert options["title"] == "Parse Expression"
+    assert options["structured_output"] is True
+    assert options["annotations"].read_only_hint is True
+    assert options["icons"]
+    assert options["meta"]["org.nsforge/responseEnvelope"] == "v1-compatible"
+
+
+@pytest.mark.asyncio
+async def test_async_envelope_preserves_coroutine_and_error_contract() -> None:
+    fake = _FakeMCP()
+
+    @EnvelopeMCP(fake).tool()
+    async def async_crash() -> dict[str, Any]:
+        raise RuntimeError("async boom")
+
+    registered = fake.tools["async_crash"]
+    assert inspect.iscoroutinefunction(registered)
+    result = await registered()
+    assert isinstance(result, CallToolResult)
+    assert result.is_error is True
+    assert result.structured_content["error"]["message"] == "async boom"
 
 
 def test_envelope_mcp_delegates_other_attributes() -> None:

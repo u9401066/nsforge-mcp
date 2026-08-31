@@ -32,6 +32,19 @@ OUT = REPO / "docs" / "agent" / "capabilities.json"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check  # noqa: E402
 
+# The MCP contract is intentionally dependency-free, so the static generator can
+# share the same metadata as the runtime without importing or starting the server.
+sys.path.insert(0, str(REPO / "src"))
+from nsforge_mcp.tool_contract import (  # noqa: E402
+    MCP_PROTOCOL_REVISION,
+    MCP_SDK_REQUIREMENT,
+    MCP_TRANSPORTS,
+    PROMPT_NAMES,
+    RESOURCE_URIS,
+    contract_for,
+    tool_meta,
+)
+
 NORTH_STAR = (
     "Every symbol, equation, value, and line of code in a result has a tool call "
     "as its birth certificate; the AI hand-derives nothing."
@@ -90,10 +103,33 @@ def _is_mcp_tool(dec: ast.expr) -> bool:
     return isinstance(node, ast.Attribute) and node.attr == "tool"
 
 
-def _params(fn: ast.FunctionDef) -> list[dict]:
+FunctionNode = ast.FunctionDef | ast.AsyncFunctionDef
+
+
+def _annotation_name(annotation: ast.expr | None) -> str:
+    """Return the right-most name in an annotation, unwrapping generics/strings."""
+    if annotation is None:
+        return ""
+    if isinstance(annotation, ast.Constant) and isinstance(annotation.value, str):
+        try:
+            return _annotation_name(ast.parse(annotation.value, mode="eval").body)
+        except SyntaxError:
+            return annotation.value.rsplit(".", maxsplit=1)[-1]
+    if isinstance(annotation, ast.Subscript):
+        return _annotation_name(annotation.value)
+    if isinstance(annotation, ast.Name):
+        return annotation.id
+    if isinstance(annotation, ast.Attribute):
+        return annotation.attr
+    return ""
+
+
+def _params(fn: FunctionNode) -> list[dict[str, str | None]]:
+    """Collect public tool inputs, excluding MCP's injected ``Context``."""
     out = []
-    for arg in fn.args.args:
-        if arg.arg in {"self", "cls"}:
+    arguments = [*fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs]
+    for arg in arguments:
+        if arg.arg in {"self", "cls"} or _annotation_name(arg.annotation) == "Context":
             continue
         out.append(
             {
@@ -109,18 +145,23 @@ def collect() -> list[dict]:
     for path in sorted(TOOLS_DIR.glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and any(
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
                 _is_mcp_tool(d) for d in node.decorator_list
             ):
                 doc = ast.get_docstring(node) or ""
                 summary = next((ln.strip() for ln in doc.splitlines() if ln.strip()), "")
+                contract = contract_for(node.name, path.stem)
                 tools.append(
                     {
                         "name": node.name,
                         "module": path.stem,
+                        "title": contract.title,
                         "params": _params(node),
                         "returns": ast.unparse(node.returns) if node.returns else None,
                         "summary": summary,
+                        "annotations": contract.annotations_dict(),
+                        "structured_output": True,
+                        "meta": tool_meta(path.stem),
                     }
                 )
     tools.sort(key=lambda t: (t["module"], t["name"]))
@@ -133,9 +174,26 @@ def build() -> dict:
     optional = _optional_modules()
     default_tools = [t for t in tools if t["module"] not in optional]
     return {
-        "schema": "nsforge.capabilities/v2",
+        "schema": "nsforge.capabilities/v3",
         "version": _project_version(),
         "north_star": NORTH_STAR,
+        "mcp": {
+            "protocol_revision": MCP_PROTOCOL_REVISION,
+            "sdk_requirement": MCP_SDK_REQUIREMENT,
+            "transports": list(MCP_TRANSPORTS),
+            "resources": list(RESOURCE_URIS),
+            "prompts": list(PROMPT_NAMES),
+            "features": [
+                "structured_output",
+                "tool_annotations",
+                "tool_icons",
+                "resources",
+                "resource_templates",
+                "prompts",
+                "progress_notifications",
+                "legacy_client_mode",
+            ],
+        },
         "tool_count": len(tools),
         "default_tool_count": len(default_tools),
         "modules": modules,
