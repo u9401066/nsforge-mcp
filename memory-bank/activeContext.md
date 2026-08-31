@@ -4,6 +4,8 @@
 
 ## 🎯 當前焦點
 
+**v0.4.0 trusted workflow／工具濃縮正在實作（2026-08-31）。** 依 `docs/mcp-tool-surface-v4.md`，本輪保留 legacy 82／full 91 能力，新增固定 tool profiles 與 strict workflow；優先修補非 eval 安全 parser、路徑 containment、驗證失敗仍 codegen，再建立 immutable run／event／verification evidence／artifact、SQLite UoW、ResourceLink、progress／subscription／OTel 共用事件流與 tenant scope。MCP Tasks 仍不假裝支援。
+
 **v0.3.0 / MCP Python SDK 2.1.1 stable 遷移完成（2026-08-31）。** Runtime 已對齊 MCP `2026-07-28` 協定與 `MCPServer`；91 catalog／82 default 工具的既有輸入／輸出 schema 與 JSON payload 維持相容，同時加上 v2 metadata、明確保留 structured dual channel 並新增正確 `isError`。Resources、prompt、progress、cache hints 與 opt-in Streamable HTTP 以加法方式上線，stdio 繼續是預設；所有 HTTP 都有 Host／Origin DNS-rebinding 防護，remote 另需明確旗標、Host allowlist 與外部 auth/TLS。MCP Tasks、內建 OAuth、SSE 等未穩定／不適用能力不在本版範圍。
 
 ### 既有架構基線（截至 2026-07-08）

@@ -177,7 +177,11 @@
 
 ## Doing
 
-- (無進行中項目)
+- 🚧 v0.4.0 trusted workflow：安全 parser、路徑 containment、verification-gated codegen
+- 🚧 strict provenance kernel：immutable run／phase event／verification evidence／artifact + SQLite UoW
+- 🚧 MCP tool profiles：legacy 82／full 91 保留，新增 workflow／scientific／interactive compact surfaces
+- 🚧 MCP 2 primitives：run／artifact resources、ResourceLink、progress／subscription／OTel 共用事件流
+- 🚧 完整回歸、文件／Memory Bank、分段 release commits 與 push
 
 ## Next
 
