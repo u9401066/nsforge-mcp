@@ -34,6 +34,10 @@ def test_repository_rejects_identifier_path_traversal(tmp_path: Path) -> None:
     with pytest.raises(UnsafeStoragePath):
         repository.save("../outside")
 
+    with pytest.raises(UnsafeStoragePath):
+        repository.delete("../outside")
+    assert repository.get("../outside") is not None
+
 
 def test_output_path_rejects_parent_and_symlink_escape(tmp_path: Path) -> None:
     root = tmp_path / "artifacts"

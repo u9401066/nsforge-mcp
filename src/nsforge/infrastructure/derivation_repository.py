@@ -365,10 +365,7 @@ class DerivationRepository:
             if result is None:
                 return False
 
-            # Delete from memory
-            del self._results[result_id]
-
-            # Delete file if requested
+            file_path: Path | None = None
             if delete_file and self._formulas_dir:
                 safe_id = validate_storage_segment(result_id, field="result id")
                 root = self._formulas_dir.resolve()
@@ -381,8 +378,13 @@ class DerivationRepository:
                     category_dir / f"{safe_id}.yaml",
                     field="derivation result path",
                 )
-                if file_path.exists():
-                    file_path.unlink()
+
+            # Resolve and validate every filesystem target before mutating the
+            # in-memory index.  A rejected path therefore cannot cause a
+            # partial delete.
+            del self._results[result_id]
+            if file_path is not None and file_path.exists():
+                file_path.unlink()
 
             return True
 
