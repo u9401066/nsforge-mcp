@@ -22,6 +22,40 @@ Complete reference for all **91 MCP tools** across **11 modules** — **82 loade
 
 ---
 
+## MCP 2.1 discovery and result contract
+
+NSForge 0.3.0 uses MCP Python SDK 2.1.1 with protocol revision
+`2026-07-28`. Every tool explicitly enables `structured_output=True` and advertises
+its `outputSchema`, human-readable
+title, NSForge icon, namespaced `org.nsforge/*` `_meta`, and the four standard
+behavior hints (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`). These hints
+describe intent for hosts; they do not replace authorization or user confirmation.
+
+The SDK 1.25 server already returned tool results through both channels; MCP 2.1
+keeps that behavior explicit and unchanged. The existing response dictionary is
+present in `structuredContent` and serialized as text content. Existing field
+names and payload variants remain the compatibility contract. Handled application errors
+and unexpected exceptions retain their JSON body and additionally set MCP
+`isError=true`; a valid verification outcome of `false` without an `error` field
+is not treated as an execution failure.
+
+`task_run` and `task_explore` report protocol progress at task start and finish.
+The server also exposes additive discovery primitives:
+
+| Kind | URI / name | Purpose |
+| --- | --- | --- |
+| Resource | `nsforge://manifest` | Machine-readable tools, modules, gates, and MCP contract |
+| Resource | `nsforge://health` | Live SDK, protocol, engine, and active-tool inventory |
+| Resource | `nsforge://north-star` | The provenance birth-certificate invariant |
+| Resource template | `nsforge://derivations/{result_id}` | Read stored derivation metadata and a lineage summary |
+| Prompt | `forge_verified_derivation` | Start a provenance-complete, verified derivation workflow |
+
+Stable list/discovery responses carry five-minute public cache hints. stdio is
+the default transport; loopback Streamable HTTP is opt-in. See the
+[README transport example](../README.md#mcp-21-contract) before deploying HTTP.
+
+---
+
 ## 🔥 Derivation engine (31)
 
 Stateful, resumable derivation sessions — the "Forge" in NSForge. Each step can

@@ -75,6 +75,7 @@ uv add --dev pytest ruff
 2. 📖 README 更新（如需要）
 3. 📋 CHANGELOG 更新（如需要）
 4. 🗺️ ROADMAP 標記（如需要）
+5. ✅ `uv run python scripts/check.py`（12 gates，含 `mcp` contract gate）
 
 詳見：`.github/bylaws/git-workflow.md`
 
@@ -98,6 +99,17 @@ uv add --dev pytest ruff
 
 > 詳細說明見 `docs/nsforge-skills-guide.md`
 
+### MCP 2.1 協議規則（NSForge 0.3.0）
+
+- Runtime 使用 `MCPServer`、MCP Python SDK 2.1.1、protocol revision `2026-07-28`。
+- Catalog 共 91 tools；預設 82，music 9 個需 `NSFORGE_ENABLE_MUSIC=1`。
+- 既有工具名稱、input／output schema 與 response payload 是相容性契約；不可為了 MCP 2 metadata 改壞它們。
+- 每個工具必須保有 explicit structured output、title、icon、標準 annotations 與 namespaced `org.nsforge/*` `_meta`。application error 要保留既有 JSON body 並設 protocol `isError`。
+- Discovery 可讀 `nsforge://manifest`、`nsforge://health`、`nsforge://north-star`、`nsforge://derivations/{result_id}`，以及 `forge_verified_derivation` prompt。
+- `task_run`／`task_explore` 會透過 MCP `Context` 回報開始與完成進度；不要把 progress 誤寫成 MCP Tasks extension。
+- stdio 為預設；Streamable HTTP 只在明確 opt-in 時啟用。非 loopback 需 allow flag 與真正的外部 authentication／TLS；allow flag 本身不是安全邊界。
+- MCP 2 sync handlers 可在 worker threads 執行；session／repository 的共享可變狀態與檔案寫入必須維持 thread-safe／atomic。
+
 ### ⚠️ 數學計算黃金法則
 
 > **「先用 SymPy-MCP 計算驗證，再用 NSForge 存檔管理！」**
@@ -106,7 +118,7 @@ uv add --dev pytest ruff
 >
 > **「人類的推導是一步一步的，每步都可加入新元素！」**
 
-#### 📊 108 工具快速選擇指南（v0.2.4）
+#### 📊 工具快速選擇指南（NSForge v0.3.0）
 
 | 我想要... | 用哪個？ | 工具 |
 |-----------|---------|------|
@@ -136,7 +148,7 @@ uv add --dev pytest ruff
 | 程式碼生成 | NSForge | `generate_python_function`, `generate_*` |
 | **優化求解** | **USolver** | 與 `derivation_prepare_for_optimization` 協作 |
 
-> 💡 **76 NSForge + 32 SymPy-MCP = 108 工具！** 詳見各 Skill 文檔。
+> 💡 **NSForge catalog 91（預設 82）＋ SymPy-MCP 32。** 實際連線預設面為 82 個 NSForge tools；詳見各 Skill 文檔。
 
 #### 🔥 步進式推導工作流（核心）
 
@@ -190,7 +202,7 @@ uv add --dev pytest ruff
 
 - 不要直接用 `generate_python_function` 生成未經驗證的程式碼
 - **不要跳過顯示步驟**，用 `print_latex_expression` 或 `derivation_show()` 讓用戶看到公式
-- 不要把 SymPy-MCP 的計算結果存成 YAML 檔案（應存為 Markdown）
+- 不要手動寫入 repository YAML；用 `derivation_complete` 保存，需人類文件時再產 Markdown report
 
 #### 🔄 Handoff 機制：無法計算時怎麼辦？
 

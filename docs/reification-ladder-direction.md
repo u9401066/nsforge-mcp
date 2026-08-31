@@ -1,7 +1,8 @@
 # 方向收斂：實體化階梯（Reification Ladder）
 
 > **Date**: 2026-07-07
-> **Status**: 🧭 Direction Proposal（方向提案，待人類 ratify）
+> **Updated**: 2026-08-31（NSForge 0.3.0 / MCP 2.1.1）
+> **Status**: ✅ Active Architecture Direction（現行架構方向）
 > **Trigger**: 用戶提出核心命題——「讓公式推導、算式實體化、pseudocode 都能從概念變成具體呈現；人與 AI 只在概念層對話，機械式步驟一律工具化」
 > **Supersedes/Consolidates**: `value-proposition-analysis.md`、`design-evolution-derivation-framework.md`、`composable-formula-modification-engine.md`、`reproducible-derivation-tools.md`、`cognitive-load-solution.md` 的核心洞見
 
@@ -13,7 +14,7 @@ NSForge 的願景其實**已經想得很透**，但散落在 6 份 `docs/` 設�
 
 這份文件的目的是把北極星**收斂成一句判準 + 一座階梯 + 四個決策 + 一條路線圖**，讓後續每個實作都能對齊，也讓人類能一次看懂並校正方向。
 
-> ⚠️ 本文中的四個決策是在用戶暫時離線、授權「自主決定」的情況下拍板的**提案版本**。人類回來後可推翻任一決策，路線圖也隨之調整。
+> 本文起初是自主拍板的提案；目前北極星已成為 AGENTS、provenance gate、capability manifest 與 MCP server instructions 共同守衛的現行方向。四個 ADR 的未完成部分仍可經正式決策調整。
 
 ---
 
@@ -58,37 +59,39 @@ flowchart TD
 
 | 階梯 | 現有能力 | 狀態 |
 |------|----------|------|
-| 概念層 | `derivation_start(name, description)` | ⚠️ 概念只是 session 上的字串標籤，不是可操作物件 |
+| 概念層 | 結構化 DTS、`task_plan`、`task_run`、`task_explore` | 🟡 goal／constraints／alternatives 已實體化；尚無完整 Concept lifecycle tools |
 | 算式實體化 | SymPy-MCP `intro_many` / `introduce_expression` + NSForge session | ⚠️ **實體被切成兩半**，靠 `export_for_sympy` / `import_from_sympy` 手動搬運 |
-| 公式推導 | `derivation_record_step` / `substitute` / `simplify` / 滯源 / `rollback` | ✅ 最成熟（87 工具核心） |
-| Pseudocode→Code | `generate_python_function`（從已驗證步驟組裝） | ⚠️ **直接跳到 Python，跳過 pseudocode 那一階** |
-| 列出實體 | `derivation_show()` | 🟡 雛形，非完整「實體檢視器」 |
+| 公式推導 | 31 個 derivation tools + L3 orchestration／explore／provenance | ✅ 最成熟；全目錄 91 tools、預設 82 |
+| Pseudocode→Code | provenance-complete `task_run` 產碼 + 4 個 codegen tools | 🟡 未驗證或溯源不完整時拒絕產碼；仍缺獨立 pseudocode 檢查點 |
+| 列出實體 | `derivation_show()`、`nsforge://manifest`、已存推導 resource template | 🟡 discovery 已補齊，仍非完整 materialization-state 檢視器 |
 
 ---
 
-## 3.5 實作進度（2026-07-07）
+## 3.5 實作進度（更新至 2026-08-31）
 
-方向提出後已落地的部分（皆通過 `python scripts/check.py` 7/7 綠燈驗證）：
+目前由 `python scripts/check.py` 的 12 個 gate 持續守衛：
 
 | 元件 | 產物 | 狀態 |
 |------|------|------|
-| **L0 驗證 harness + CI** | `scripts/check.py`、`.github/workflows/ci.yml` | ✅ 已實作 |
-| **L1 能力清單** | `scripts/gen_capabilities.py`、`docs/agent/capabilities.json`（87 工具自描述） | ✅ 已實作 |
+| **L0 驗證 harness + CI** | `scripts/check.py`、`.github/workflows/ci.yml`（12 gates） | ✅ 已實作 |
+| **L1 能力清單** | `scripts/gen_capabilities.py`、capability manifest v3（91 catalog／82 default） | ✅ 已實作 |
 | **L2 宣告式任務規格 DTS** | `src/nsforge/domain/task_spec.py`（`DerivationTaskSpec`） | ✅ 已實作 |
-| **L3 編排器骨架** | `src/nsforge/application/task_orchestrator.py` + `task_plan`/`task_run` | ✅ 骨架（derivation/algorithm 階段為 `PLANNED`，待接引擎） |
+| **L3 編排器 + explore** | `task_plan`／`task_run`／`task_explore` | ✅ 推導、acceptance、critic-retry、provenance、codegen 已接通 |
+| **MCP 2.1 協議面** | structured output、tool metadata、resources、prompt、progress、`mcp` gate | ✅ 加法式升級；v0.2.4 tool contract 受回歸測試保護 |
 | agent harness 去污染 | `AGENTS.md`、`.clinerules/*` 改 NSForge 專屬 | ✅ 已實作 |
-| P1 實體檢視器 / P2 provenance 強制 / P5 引擎收斂 | — | ⏳ 待辦 |
+| provenance 強制 | `domain/provenance.py` + `provenance` gate | ✅ derivation-level ledger 完整才產碼 |
+| 完整實體檢視器／pseudocode 階／引擎單一狀態 | — | ⏳ 仍在路線圖 |
 
-> L2/L3 讓「大型推導任務」變成可跑的宣告式規格：DTS → 編排器 → 帶 provenance 的工具調用計畫（symbol → derivation → algorithm）。下一步是讓 L3 的 derivation 階段實際驅動 derivation 引擎。
+> L2/L3 已讓「大型推導任務」成為可跑的宣告式規格：DTS → 編排器 → 驗證／修正／探索 → provenance-complete algorithm。下一個架構缺口是把 session、符號假設、單位與 handoff 收斂為完整 materialization-state read model。
 
 ---
 
 ## 4. 四個「概念→實體」的斷點（診斷）
 
-1. **概念層是隱形的。** 概念（「溫度校正的清除率」）只活在對話裡，沒有結構化物件承載「意圖／目標算式／該套哪些修正／約束」。因此無法「列出概念層的實體」。
+1. **概念層只完成一半。** DTS 已承載 goal、base formulas、modifications、acceptance 與 alternatives，但尚無可持續增修、列出的完整 Concept lifecycle。
 2. **實體被兩個引擎瓜分。** `NSForge session` 與 `sympy-mcp state` 各持一半當前實體，靠 handoff 搬運且有損。問「現在到底有哪些符號、什麼假設、單位、算式」時答案散在兩邊。
 3. **Pseudocode 這一階被跳過。** `codegen.py` 是「已驗證步驟 → Python」，缺了 pseudocode 那個**人在邏輯層把關**的中間檢查點。
-4. **信任邊界只是軟約定。** `codegen.py` 註解寫「NEVER generate code for UNVERIFIED calculations」，但那是指令勸導、非結構強制。北極星判準要真正成立，需從 convention 升級成 architecture。
+4. **信任邊界已結構化到 derivation-level。** provenance ledger 與 gate 已禁止未完整溯源的 L3 codegen；尚待把覆蓋粒度深化到每個 symbol／value 與其他獨立 codegen 入口。
 
 ---
 
@@ -135,9 +138,9 @@ flowchart TD
 
 ### ADR-D-D：信任邊界結構化（Provenance Ledger）
 
-- **決定**：每個符號/算式/步驟都攜帶「出生證明」（哪次工具調用產生）。`codegen` / `derivation_complete` 驗證 provenance 覆蓋率，**拒絕沒有出生證明的實體**。
+- **決定**：每個符號/算式/步驟都攜帶「出生證明」（哪次工具調用產生）；完整 L3 workflow 在 codegen 前驗證 provenance 覆蓋率，**拒絕沒有出生證明的實體**。
 - **理由**：把北極星判準從軟約定升級為架構保證。
-- **取捨**：初期可用「警告 + 覆蓋率報告」過渡，再切成硬性拒絕，避免一次性打斷既有工作流。
+- **實作狀態**：原提案考慮先以警告過渡；目前 L3 task codegen 已在 ledger 不完整時硬性拒絕。Session `derivation_complete` 與獨立 codegen tools 尚未套用同一 hard gate，為保留既有 payload／workflow 相容性，本版不宣稱它們已強制拒絕。
 
 ---
 
@@ -147,12 +150,13 @@ flowchart TD
 
 | Phase | 目標 | 風險 | 對應決策 |
 |-------|------|------|----------|
-| **P0（本次）** | 正典對齊：寫本文件、修 projectBrief/productContext、記 decisionLog | 極低（純文件） | — |
-| **P1** | **實體檢視器**：把 `derivation_show()` 擴成 符號/假設/單位/算式/推導樹/產出物 的單一 read-model | 低（唯讀、加法式） | B 的前置 |
-| **P2** | **Provenance Ledger**：每步/符號帶出生證明；codegen/complete 產出覆蓋率報告 → 之後轉硬性拒絕 | 中 | D |
-| **P3** | **Concept 層**：`concept_define` / `concept_add_constraint` / `concept_suggest_modifications` / `concept_reify` | 中 | B |
-| **P4** | **Pseudocode 階梯**：`generate_pseudocode` 檢查點，code gen 綁 provenance + pseudocode | 中 | C |
-| **P5** | **引擎收斂**：逐步內部化 handoff 的 sympy 調用，走向單一真相來源 | 高（最後做） | A |
+| **P0 ✅** | 正典對齊：本文件、Memory Bank、decision log | 極低（純文件） | — |
+| **P1 🟡** | **實體檢視器**：`derivation_show()`、manifest／health／saved-derivation resources 已提供局部 read model；仍待符號／假設／單位／推導樹的單一檢視 | 低（唯讀、加法式） | B 的前置 |
+| **P2 ✅／🟡** | **Provenance Ledger**：derivation-level ledger 與 codegen hard gate 已落地；每符號／值粒度仍待深化 | 中 | D |
+| **P3 🟡** | **Concept 層**：DTS 與 suggester 已落地；`concept_define` 等完整 lifecycle 尚未實作 | 中 | B |
+| **P4 ⏳** | **Pseudocode 階梯**：`generate_pseudocode` 檢查點，code gen 綁 provenance + pseudocode | 中 | C |
+| **P5 🟡** | **引擎收斂**：L3 已直接驅動本地 symbolic engine；複雜操作 handoff 與雙狀態仍存在 | 高（最後做） | A |
+| **MCP ✅** | **協議基座**：MCP 2.1.1 structured output、metadata、resources、prompt、progress、cache hints 與相容性 gate | 低（加法式、契約受測） | 全階段 |
 
 **排序理由**：P1 唯讀、加法式、立即兌現「列出實體」的價值且幾乎零風險；P2 讓北極星有牙齒；P3/P4 補概念與 pseudocode 兩階；P5 這種會動到能運作系統的大改留到最後、且漸進式進行。
 

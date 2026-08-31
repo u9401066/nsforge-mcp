@@ -6,6 +6,8 @@
 
 **專案名稱**：Neurosymbolic Forge (NSForge) — `nsforge-mcp`
 
+**目前版本**：`0.3.0`（MCP Python SDK `2.1.1`）
+
 **一句話描述**：把「概念 → 實體」每一階工具化的 MCP Server；AI 編排、工具實體化，產出可驗證可追溯的符號/推導/演算法。
 
 **目標用戶**：使用支援 MCP 的 AI 客戶端進行精確符號推導的研究者與工程師。
@@ -33,6 +35,8 @@ Presentation → Application → Domain ← Infrastructure
 - 工具編排入 Application
 - sympy-mcp 計算後端、檔案存取入 Infrastructure
 
+MCP 邊界由 v2 `MCPServer` 單一組合根註冊：91 個 catalog 工具（預設 82，`music` 9 個 opt-in）共用 metadata／error envelope，並以 resources、prompt 與 health／manifest 自省原語補充 tool surface。
+
 ## ✨ 核心功能
 
 - 🔨 步進式推導框架（每步可注入人類知識 + 溯源）
@@ -41,6 +45,7 @@ Presentation → Application → Domain ← Infrastructure
 - 📜 程式碼/報告生成（從已驗證步驟組裝，非 AI 徒手生成）
 - 🌐 外部公式搜尋（Wikidata、BioModels、SciPy 常數）
 - 🔗 生態橋接（sympy-mcp handoff、USolver 最佳化）
+- 🧭 MCP 原生自描述（structured output、resources、prompt、progress、cache hints）
 
 ## 🔧 技術棧
 
@@ -49,7 +54,8 @@ Presentation → Application → Domain ← Infrastructure
 | 語言 | Python 3.12+ |
 | 套件管理 | uv（優先） |
 | 符號計算 | SymPy / sympy-mcp（後端） |
-| 協定 | MCP (Model Context Protocol) |
+| 協定 | MCP `2026-07-28`（Python SDK `2.1.1`） |
+| 傳輸 | stdio（預設）／具 Host、Origin 防護的 Streamable HTTP（預設 loopback、opt-in） |
 | Linting | Ruff, ty |
 | 測試 | pytest |
 
@@ -58,8 +64,8 @@ Presentation → Application → Domain ← Infrastructure
 | MCP | 職責 |
 |-----|------|
 | sympy-mcp (32 工具) | 基礎公式、常數、符號計算引擎（ODE/PDE/矩陣） |
-| **nsforge-mcp (76 工具)** | 推導框架、溯源存檔、驗證、實體化、外部搜尋、橋接 |
+| **nsforge-mcp (91 catalog／82 default)** | 推導框架、溯源存檔、驗證、實體化、外部搜尋、橋接；`music` 9 工具 opt-in |
 | usolver-mcp（選配） | 為 NSForge 推導的公式找最佳參數值 |
 
 ---
-*Last updated: 2025-12-15 · Realigned to NSForge: 2026-07-07*
+*Last updated: 2026-08-31 · Realigned to NSForge: 2026-07-07*

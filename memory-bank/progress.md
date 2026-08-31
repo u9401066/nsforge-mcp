@@ -1,6 +1,16 @@
-# Progress (Updated: 2026-07-08)
+# Progress (Updated: 2026-08-31)
 
 ## Done
+
+### 🚀 v0.3.0：MCP Python SDK 2.1.1 stable 遷移 (2026-08-31)
+
+- ✅ Runtime 對齊 MCP `2026-07-28`：`FastMCP` → `MCPServer`，stdio 仍為預設，新增預設 loopback 的 opt-in Streamable HTTP；所有 HTTP 都驗證 Host／Origin，remote 需明確旗標、Host allowlist 與外部 auth/TLS
+- ✅ 保留 91 catalog／82 default 工具與舊 JSON payload；全工具新增 title、icons、annotations／meta、structured output dual channel，失敗 payload 正確標記 MCP `isError`
+- ✅ 新增 resources、prompt、長任務 progress 與穩定目錄 cache hints；未納入 OAuth、MCP Tasks、SSE 等未完成／deprecated 能力
+- ✅ 因 v2 sync handlers 會在 worker threads 執行，已為 session／repository 補上鎖、detached snapshots 與原子寫入；多 client 明確傳 `session_id`，process instance 視為單一 tenant trust boundary
+- ✅ Capabilities manifest v3，harness 11→12 並新增 `mcp` gate；default/full immutable tool-contract golden hashes 為 `c30e84c32d81c2f1656416233e943f54e26d2d825bea14af6788f372b66438f3`／`33dd0c4ef7f05808273eb10e5dd88c4d32a5a15c6b990c0a62b1b319a377b9b3`
+- ✅ 版本升為 `0.3.0`，SDK 2.1.1 的 modern／legacy client modes 經 golden 相容測試保護
+
 ### 🛡️ 統一 error envelope（跨全部工具，1 處邊界） (2026-07-08)
 - ✅ `envelope.py` `EnvelopeMCP`：在 `register_all_tools` 一處包住 FastMCP，每個 `@tool()` 自動套 `with_error_envelope`——未處理例外→一致、記錄過的 `{success:false, error:{type,message,tool}}`
 - ✅ `functools.wraps` 保留簽章，FastMCP schema 不變（實測 calculate_limit 仍 4 參數）；成功／已處理錯誤原樣通過→零契約破壞、tests（用 _FakeMCP）不受影響
@@ -13,7 +23,7 @@
 ### 🧩 Agent harness 完整化：自描述 + 自守衛 (2026-07-08)
 - ✅ **Stage A** manifest v2（`gen_capabilities.py`）：除工具外自描述 version／north_star／module_summaries／live gate 清單（匯自 `check.py`）／commands——單一機讀契約（61ffdcd）
 - ✅ **Stage B** `meta` 模組（`tools/meta.py`）：`nsforge_health`＋`nsforge_manifest` runtime 自省；工具 89→91、雙語 README/tools-reference 同步（ad458b8）
-- ✅ **Stage C** 第 11 gate `harness`（`scripts/harness_selfcheck.py`）：版本單一真相、manifest／gate 對齊、工具自描述品質、AGENTS.md gate 漂移；harness 守衛自身；AGENTS/.clinerules 同步（2889c15）
+- ✅ **Stage C** 第 11 gate `harness`（`scripts/harness_selfcheck.py`）：package version parity、manifest／gate 對齊、工具自描述品質、AGENTS.md gate 漂移；harness 守衛自身；AGENTS/.clinerules 同步（2889c15）
 - ✅ harness 10→11 全綠；CI 本就跑同一 harness
 ### 📖 README 視覺化雙語大改版 + GitHub metadata (2026-07-08)
 - ✅ 建 2 個自含式 SVG（`docs/images/nsforge-hero.svg`、`reification-ladder.svg`）＋ 6 個 Mermaid（生態系／SymPy-first 工作流／explore／步進控制 stateDiagram，中英各 6）取代 ASCII art
@@ -171,6 +181,6 @@
 
 ## Next
 
-- 重啟 MCP 伺服器以載入新工具 (14 個新工具)
-- 實作外部公式搜尋功能 (Wikidata adapter)
-- 測試 apart + inverse_laplace 多隔室 PK 工作流
+- 監測 MCP 2.x client 互通性，特別是 structured dual channel、resources 與 prompt。
+- 若需對外網路部署 Streamable HTTP，除 Host／Origin allowlists 外，先設計 OAuth／外部 IdP 與租戶邊界；transport 防護不當作身分驗證。
+- 待 Python SDK 穩定支援 MCP Tasks 後再另案評估。

@@ -23,6 +23,7 @@ paths:
   - Lint: `uv run ruff check .`
   - Format: `uv run ruff format --check .`
   - Types: `uv run mypy src --ignore-missing-imports`
+  - MCP contract: `uv run python scripts/mcp_contract.py`
   - Tests: `uv run pytest`
 
 ## Discipline
@@ -30,3 +31,5 @@ paths:
 - Add a regression test under `tests/` when fixing a bug.
 - After adding/removing an `@mcp.tool`, regenerate the manifest:
   `python scripts/gen_capabilities.py`.
+- MCP 2 sync handlers may run in worker threads. Protect shared mutable state,
+  use atomic persistence, and add a concurrency regression test for stateful changes.

@@ -16,7 +16,7 @@ Rules for Cline (and other agents) in the Neurosymbolic Forge repository.
 
 ## Canonical Commands
 - One-shot verification: `python scripts/check.py`
-  (gates: lint / format / type / import / manifest / test / bench / generic / provenance / harness / diff)
+  (12 gates: lint / format / type / import / manifest / mcp / test / bench / generic / provenance / harness / diff)
 - Individual gates: `uv run ruff check .`, `uv run mypy src --ignore-missing-imports`, `uv run pytest`
 - Regenerate tool manifest: `python scripts/gen_capabilities.py`
 
@@ -27,6 +27,8 @@ Rules for Cline (and other agents) in the Neurosymbolic Forge repository.
 
 ## Prefer Existing Patterns
 - Keep MCP tool outputs backward-compatible when possible.
+- MCP baseline is SDK 2.1.1 / protocol `2026-07-28` / `MCPServer`; catalog 91,
+  default 82. Preserve tool schemas and response payloads, and run the `mcp` gate.
 - Add focused tests with fixes; keep changes minimal and scoped.
 - Do not weaken mypy strict or skip gates to make checks pass.
 - For product/architecture context, start with `memory-bank/activeContext.md`,

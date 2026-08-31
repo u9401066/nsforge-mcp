@@ -9,9 +9,9 @@ NSForge 是一個 [MCP](https://modelcontextprotocol.io/) 伺服器，透過確�
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
+[![MCP](https://img.shields.io/badge/MCP%20SDK-2.1.1-purple.svg)](https://modelcontextprotocol.io/)
 [![Tools](https://img.shields.io/badge/MCP%20tools-91-8b5cf6.svg)](docs/tools-reference.md)
-[![Harness](https://img.shields.io/badge/verification-10%20gates-brightgreen.svg)](#-驗證-harness)
+[![Harness](https://img.shields.io/badge/verification-12%20gates-brightgreen.svg)](#-驗證-harness)
 
 🌐 [English](README.md) | **繁體中文**
 
@@ -124,6 +124,51 @@ uv run python -c "import nsforge; print(nsforge.__version__)"
 }
 ```
 
+### MCP 2.1 契約
+
+NSForge 0.3.0 採用穩定版 MCP Python SDK 2.1.1 與協議修訂版
+`2026-07-28`。既有 91 工具目錄與回應字典維持相容；MCP 2 client 另可取得：
+
+- 現在明確設定 `structured_output=True`，同時保留既有的
+  `structuredContent`＋文字 dual channel；
+- 應用層失敗會設協議 `isError`，但不更動既有錯誤內容；
+- 每個工具都有 title、icon、行為 annotations 與 namespaced `_meta`；
+- `nsforge://manifest`、`nsforge://health`、`nsforge://north-star`，以及
+  `nsforge://derivations/{result_id}` 已存推導 resource template；
+- `forge_verified_derivation` prompt、穩定 discovery 清單的 cache hints，與
+  `task_run` / `task_explore` 的進度通知。
+
+預設仍使用 stdio；若要明確啟用僅綁定 loopback 介面的 Streamable HTTP：
+
+```bash
+NSFORGE_MCP_TRANSPORT=streamable-http \
+NSFORGE_MCP_HOST=127.0.0.1 \
+NSFORGE_MCP_PORT=8000 \
+NSFORGE_MCP_PATH=/mcp \
+uv run nsforge-mcp
+```
+
+所有 HTTP bind 都會啟用 MCP 2.1 Host／Origin 驗證，防範 DNS rebinding。非
+loopback bind 還必須同時明確確認並提供 Host allowlist，例如：
+
+```bash
+NSFORGE_MCP_TRANSPORT=streamable-http \
+NSFORGE_MCP_HOST=0.0.0.0 \
+NSFORGE_MCP_ALLOW_REMOTE=1 \
+NSFORGE_MCP_ALLOWED_HOSTS=mcp.example.com,mcp.example.com:* \
+uv run nsforge-mcp
+```
+
+瀏覽器 client 還必須設定精確的 `NSFORGE_MCP_ALLOWED_ORIGINS`。Origin allowlist
+留空時，只接受沒有 `Origin` header 的非瀏覽器請求，並拒絕所有帶 Origin 的請求。
+這些檢查不是身分驗證：remote HTTP 仍須置於真正的 authentication、authorization
+與 TLS 邊界後方。Process-wide sessions 與 saved results 屬於同一 trust boundary；
+多 client 部署必須每 tenant 一個 instance，且每次 stateful derivation call 都傳入
+明確的 `session_id`。v0.3.0 的 stateful derivation 僅支援單 process／單 replica；
+沒有 shared durable store 與 distributed locking 時，不可把多副本直接放在 load
+balancer 後方。`NSFORGE_MCP_HTTP_JSON_RESPONSE=1` 是 opt-in，無法串流
+request-scoped progress；需要進度通知時請保留預設值 `0`。
+
 ---
 
 ## 🎬 運作方式 — SymPy-MCP 優先
@@ -164,8 +209,8 @@ flowchart TD
 ```
 
 - `task_plan` — 把 DTS 實體化為帶溯源的有序計畫
-- `task_run` — 端到端跑完整條階梯（可選硬逾時 `timeout_s`）
-- `task_explore` — 分支探索，回傳**所有**驗證候選
+- `task_run` — 端到端跑完整條階梯（可選硬逾時 `timeout_s`；回報 MCP 進度）
+- `task_explore` — 分支探索，回傳**所有**驗證候選（回報 MCP 進度）
 
 > 📖 [泛公式探討路線圖](docs/general-formula-exploration-roadmap.md)
 
@@ -213,15 +258,17 @@ stateDiagram-v2
 
 ## ✅ 驗證 Harness
 
-一個指令即真理。`python scripts/check.py` 跑 **10 個 gate**——全綠就是「完成」的定義。
+一個指令即真理。`python scripts/check.py` 跑 **12 個 gate**——全綠就是「完成」的定義。
 
 ```
-lint · format · type · import · manifest · test · bench · generic · provenance · diff
+lint · format · type · import · manifest · mcp · test · bench · generic · provenance · harness · diff
 ```
 
+- **mcp** — MCP 2.1 discovery、schema、metadata、payload 相容性、resources、prompts 與 legacy-client mode
 - **bench** — 已知推導能正確重現
 - **generic** — *未曾手寫*、隨機組合的公式也能正確推導（證明 NSForge 是推導*演算法*，而非手建公式庫）
 - **provenance** — 每個 benchmark 推導都帶完整溯源帳本（無徒手推導洩漏）
+- **harness** — 用版本、manifest 與 gate／文件一致性守衛驗證器本身
 
 ```bash
 python scripts/check.py            # 所有 gate
@@ -232,7 +279,7 @@ python scripts/check.py --json     # 機器可讀（供 agent）
 
 ## 📚 推導成果庫
 
-推導出的公式帶完整溯源存放——LaTeX、SymPy 形式、組合了哪些基礎公式、推導步驟、驗證狀態、臨床／物理脈絡。
+推導出的公式會保存 derivation metadata 與 lineage 摘要——LaTeX、SymPy 形式、組合了哪些基礎公式、步驟說明、驗證狀態、臨床／物理脈絡。
 
 | 推導 | 領域 | 說明 |
 | ---- | ---- | ---- |
@@ -247,7 +294,7 @@ python scripts/check.py --json     # 機器可讀（供 agent）
 
 ## 🧠 Agent 技能
 
-NSForge 內建 **19 個技能**，教 agent 如何有效使用工具——6 個 NSForge 工作流（`nsforge-derivation-workflow`、`nsforge-formula-search`、`nsforge-verification-suite`…）加上 13 個通用開發技能。
+NSForge 內建 **20 個技能**，教 agent 如何有效使用工具——7 個 NSForge 工作流（`nsforge-derivation-workflow`、`nsforge-formula-search`、`nsforge-verification-suite`…）加上 13 個通用開發技能。
 
 > 📖 [NSForge 技能指南](docs/nsforge-skills-guide.md)
 
@@ -275,7 +322,7 @@ DDD 架構，純領域核心搭配可替換的 MCP 層（`nsforge` 核心**不�
 ```bash
 uv sync --all-extras     # 環境
 uv run pytest            # 測試
-python scripts/check.py  # 完整 harness（10 gate）
+python scripts/check.py  # 完整 harness（12 gate）
 uv run nsforge-mcp       # 啟動伺服器
 ```
 

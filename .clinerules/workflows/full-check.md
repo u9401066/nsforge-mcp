@@ -6,7 +6,7 @@ Run the verification harness — the single ground-truth gate for this repo.
 <command>uv run python scripts/check.py</command>
 </execute_command>
 
-This runs all gates: lint, format, type, import, manifest, test, bench, generic, provenance, harness, diff.
+This runs all 12 gates: lint, format, type, import, manifest, mcp, test, bench, generic, provenance, harness, diff.
 Exit code 0 means green; nonzero means at least one gate failed.
 
 For a machine-readable summary (agents):

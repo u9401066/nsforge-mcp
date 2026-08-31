@@ -20,6 +20,30 @@ CONSTITUTION.md (最高原則)
 
 ## 🛠️ 設計模式
 
+### MCP v2 註冊邊界
+
+- `MCPServer` 是唯一 server runtime，`EnvelopeMCP` 在單一邊界為 91 個工具套用 title、icons、annotations／meta 與 structured output。
+- 既有工具仍回傳原 JSON payload；v2 成功結果同時產生 text／structured content，失敗 envelope 額外設 MCP `isError`。
+- Resources 與 prompt 是加法式原語，不取代舊 tools；長任務透過 `Context` 回報 progress，僅穩定目錄回應使用 cache hints。
+
+### 相容契約模式
+
+- Capabilities manifest v3 是 agent 的機讀契約，同時描述 MCP 協定、primitives、transports 與每工具 metadata。
+- 第 12 個 `mcp` gate 同時驗證 91 catalog／82 default、modern／legacy client、dual-channel／`isError` 與 primitives。
+- Default／full 工具 schema 以 golden SHA-256 鎖定，遷移時只允許加法式增強；任何工具消失或輸入／輸出 schema 漂移都會使 gate 失敗。
+
+### Worker-thread 狀態安全
+
+- MCP SDK v2 的 sync handler 會在 worker thread 執行；所有可變 session／repository 操作必須在鎖內完成 read-modify-write。
+- 狀態持久化使用「同目錄暫存檔 → `os.replace`」的原子寫入，避免並發或中斷導致半份 YAML／JSON。
+
+### Transport 安全邊界
+
+- stdio 是預設；Streamable HTTP 需顯式 opt-in 且預設只綁定 loopback。
+- 每個 HTTP bind 都傳入 `TransportSecuritySettings`；非 loopback 還需明確 allow flag、非空 Host allowlist 與真正的外部 auth/TLS。Browser Origin 必須精確 allow；空 Origin allowlist 拒絕所有 supplied Origin。
+- Process-wide session fallback／repository 是單一 trust boundary；多 client 的 stateful call 必須明確傳 `session_id`，每 tenant 一個 instance。JSON-response mode 不串流 request-scoped progress。
+- Transport allowlists 不是 authentication。MCP Tasks 尚未由 SDK 穩定實作，SSE 與其他 deprecated 路徑不納入。
+
 ### Repository Pattern
 - 介面在 Domain 層定義
 - 實作在 Infrastructure 層
@@ -56,7 +80,7 @@ CONSTITUTION.md (最高原則)
 - 使用 pytest markers 分類
 
 ---
-*Last updated: 2026-01-04*
+*Last updated: 2026-08-31*
 
 ## MCP-to-MCP 協作模式
 

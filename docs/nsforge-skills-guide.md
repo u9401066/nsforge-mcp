@@ -6,7 +6,7 @@
 
 ### 數學計算黃金法則
 
-> **「先用 SymPy-MCP 計算驗證，再用 NSForge 存檔管理！」**
+> **「每個機械步驟都交給確定性工具；NSForge 可處理的推導直接在 NSForge 完成，超出邊界才 handoff 給 SymPy-MCP！」**
 >
 > **「每步計算都要用 `print_latex_expression` 顯示給用戶確認！」**
 
@@ -14,22 +14,21 @@
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  Phase 1: SymPy-MCP 執行計算                                │
+│  Phase 1: 確定性工具執行計算                               │
 │  ─────────────────────────────────────────────────────────  │
-│  1. intro_many([...])              # 定義變數              │
-│  2. introduce_expression(...)      # 建立表達式            │
-│  3. substitute/solve/dsolve...     # 執行運算              │
-│  4. print_latex_expression(...)    # ⚠️ 顯示給用戶確認！   │
+│  1. NSForge DTS/session             # 一般推導              │
+│  2. NSForge calculate/simplify      # 支援的直接運算        │
+│  3. SymPy-MCP handoff               # ODE/PDE/矩陣等邊界    │
+│  4. derivation_show / LaTeX         # ⚠️ 顯示給用戶確認！   │
 ├─────────────────────────────────────────────────────────────┤
 │  Phase 2: 用戶確認結果                                      │
 │  ─────────────────────────────────────────────────────────  │
 │  Agent: 「計算結果是 $E = mc^2$，這個正確嗎？」             │
 ├─────────────────────────────────────────────────────────────┤
-│  Phase 3: NSForge 存檔知識                                  │
+│  Phase 3: NSForge 保存知識                                  │
 │  ─────────────────────────────────────────────────────────  │
-│  1. derivation_start(...)          # 開始會話（可選）      │
-│  2. 建立 Markdown 文件             # 人類可讀格式          │
-│     formulas/derivations/xxx.md    # 正確的存檔位置        │
+│  1. derivation_complete(...)        # repository + lineage metadata│
+│  2. generate_derivation_report(...)# 需要時另產 Markdown   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -37,16 +36,17 @@
 
 | 任務 | 使用工具 | 原因 |
 |------|----------|------|
-| **數學計算** | SymPy-MCP | ODE/PDE、矩陣、單位換算等完整功能 |
-| **公式顯示** | `print_latex_expression` | 每步都要顯示給用戶確認！ |
-| **知識存檔** | Markdown 文件 | 存到 `formulas/derivations/` |
+| **一般符號推導** | NSForge | session、驗證與 provenance 在同一工作流 |
+| **超出能力邊界的計算** | SymPy-MCP handoff | ODE/PDE、矩陣、單位換算等完整功能 |
+| **公式顯示** | `derivation_show`／LaTeX tool | 每步都要顯示給用戶確認！ |
+| **知識存檔** | `derivation_complete` | 由 repository 原子化保存，不手改檔案 |
 | **維度檢查** | NSForge `check_dimensions` | 驗證物理維度 |
 
 ### ❌ 禁止行為
 
 1. **不要跳過公式顯示** - 用戶需要看到並確認每步結果
-2. **不要存成 YAML** - 存檔格式應為 Markdown（參考 `formulas/derivations/` 範例）
-3. **不要直接生成程式碼** - 先用 SymPy-MCP 驗證計算正確性
+2. **不要手寫 repository YAML** - 用 `derivation_complete`；需要人類文件時再生成 Markdown report
+3. **不要對未完成確定性驗證或 provenance 不完整的推導直接產碼** - 只有超出 NSForge 能力邊界時才 handoff 給 SymPy-MCP
 
 ---
 
@@ -54,7 +54,7 @@
 
 ### 為什麼需要 Skills？
 
-NSForge 提供 **41 個 MCP 工具**，直接丟給 Agent 會造成：
+NSForge 提供 **91 個 MCP tools（預設載入 82；music 9 個 opt-in）**，沒有工作流指引時會造成：
 - 🤯 工具太多，不知道從哪開始
 - 🔄 工具使用順序混亂
 - ❌ 忘記關鍵步驟（如驗證、存檔）
@@ -63,6 +63,17 @@ NSForge 提供 **41 個 MCP 工具**，直接丟給 Agent 會造成：
 1. 何時使用這組工具
 2. 工具的正確調用順序
 3. 每步的成功/失敗處理
+
+### MCP 2.1 discovery（v0.3.0）
+
+連線後可先讀 `nsforge://health` 與 `nsforge://manifest`，或使用
+`forge_verified_derivation` prompt 建立 provenance-first 工作流。每個 tool 都有
+title、icon、read-only／destructive／idempotent／open-world annotations，以及
+`org.nsforge/*` metadata。回應同時提供文字與 `structuredContent`；應用層錯誤會設
+`isError=true`，但既有錯誤欄位保持不變。`task_run`／`task_explore` 會回報 MCP
+progress，因此 agent 不需自行猜測長任務是否仍在執行。
+若 HTTP 部署啟用 `NSFORGE_MCP_HTTP_JSON_RESPONSE=1`，request-scoped progress 沒有
+串流通道；需要這些通知時應保留預設 streaming response。
 
 ### 架構總覽
 
@@ -266,11 +277,11 @@ generate_sympy_script(expressions, operations)
 ### 💡 設計理念
 
 有時候只需要**快速計算**，不需要完整的推導會話：
-- 簡化一個表達式
-- 求解一個方程
-- 快速微分/積分
+- 展開、因式分解或化簡一個表達式
+- 計算極限、級數、求和或數值
+- 解析、驗證表達式與抽取符號
 
-這些工具是**無狀態**的，直接輸入得到輸出。
+這些工具是**無狀態**的，直接輸入得到輸出。代入、求解、微分與積分要保留完整 step／lineage 記錄時，改用 `derivation_*` session workflow；需要 hard-gated `ProvenanceLedger` 時使用 `task_run`／`task_explore`。
 
 ### ✅ 能完成的任務
 
@@ -279,26 +290,27 @@ generate_sympy_script(expressions, operations)
 | 簡化 | 「簡化 (x²-1)/(x-1)」 |
 | 展開 | 「展開 (a+b)³」 |
 | 因式分解 | 「分解 x²-5x+6」 |
-| 求解 | 「解 x² + 2x - 3 = 0」 |
-| 微分 | 「對 sin(x²) 微分」 |
-| 積分 | 「積分 1/(1+x²)」 |
-| 代入 | 「把 x=2 代入 x²+3x」 |
+| 極限 | 「計算 sin(x)/x 在 0 的極限」 |
+| 級數 | 「展開 exp(x) 的 Taylor series」 |
+| 求和 | 「計算有限符號求和」 |
 | 數值計算 | 「計算 sin(π/4) 的值」 |
 
 ### 🔧 使用的工具
 
 ```
-simplify(expression, method)           # 簡化
-expand(expression)                     # 展開
-factor(expression)                     # 因式分解
-solve(equation, variable, domain)      # 求解
-differentiate(expr, var, order)        # 微分
-integrate(expr, var, lower, upper)     # 積分
-substitute(expr, substitutions)        # 代入
-evaluate_numeric(expr, substitutions)  # 數值計算
-parse_expression(expr, format)         # 解析表達式
-validate_expression(expr, format)      # 驗證表達式
-extract_symbols(expression)            # 提取符號
+expand_expression(expression)              # 展開
+factor_expression(expression)              # 因式分解
+trigsimp_expression(expression)            # 三角化簡
+calculate_limit(expression, variable, ...) # 極限
+calculate_series(expression, variable, ...)# 級數
+calculate_summation(expression, variable, ...) # 求和
+evaluate_numeric(expression, substitutions)# 數值計算
+parse_expression(expression)               # 解析表達式
+validate_expression(expression)            # 驗證表達式
+extract_symbols(expression)                 # 提取符號
+
+# 需要代入／求解／微分／積分與完整 step/lineage 時，使用 derivation_* session tools。
+# 需要 hard-gated ProvenanceLedger 時，使用 task_run / task_explore。
 ```
 
 ### 📋 Agent 會看到的觸發詞
@@ -310,79 +322,31 @@ extract_symbols(expression)            # 提取符號
 
 ---
 
-## 工具總覽（46 個）
+## 工具總覽（91 個 catalog／預設 82）
 
-### 推導引擎（22 個）
-| 工具 | 說明 |
-|------|------|
-| `derivation_start` | 開始推導會話 |
-| `derivation_resume` | 恢復暫停的會話 |
-| `derivation_list_sessions` | 列出所有會話 |
-| `derivation_status` | 當前會話狀態 |
-| `derivation_load_formula` | 載入公式 |
-| `derivation_substitute` | 代入操作 |
-| `derivation_simplify` | 簡化 |
-| `derivation_solve_for` | 求解變數 |
-| `derivation_differentiate` | 微分 |
-| `derivation_integrate` | 積分 |
-| `derivation_get_steps` | 取得所有步驟 |
-| `derivation_get_step` | 🆕 取得單一步驟詳情 |
-| `derivation_update_step` | 🆕 更新步驟元資料 |
-| `derivation_delete_step` | 🆕 刪除最後一步 |
-| `derivation_rollback` | 🆕 回滾到指定步驟 |
-| `derivation_insert_note` | 🆕 插入說明 |
-| `derivation_complete` | 完成推導 |
-| `derivation_abort` | 放棄推導 |
-| `derivation_list_saved` | 列出已存檔 |
-| `derivation_get_saved` | 取得已存檔 |
-| `derivation_search_saved` | 搜尋已存檔 |
-| `derivation_update_saved` | 更新已存檔 |
-| `derivation_delete_saved` | 刪除已存檔 |
-| `derivation_repository_stats` | 統計資訊 |
+| 模組 | 數量 | 主要用途 |
+| --- | :---: | --- |
+| Derivation | 31 | session、推導步驟、repository、handoff |
+| Calculate | 12 | 極限、級數、求和、不等式、機率與數值 |
+| Simplify / transforms | 14 | 進階代數、Laplace、Fourier |
+| Verify | 6 | 等價、導數、積分、解、維度、反向驗證 |
+| Formula | 6 | Wikidata、BioModels、SciPy 開放來源 |
+| Codegen | 4 | Python、LaTeX、Markdown、SymPy script |
+| Expression | 3 | parse、validate、extract symbols |
+| Task | 3 | `task_plan`、`task_run`、`task_explore` |
+| Suggest | 1 | retrieval-augmented 下一步排序 |
+| Meta | 2 | `nsforge_health`、`nsforge_manifest` |
+| Music（opt-in） | 9 | symbolic audio demo；`NSFORGE_ENABLE_MUSIC=1` |
 
-### 計算工具（10 個）
-| 工具 | 說明 |
-|------|------|
-| `simplify` | 簡化表達式 |
-| `substitute` | 代入數值 |
-| `solve` | 求解方程 |
-| `differentiate` | 微分 |
-| `integrate` | 積分 |
-| `expand` | 展開 |
-| `factor` | 因式分解 |
-| `evaluate_numeric` | 數值計算 |
-| `symbolic_equal` | 符號等價 |
-
-### 表達式工具（3 個）
-| 工具 | 說明 |
-|------|------|
-| `parse_expression` | 解析表達式 |
-| `validate_expression` | 驗證表達式 |
-| `extract_symbols` | 提取符號 |
-
-### 驗證工具（6 個）
-| 工具 | 說明 |
-|------|------|
-| `verify_equality` | 等式驗證 |
-| `verify_derivative` | 導數驗證 |
-| `verify_integral` | 積分驗證 |
-| `verify_solution` | 方程解驗證 |
-| `check_dimensions` | 維度分析 |
-| `reverse_verify` | 反向驗證 |
-
-### 程式碼生成（4 個）
-| 工具 | 說明 |
-|------|------|
-| `generate_python_function` | 生成 Python 函數 |
-| `generate_latex_derivation` | 生成 LaTeX |
-| `generate_derivation_report` | 生成報告 |
-| `generate_sympy_script` | 生成 SymPy 腳本 |
+工具名稱、參數與用途的單一真相是
+[`docs/tools-reference.md`](tools-reference.md)；機器可讀契約是
+[`docs/agent/capabilities.json`](agent/capabilities.json)。
 
 ---
 
 ## 🔧 與 SymPy-MCP 的整合
 
-NSForge 專注於**知識管理**，而 SymPy-MCP 提供**底層符號計算**。兩者互補：
+NSForge 專注於**可驗證推導、溯源與成果管理**，並內建常用符號運算；SymPy-MCP 補上 ODE／PDE、矩陣等較廣的底層計算。兩者互補：
 
 ### 何時用 NSForge vs SymPy-MCP
 
@@ -575,7 +539,7 @@ Agent 使用 Skill: derivation-workflow
 用戶：「sin(x)² + cos(x)² 等於多少？」
 
 Agent 使用 Skill: quick-calculate
-1. simplify("sin(x)**2 + cos(x)**2")
+1. trigsimp_expression("sin(x)**2 + cos(x)**2")
 → 回答：1
 ```
 

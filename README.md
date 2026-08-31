@@ -9,9 +9,9 @@ NSForge is an [MCP](https://modelcontextprotocol.io/) server that *forges* new f
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-green.svg)](https://www.python.org/)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
+[![MCP](https://img.shields.io/badge/MCP%20SDK-2.1.1-purple.svg)](https://modelcontextprotocol.io/)
 [![Tools](https://img.shields.io/badge/MCP%20tools-91-8b5cf6.svg)](docs/tools-reference.md)
-[![Harness](https://img.shields.io/badge/verification-10%20gates-brightgreen.svg)](#-verification-harness)
+[![Harness](https://img.shields.io/badge/verification-12%20gates-brightgreen.svg)](#-verification-harness)
 
 🌐 **English** | [繁體中文](README.zh-TW.md)
 
@@ -124,6 +124,54 @@ uv run python -c "import nsforge; print(nsforge.__version__)"
 }
 ```
 
+### MCP 2.1 contract
+
+NSForge 0.3.0 runs on the stable MCP Python SDK 2.1.1 and protocol revision
+`2026-07-28`. The existing 91-tool catalog and response dictionaries remain
+compatible, while MCP 2 clients also receive:
+
+- `structured_output=True` is now explicit while preserving the existing
+  `structuredContent` + text dual channel;
+- protocol `isError` on application failures, without changing the legacy error body;
+- a title, icon, behavioral annotations, and namespaced `_meta` on every tool;
+- `nsforge://manifest`, `nsforge://health`, `nsforge://north-star`, and the
+  `nsforge://derivations/{result_id}` saved-derivation resource template;
+- the `forge_verified_derivation` prompt, cache hints for stable discovery lists,
+  and progress notifications from `task_run` / `task_explore`.
+
+stdio remains the default. To opt in to a loopback Streamable HTTP endpoint:
+
+```bash
+NSFORGE_MCP_TRANSPORT=streamable-http \
+NSFORGE_MCP_HOST=127.0.0.1 \
+NSFORGE_MCP_PORT=8000 \
+NSFORGE_MCP_PATH=/mcp \
+uv run nsforge-mcp
+```
+
+Every HTTP bind enables MCP 2.1 Host/Origin validation against DNS rebinding.
+A non-loopback bind additionally requires an explicit acknowledgement and Host
+allowlist, for example:
+
+```bash
+NSFORGE_MCP_TRANSPORT=streamable-http \
+NSFORGE_MCP_HOST=0.0.0.0 \
+NSFORGE_MCP_ALLOW_REMOTE=1 \
+NSFORGE_MCP_ALLOWED_HOSTS=mcp.example.com,mcp.example.com:* \
+uv run nsforge-mcp
+```
+
+Browser clients must also set an exact `NSFORGE_MCP_ALLOWED_ORIGINS` list. An
+empty Origin allowlist accepts non-browser requests with no `Origin` header and
+rejects every supplied Origin. These checks are not authentication: put remote
+HTTP behind real authentication, authorization, and TLS. Process-wide sessions
+and saved results form one trust boundary, so run one instance per tenant and
+pass an explicit `session_id` to every stateful derivation call in multi-client
+deployments. Stateful derivations are single-process/single-replica in v0.3.0;
+do not place replicas behind a load balancer without a shared durable store and
+distributed locking. `NSFORGE_MCP_HTTP_JSON_RESPONSE=1` is opt-in and cannot
+stream request-scoped progress; leave its default `0` for progress notifications.
+
 ---
 
 ## 🎬 How it works — SymPy-MCP first
@@ -164,8 +212,8 @@ flowchart TD
 ```
 
 - `task_plan` — reify a DTS into an ordered, provenance-tagged plan
-- `task_run` — run the ladder end-to-end (optional hard `timeout_s`)
-- `task_explore` — branching search returning **all** verified candidates
+- `task_run` — run the ladder end-to-end (optional hard `timeout_s`; reports MCP progress)
+- `task_explore` — branching search returning **all** verified candidates (reports MCP progress)
 
 > 📖 [General-formula-exploration roadmap](docs/general-formula-exploration-roadmap.md)
 
@@ -211,15 +259,17 @@ stateDiagram-v2
 
 ## ✅ Verification harness
 
-One command is the ground truth. `python scripts/check.py` runs **10 gates** — a green run is the definition of "done".
+One command is the ground truth. `python scripts/check.py` runs **12 gates** — a green run is the definition of "done".
 
 ```
-lint · format · type · import · manifest · test · bench · generic · provenance · diff
+lint · format · type · import · manifest · mcp · test · bench · generic · provenance · harness · diff
 ```
 
+- **mcp** — MCP 2.1 discovery, schemas, metadata, payload compatibility, resources, prompts, and legacy-client mode
 - **bench** — known derivations reproduce correctly
 - **generic** — *unseen*, randomly-composed formulas derive correctly (proves NSForge is a derivation *calculus*, not a hand-built library)
 - **provenance** — every benchmark derivation carries a complete tool-provenance ledger (no hand-derived leaks)
+- **harness** — version, manifest, and gate/document parity guard the verifier itself
 
 ```bash
 python scripts/check.py            # all gates
@@ -230,7 +280,7 @@ python scripts/check.py --json     # machine-readable (for agents)
 
 ## 📚 Derivation repository
 
-Derived formulas are stored with full provenance — LaTeX, SymPy form, the base formulas combined, the steps taken, verification status, and clinical/physical context.
+Derived formulas are stored with derivation metadata and a lineage summary — LaTeX, SymPy form, the base formulas combined, step descriptions, verification status, and clinical/physical context.
 
 | Derivation | Domain | Description |
 | ---------- | ------ | ----------- |
@@ -245,7 +295,7 @@ Derived formulas are stored with full provenance — LaTeX, SymPy form, the base
 
 ## 🧠 Agent skills
 
-NSForge ships **19 pre-built skills** that teach agents how to use the tools — 6 NSForge workflows (`nsforge-derivation-workflow`, `nsforge-formula-search`, `nsforge-verification-suite`, …) plus 13 general development skills.
+NSForge ships **20 pre-built skills** that teach agents how to use the tools — 7 NSForge workflows (`nsforge-derivation-workflow`, `nsforge-formula-search`, `nsforge-verification-suite`, …) plus 13 general development skills.
 
 > 📖 [NSForge Skills Guide](docs/nsforge-skills-guide.md)
 
@@ -273,7 +323,7 @@ DDD with a pure domain core and a replaceable MCP layer (`nsforge` core has **no
 ```bash
 uv sync --all-extras     # set up
 uv run pytest            # tests
-python scripts/check.py  # full harness (10 gates)
+python scripts/check.py  # full harness (12 gates)
 uv run nsforge-mcp       # start the server
 ```
 

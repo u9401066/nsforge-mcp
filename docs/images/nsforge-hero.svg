@@ -67,7 +67,7 @@
     <rect x="762" y="108" width="330" height="40" rx="20" fill="#0e1830" stroke="#334155"/>
     <text x="786" y="134" fill="#c4b5fd">91 MCP tools</text>
     <circle cx="904" cy="128" r="2.5" fill="#64748b"/>
-    <text x="920" y="134" fill="#93c5fd">10-gate harness</text>
+    <text x="920" y="134" fill="#93c5fd">12-gate harness</text>
   </g>
 
   <defs>

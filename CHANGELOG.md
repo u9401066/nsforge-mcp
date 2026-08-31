@@ -7,23 +7,30 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-31
+
 ### Added
 
-- 🛡️ **統一 error envelope（跨全部工具）** — `EnvelopeMCP`（`src/nsforge_mcp/envelope.py`）在 `register_all_tools` 一處包住 FastMCP，讓每個 `@tool()` 未處理的例外都變成一致、記錄過的 `{success: false, error: {type, message, tool}}`；`functools.wraps` 保留簽章故 JSON schema 不變（實測 `calculate_limit` 仍有 expression/variable/point/direction）。成功與既有已處理錯誤輸出原樣通過——**改 1 處、不動任何工具本體、零契約破壞**。
+- 🧭 **MCP 2 discovery primitives** — 新增 `nsforge://manifest`、`nsforge://health`、`nsforge://north-star` resources、`nsforge://derivations/{result_id}` 已存推導 resource template，以及 `forge_verified_derivation` prompt；穩定 list/discovery 回應帶五分鐘 public cache hints。
+- 🧪 **第 12 個 `mcp` gate** — official in-memory client 同時驗證預設 82／完整 91 工具、v0.2.4 schema 與 payload hash、全工具 metadata、structured output、application-error `isError`、resources、prompt、cache hints 與 legacy-client mode；release harness 共 12 gates。
+- 🛡️ **MCP 2 統一結果 envelope（跨全部工具）** — `EnvelopeMCP` 在 `register_all_tools` 邊界替每個工具明確設定 `structured_output=True`；SDK 1.25 已有的 `structuredContent`＋text dual channel 及其 body／hash 完整保留。本次另替既有錯誤 JSON 加上 protocol `isError=true` semantic signal；未處理例外仍統一為 `{success: false, error: {type, message, tool}}`，`functools.wraps` 保留簽章與既有 schema。
 - 🏭 **生產級強化（tool 收斂＋wheel 打包＋可觀測性）** — (1) **精簡預設面**：`music`（9 工具）改 opt-in（`NSFORGE_ENABLE_MUSIC=1`），預設 91→82（少工具＝更好的工具選擇）；`nsforge_mcp/config.py` 單一真相、manifest 加 `optional_modules`／`default_tool_count`、`nsforge_health` 報告 active vs catalog。(2) **manifest 打包進 wheel**（hatch force-include），`uvx` 安裝也能自描述。(3) **stderr 結構化啟動日誌**（`NSFORGE_LOG_LEVEL`）＋伺服器 `website_url`／版本 metadata。harness 亦守衛 `nsforge_mcp.__version__`（第三份版本）與 optional metadata。
-- 🧩 **Agent harness 完整化（自描述＋自守衛）** — agents 賴以工作的基座現在自描述且自守衛：manifest **v2**（`docs/agent/capabilities.json` 除工具外自描述 version／north-star／module summaries／live gate 清單（匯自 `check.py`）／commands）；runtime 自省 MCP 工具 `nsforge_health`＋`nsforge_manifest`（新 `meta` 模組，工具 89→91）；第 11 個 **`harness` gate**（`scripts/harness_selfcheck.py`：版本單一真相、manifest／gate 對齊、工具自描述品質、AGENTS.md gate 漂移偵測）。harness 10→11。
-- 🌳 **explore mode（roadmap 階段 6）** — `task_explore`（`application/explorer.py`）：把 DTS 的 `alternatives` 當分支，對 base＋每個 alternative 各跑完整 L3 迴圈，回傳**所有**驗證候選（依 verified>通過神諭數>簡潔排序，各帶 acceptance＋provenance）。把「推導一個答案」變成「探索驗證過的答案空間」。工具 88→89。
-- � **infra 純程式碼收尾：DI 組合根 + process-pool timeout** — `nsforge_mcp/composition.py`：組合根（frozen `Services`：engine/verifier/session_manager/repository）+ `get_services()`（雙重檢查鎖），object graph「建一次、注入」的單一組裝點；`task.py`／`derivation.py` 全改走它（消除每次 `new` engine/verifier、自有 `_manager` 全域與 7 處重複 `Path("formulas")`）。`nsforge/infrastructure/timeout.py` `run_with_timeout`（spawn 子行程硬牆鐘逾時、超時即 terminate→`ComputationTimeout`）；`task_run`/`task_explore` 加 opt-in `timeout_s`，可真殺失控推導。
-- �🧬 **provenance ledger 強制（roadmap 階段 5）** — 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並新增 `provenance` gate（`scripts/provenance.py`）驗證每個 benchmark 推導都可溯源。harness 9→10。把北極星從約定升級成架構。
+- 🧩 **Agent harness 完整化（自描述＋自守衛）** — agents 賴以工作的基座現在自描述且自守衛：manifest **v3**（`docs/agent/capabilities.json` 自描述 version／north-star／modules／12 個 live gates／MCP contract／commands）；runtime 自省 MCP tools `nsforge_health`＋`nsforge_manifest`；`harness` gate 另守衛版本單一真相、manifest／gate 對齊、工具 metadata 品質與 AGENTS.md 漂移。
+- 🌳 **explore mode（roadmap 階段 6）** — `task_explore`（`application/explorer.py`）：把 DTS 的 `alternatives` 當分支，對 base＋每個 alternative 各跑完整 L3 迴圈，回傳**所有**驗證候選（依 verified>通過神諭數>簡潔排序，各帶 acceptance＋provenance）。把「推導一個答案」變成「探索驗證過的答案空間」。
+- 🧱 **infra 純程式碼收尾：DI 組合根 + process-pool timeout** — `nsforge_mcp/composition.py`：組合根（frozen `Services`：engine/verifier/session_manager/repository）+ `get_services()`（雙重檢查鎖），object graph「建一次、注入」的單一組裝點；`task.py`／`derivation.py` 全改走它（消除每次 `new` engine/verifier、自有 `_manager` 全域與 7 處重複 `Path("formulas")`）。`nsforge/infrastructure/timeout.py` `run_with_timeout`（spawn 子行程硬牆鐘逾時、超時即 terminate→`ComputationTimeout`）；`task_run`/`task_explore` 加 opt-in `timeout_s`，可真殺失控推導。
+- 🧬 **provenance ledger 強制（roadmap 階段 5）** — 每個推導帶「出生證明」帳本（`domain/provenance.py`：base 公式＝input、每步＝工具、最終＝engine）；`task_run` 的 codegen **只在 provenance 完整時才產碼**（拒無溯源產物），並由 `provenance` gate（`scripts/provenance.py`）驗證每個 benchmark 推導都可溯源。把北極星從約定升級成架構。
 - 🔁 **自我修正環（roadmap 階段 4）** — `task_run` 的 `run()` 成 critic-retry 迴圈：base 推導未通過 acceptance 時，依 DTS 新增的 `alternatives`（候選修正）逐一重試、重跑神諭，取第一個通過者；全程記於 `TaskRunResult.attempts`。閉環「探索→驗證→修正→再驗證」。
-- � **接完推導階梯（roadmap A）** — `task_run` 現在跑完 concept → symbol → derivation → **verify** → **code**：新增 `solve_for`（`engine.solve` 隳離未知數，如 `d=v*t`→`t=d/v`）、**ALGORITHM 產碼**（純 `domain/codegen.py` 把已驗證推導組成 Python 函數，回傳 `generated_code`）、**acceptance 神諭執行**（equivalence/boundary/limit 走引擎、dimensional 走 domain Verifier；回傳每項結果與單一 `verified` 信任旗標）；DTS 的 `assumptions`（如 `k>0`）接入符號上下文使極限正確。新增 `engine.limit`。
-- 🧭 **檢索增強推薦器（roadmap C）** — `derivation_suggest_next(goal, current_expression, candidates)`（`domain/suggester.py` 純排序 + `tools/suggest.py`）：依「候選是否定義現況符號＋目標詞重疊」排序開放來源候選（retrieve-then-rank，學自 ReProver）。工具 87→88。
-- �🧪 **通用性 gate（`generic`）** — `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案交叉比對（40/40）。結構性證明 NSForge 是通用推導演算法、非手建公式庫。harness 8 → 9 gate。（roadmap 階段 2 延伸）
-- 🧪 **推導評測 gate（`bench`）** — `benchmarks/*.json`（4 個已知推導：PK/力學/電路）+ `scripts/bench.py`：用引擎 `equals` 符號比對推導結果與期望（順序無關）。harness 7 → 8 gate，把「程式碼綠」升級成「推導正確」。（roadmap 階段 2）
+- 🪜 **接完推導階梯（roadmap A）** — `task_run` 現在跑完 concept → symbol → derivation → **verify** → **code**：新增 `solve_for`（`engine.solve` 隔離未知數，如 `d=v*t`→`t=d/v`）、**ALGORITHM 產碼**（純 `domain/codegen.py` 把已驗證推導組成 Python 函數，回傳 `generated_code`）、**acceptance 神諭執行**（equivalence/boundary/limit 走引擎、dimensional 走 domain Verifier；回傳每項結果與單一 `verified` 信任旗標）；DTS 的 `assumptions`（如 `k>0`）接入符號上下文使極限正確。新增 `engine.limit`。
+- 🧭 **檢索增強推薦器（roadmap C）** — `derivation_suggest_next(goal, current_expression, candidates)`（`domain/suggester.py` 純排序 + `tools/suggest.py`）：依「候選是否定義現況符號＋目標詞重疊」排序開放來源候選（retrieve-then-rank，學自 ReProver）。
+- 🧪 **通用性 gate（`generic`）** — `scripts/genericity.py`：程序化隨機生成「從未手寫」的公式組合，過 L3 編排器後與**獨立** SymPy `.subs()` 參考答案交叉比對（40/40）。結構性證明 NSForge 是通用推導演算法、非手建公式庫。（roadmap 階段 2 延伸）
+- 🧪 **推導評測 gate（`bench`）** — `benchmarks/*.json`（5 個已知推導：PK／力學／電路）+ `scripts/bench.py`：用引擎 `equals` 符號比對推導結果與期望（順序無關），把「程式碼綠」升級成「推導正確」。（roadmap 階段 2）
 
 ### Changed
 
-- 📖 **README 大改版（雙語 + 視覺化）** — 以自含式 SVG（hero、實體化階梯）＋ Mermaid 流程圖（生態系、SymPy-first 工作流、explore、步進控制）取代 ASCII art；龐大工具表移至 `docs/tools-reference.md`（89 工具、10 模組的單一真相）；工具數校正（75/87→89）、補上 task／suggest／music 模組與實體化階梯敘事；中英文對照同步。GitHub 描述更新、新增 16 個 topics。
+- 🚀 **MCP stable 2.x 升級** — 專案升至 0.3.0、`mcp>=2.1.1,<3` 與 protocol revision `2026-07-28`，server 由 `FastMCP` 遷移至 `MCPServer`。91 個 catalog tools（預設 82、music 9 opt-in）的名稱、輸入／輸出 schema 及既有回應 payload 保持相容；每個工具新增 title、icon、標準 annotations 與 namespaced `org.nsforge/*` `_meta`。`task_run`／`task_explore` 透過 MCP `Context` 回報實際進度。
+- 🌐 **安全的 transport 選擇** — stdio 仍為預設；新增明確 opt-in 的 loopback Streamable HTTP（host／port／path／JSON response／stateless 可由環境設定）。所有 HTTP bind 都以 MCP 2.1 `TransportSecuritySettings` 驗證 Host／Origin；非 loopback 綁定需 `NSFORGE_MCP_ALLOW_REMOTE=1`、明確 Host allowlist 與外部 authentication／authorization／TLS。Process state 是單一 trust boundary，多 client 須明確傳 `session_id` 並每 tenant 使用獨立 instance；JSON-response mode 不串流 request-scoped progress。
+- 🔒 **並行狀態與持久化強化** — 因應 MCP 2 worker-thread 執行模型，`SessionManager`、每個 `DerivationSession` 與 `DerivationRepository` 加入 re-entrant locking；session mutation／複合操作序列化、compound read 與 completion 使用 detached point-in-time snapshot，YAML 以同目錄暫存檔及 atomic replace 寫入，避免競態與半寫檔案。
+- 📖 **README 大改版（雙語 + 視覺化）** — 以自含式 SVG（hero、實體化階梯）＋ Mermaid 流程圖（生態系、SymPy-first 工作流、explore、步進控制）取代 ASCII art；完整工具表移至 `docs/tools-reference.md`（91 tools、11 modules；82 default）的單一真相，並補上 MCP 2.1 contract、resources／prompt 與安全 transport 範例；中英文對照同步。
 - ♻️ **維度分析下沉 domain（roadmap B）** — SI 維度邏輯集中到 `infrastructure/dimensional.py`（單一真相，化約成基本維度使 `N/kg`==`m/s**2`），`domain` 的 `BasicVerifier.check_dimensions` 真正實作（消除 "not yet implemented" stub），MCP `check_dimensions` 工具委派同一 helper（DRY）。
 
 ## [0.2.4] - 2026-01-21
